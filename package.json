@@ -1,0 +1,33 @@
+{
+    "name": "extension",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "build": "BUILD_ARG='--sourcemap=inline' ./scripts/build.sh",
+        "release-build": "BUILD_ARG='--minify --tree-shaking=true' ./scripts/build.sh"
+    },
+    "eslintConfig": {
+        "extends": "react-app"
+    },
+    "prettier": {
+        "semi": false
+    },
+    "dependencies": {
+        "@emotion/react": "^11.13.3",
+        "@emotion/styled": "^11.13.0",
+        "@mui/material": "^6.1.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.271",
+        "@types/jest": "^29.2.0",
+        "@types/react-dom": "^18.0.6",
+        "chrome-types": "^0.1.305",
+        "ts-jest": "^29.0.3",
+        "typescript": "^4.8.4"
+    },
+    "content_security_policy": {
+        "extension_pages": ""
+    }
+}
