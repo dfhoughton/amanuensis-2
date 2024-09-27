@@ -38,3 +38,13 @@ export interface CitationRecord extends PhraseInContext {
   selection: Selection // where the text was found on the page
   source: SourceRecord // the page where the text was found
 }
+
+export interface Word {
+  word: string,
+  citations: CitationRecord[]
+}
+
+export interface dictionary {
+  language: string,
+  words: Word[]
+}
