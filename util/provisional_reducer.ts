@@ -1,4 +1,4 @@
-import { ContentSelection, Word } from "../types/common"
+import { Citation, ContentSelection, Word } from "../types/common"
 
 export type Action =
   | { action: "selection"; selection: ContentSelection }
@@ -12,20 +12,19 @@ export type AppState = {
 export function wordReducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "selection":
+      const citation: Citation = {
+        word: action.selection.phrase,
+        when: new Date(),
+        where: "",
+        context: {
+          before: action.selection.before,
+          after: action.selection.after,
+          instance: 0,
+        },
+      }
       const word: Word = {
         lemma: action.selection.phrase,
-        citations: [
-          {
-            word: action.selection.phrase,
-            when: new Date(),
-            where: "",
-            context: {
-              before: action.selection.before,
-              after: action.selection.after,
-              instance: 0,
-            },
-          },
-        ],
+        citations: [citation],
       }
       return { ...state, word }
     case "upper":
