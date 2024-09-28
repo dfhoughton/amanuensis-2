@@ -1,7 +1,8 @@
 import { Container, Typography } from "@mui/material"
 import React, { createContext, useReducer } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
-import { AppState, wordReducer } from "../util/provisional_reducer"
+import { wordReducer } from "../util/provisional_reducer"
+import { AppState } from "../types/common"
 
 const WordContext = createContext<AppState>({})
 

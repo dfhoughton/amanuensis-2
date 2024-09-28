@@ -1,3 +1,5 @@
+import { Word } from "./common"
+
 // a representation of a selection
 export type Selection = {
   path: string // somewhat optimized/generalized CSS selector to find the common parent node holding the anchor and focus
@@ -60,3 +62,6 @@ export interface dictionary {
   language: string,
   words: Word[]
 }
+export type AppState = {
+  word?: Word;
+};

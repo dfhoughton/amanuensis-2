@@ -1,13 +1,9 @@
-import { Citation, ContentSelection, Word } from "../types/common"
+import { AppState, Citation, ContentSelection, Word } from "../types/common"
 
 export type Action =
   | { action: "selection"; selection: ContentSelection }
   | { action: "upper" }
   | { action: "lower" }
-
-export type AppState = {
-  word?: Word
-}
 
 export function wordReducer(state: AppState, action: Action): AppState {
   switch (action.action) {
