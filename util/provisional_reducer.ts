@@ -1,18 +1,55 @@
 import { ContentSelection, Word } from "../types/common"
 
-interface Action {
-  action: string
-  rest: any
+export type Action =
+  | { action: "selection"; selection: ContentSelection }
+  | { action: "upper" }
+  | { action: "lower" }
+
+export type AppState = {
+  word?: Word
 }
 
-export function wordReducer(word: Word, action: Action) {
+export function wordReducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "selection":
-      return { word: (action.rest as ContentSelection).phrase }
+      const word: Word = {
+        lemma: action.selection.phrase,
+        citations: [
+          {
+            word: action.selection.phrase,
+            when: new Date(),
+            where: "",
+            context: {
+              before: action.selection.before,
+              after: action.selection.after,
+              instance: 0,
+            },
+          },
+        ],
+      }
+      return { ...state, word }
     case "upper":
-      return { word: word.word?.toLocaleUpperCase() }
+      if (state.word) {
+        const word = state.word
+        return {
+          ...state,
+          word: { ...word, lemma: word.lemma.toLocaleUpperCase() },
+        }
+      } else {
+        return { ...state }
+      }
+    case "lower":
+      if (state.word) {
+        const word = state.word
+        return {
+          ...state,
+          word: { ...word, lemma: word.lemma.toLocaleLowerCase() },
+        }
+      } else {
+        return { ...state }
+      }
     default:
       console.error({ wut: action })
-      return word
+      return state
   }
 }

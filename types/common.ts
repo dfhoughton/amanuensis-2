@@ -39,9 +39,21 @@ export interface CitationRecord extends PhraseInContext {
   source: SourceRecord // the page where the text was found
 }
 
-export interface Word {
+export interface Citation {
   word: string,
-  citations: CitationRecord[]
+  context: {
+    before: string,
+    after: string,
+    instance: number // if there is more than one phrase with this before and after, which one is it
+  },
+  when: Date,
+  where: string, // the URL of the tab
+  note?: string // 
+}
+
+export interface Word {
+  lemma: string,
+  citations: Citation[]
 }
 
 export interface dictionary {

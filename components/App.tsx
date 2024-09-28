@@ -1,37 +1,28 @@
 import { Container, Typography } from "@mui/material"
 import React, { createContext, useReducer } from "react"
-import { usePort } from "../lib/hooks"
-import { MessageFromBackgroundToPopup } from "../util/switchboard"
-import { wordReducer } from "../util/provisional_reducer"
+import { useConnectionToBackground } from "../lib/hooks"
+import { AppState, wordReducer } from "../util/provisional_reducer"
 
-const WordContext = createContext<{ word?: string }>({})
+const WordContext = createContext<AppState>({})
 
 const App: React.FC = () => {
-  const [word, dispatch] = useReducer(wordReducer, {})
-  const dispatcher = (message: MessageFromBackgroundToPopup) => {
-    switch (message.action) {
-      case "selection":
-        console.log("selection", message.selection)
-        dispatch({action: 'selection', rest: message.selection})
-        break
-      case "url":
-        console.log("url", message.url)
-        break
-      default:
-        console.log({ message })
-    }
-  }
-  const port = usePort(dispatcher)
+  const [state, dispatch] = useReducer(wordReducer, {})
+  useConnectionToBackground(dispatch)
   return (
-    <WordContext.Provider value={word}>
+    <WordContext.Provider value={state}>
       <Container>
         <Typography variant="h4" component="h1" gutterBottom>
           Hello, world!
         </Typography>
         <div>
-          {word.word || 'not yet defined'}
+          {state.word === undefined ? <i>no word yet</i> : state.word.lemma}
         </div>
-        <button onClick={() => dispatch({action: 'upper'})}>UPPER</button>
+        {state.word !== undefined && (
+          <>
+            <button onClick={() => dispatch({ action: "upper" })}>UPPER</button>
+            <button onClick={() => dispatch({ action: "lower" })}>lower</button>
+          </>
+        )}
       </Container>
     </WordContext.Provider>
   )
