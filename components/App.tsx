@@ -1,5 +1,5 @@
 import { Container, Typography } from "@mui/material"
-import React, { createContext, useReducer } from "react"
+import React, { createContext, useReducer, useState } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
 import { wordReducer } from "../util/provisional_reducer"
 import { AppState } from "../types/common"
@@ -8,6 +8,7 @@ const WordContext = createContext<AppState>({})
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(wordReducer, {})
+  const [matches, setMatches] = useState<string[]>([])
   useConnectionToBackground(dispatch)
   return (
     <WordContext.Provider value={state}>
@@ -24,6 +25,13 @@ const App: React.FC = () => {
             <button onClick={() => dispatch({ action: "lower" })}>lower</button>
           </>
         )}
+        <div>
+          <Typography variant="h3" component="h2">
+            Search Experiment
+          </Typography>
+          <input id="search"></input>
+          <button onClick={() => {}}>search</button>
+        </div>
       </Container>
     </WordContext.Provider>
   )

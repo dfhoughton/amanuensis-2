@@ -1,5 +1,3 @@
-import { Word } from "./common"
-
 // a representation of a selection
 export type Selection = {
   path: string // somewhat optimized/generalized CSS selector to find the common parent node holding the anchor and focus
@@ -42,26 +40,28 @@ export interface CitationRecord extends PhraseInContext {
 }
 
 export interface Citation {
-  word: string,
+  word: string
   context: {
-    before: string,
-    after: string,
+    before: string
+    after: string
     instance: number // if there is more than one phrase with this before and after, which one is it
-  },
-  when: Date,
-  where: string, // the URL of the tab
-  note?: string // 
+  }
+  when: Date
+  where: string // the URL of the tab
+  note?: string //
 }
 
 export interface Word {
-  lemma: string,
+  lemma: string
   citations: Citation[]
 }
 
 export interface dictionary {
-  language: string,
+  language: string
   words: Word[]
 }
+
 export type AppState = {
-  word?: Word;
-};
+  word?: Word
+  url?: string
+}

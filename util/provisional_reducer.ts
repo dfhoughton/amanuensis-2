@@ -4,6 +4,7 @@ export type Action =
   | { action: "selection"; selection: ContentSelection }
   | { action: "upper" }
   | { action: "lower" }
+  | { action: "url"; url: string }
 
 export function wordReducer(state: AppState, action: Action): AppState {
   switch (action.action) {
@@ -11,7 +12,7 @@ export function wordReducer(state: AppState, action: Action): AppState {
       const citation: Citation = {
         word: action.selection.phrase,
         when: new Date(),
-        where: "",
+        where: state.url || "",
         context: {
           before: action.selection.before,
           after: action.selection.after,
@@ -43,6 +44,8 @@ export function wordReducer(state: AppState, action: Action): AppState {
       } else {
         return { ...state }
       }
+    case "url":
+      return { ...state, url: action.url }
     default:
       console.error({ wut: action })
       return state

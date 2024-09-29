@@ -24,11 +24,12 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
   switch (msg.action) {
     case "open":
       chrome.tabs.query({ active: true }, (tabs) => {
-        const tab = tabs[0]
-        if (tab) {
-          const { url } = tab
+        const { url } = tabs[0]
+        if (url) {
           sendToContent({ action: "getSelection" })
           sendToPopup({ action: "url", url })
+        } else {
+          console.log('no active tab with a URL')
         }
       })
       break
