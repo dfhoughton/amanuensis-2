@@ -1,7 +1,5 @@
-import {
-  Citation,
-  Highlights,
-} from "./types/common"
+import { Citation, Highlights } from "./types/common"
+import { squish, wspat, wsrx } from "./util/string"
 import {
   MessageFromBackgroundToContent,
   MessageFromContentToBackground,
@@ -36,12 +34,6 @@ function commonParent(anchor: Node, focus: Node) {
       return aParents[i - 1]
     }
     i += 1
-  }
-}
-
-function squish(string: string) {
-  if (string) {
-    return string.replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ")
   }
 }
 
@@ -86,8 +78,8 @@ function wrapSelection(): Citation | undefined {
   const parent = commonParent(ap, fp)
   const context = squish(parent.textContent ?? "") ?? ""
   const i = context.indexOf(phrase)
-  const before = context.substr(0, i),
-    after = context.substr(i + phrase.length)
+  const before = context.substring(0, i),
+    after = context.substring(i + phrase.length)
   return {
     word: phrase,
     before,
@@ -105,35 +97,37 @@ function highlight(citation: Citation): Highlights {
     preservedCase: true,
   }
   const phrase = citation.word
+  let rx = wsrx(phrase)
+  if (rx === undefined) return rv
+
   let normalizingCase = false
   const body = document.body
-  let candidates = gatherHighlights(phrase, body, normalizingCase)
+  let candidates = gatherHighlights(phrase, body, rx)
   if (candidates.length === 0) {
     // maybe there has been some fiddling with case on the page?
     rv.preservedCase = false
     normalizingCase = true
-    candidates = gatherHighlights(
-      phrase.toLocaleLowerCase(),
-      body,
-      normalizingCase
-    )
+    rx = wsrx(phrase, true)!
+    candidates = gatherHighlights(phrase, body, rx)
   }
   if (candidates.length === 0) return rv
-  let fullContext = citation.before + phrase + citation.after
-  if (normalizingCase) fullContext = fullContext.toLocaleLowerCase()
+  // we need to match before and the phrase so we can calculate the context
+  let fullContext = `(${wspat(citation.before)})(${wspat(phrase)})${wspat(citation.after)}`
+  let fcrx = normalizingCase
+    ? new RegExp(fullContext, "i")
+    : new RegExp(fullContext)
   let seekFullContext = (rv.preservedContext = false)
   let elementsToHighlight: HTMLElement[]
   if (candidates.length === 1) {
+    seekFullContext = rv.preservedContext = fcrx.test(
+      candidates[0]!.textContent ?? ""
+    )
     elementsToHighlight = candidates
   } else {
     // filter down to those with the correct context
-    const primeCandidates = candidates.filter((e) => {
-      const t =
-        (normalizingCase
-          ? e.textContent?.toLocaleLowerCase()
-          : e.textContent) || ""
-      return t.indexOf(fullContext) > -1
-    })
+    const primeCandidates = candidates.filter((e) =>
+      fcrx.test(e.textContent ?? "")
+    )
     if (primeCandidates.length) {
       seekFullContext = rv.preservedContext = true
       elementsToHighlight = primeCandidates
@@ -142,33 +136,37 @@ function highlight(citation: Citation): Highlights {
     }
   }
   document.getSelection()?.removeAllRanges()
-  const searchPhrase = seekFullContext
-    ? fullContext
-    : normalizingCase
-    ? phrase.toLocaleLowerCase()
-    : phrase
-  const offset = seekFullContext ? citation.before.length : 0
+  const searchRx = seekFullContext ? fcrx : rx
   for (const c of elementsToHighlight) {
     let n = 0
-    let t = c.textContent!
-    if (normalizingCase) t = t.toLocaleLowerCase()
+    let t = c.textContent ?? ""
     while (n < t.length) {
-      let start = t.indexOf(searchPhrase, n)
-      if (start === -1) {
-        break
-      } else {
-        n = start + searchPhrase.length
-        start = start + offset
-        const end = start + phrase.length
+      let m = t.substring(n).match(searchRx)
+      if (m) {
+        let matchedString,
+          bs = "",
+          ss
+        const offset = m.index!
+        if (seekFullContext) {
+          [matchedString, bs, ss] = m
+        } else {
+          [matchedString] = m
+          ss = matchedString
+        }
+        n = offset + matchedString.length
+        const start = offset + bs.length
+        const end = start + ss.length
         const range = new Range()
-        let s = elementAndOffset(c, start);
-        if (!s) continue;
-        let e = elementAndOffset(c, end);
-        if (!e) continue;
+        let s = elementAndOffset(c, start)
+        if (!s) continue
+        let e = elementAndOffset(c, end)
+        if (!e) continue
         range.setStart(...s)
         range.setEnd(...e)
         document.getSelection()?.addRange(range)
         rv.matches++
+      } else {
+        break
       }
     }
   }
@@ -183,14 +181,17 @@ function highlight(citation: Citation): Highlights {
 
 // given a node, return the child node at a particular text offset and the offset within
 // the child corresponding to the offset
-function elementAndOffset(e: HTMLElement, offset: number): [ChildNode, number] | undefined {
-  let n = 0;
+function elementAndOffset(
+  e: HTMLElement,
+  offset: number
+): [ChildNode, number] | undefined {
+  let n = 0
   for (const c of e.childNodes) {
-    const l = (c.textContent ?? '').length
+    const l = (c.textContent ?? "").length
     if (n + l < offset) {
       n += l
     } else {
-      const o = offset - n;
+      const o = offset - n
       if (c.nodeType === 3) return [c, o]
       return elementAndOffset(c as HTMLElement, o)
     }
@@ -201,41 +202,29 @@ function elementAndOffset(e: HTMLElement, offset: number): [ChildNode, number] |
 function gatherHighlights(
   phrase: string,
   node: HTMLElement,
-  normalizeCase: boolean
+  rx: RegExp
 ): HTMLElement[] {
   if (node.childNodes.length === 1 && node.childNodes[0].nodeType === 1)
-    return gatherHighlights(
-      phrase,
-      node.childNodes[0] as HTMLElement,
-      normalizeCase
-    )
+    return gatherHighlights(phrase, node.childNodes[0] as HTMLElement, rx)
   const candidates = Array.from(node.childNodes)
     .filter((n: any) => n.nodeType === 1)
     .filter((n: any) => !(n.tagName === "SCRIPT" || n.tagName === "STYLE"))
-    .filter((n: any) => {
-      let t = n.textContent || ""
-      t = normalizeCase ? t.toLocaleLowerCase() : t
-      return t.indexOf(phrase) > -1
-    })
+    .filter((n: any) => rx?.test(n.textContent ?? ""))
   // the following handles the case where we had it in the parent node but we can't find it among
   // the children
   if (candidates.length === 0) {
     // maybe the children just have part of it
-    let t = node.textContent || ''
-    if (normalizeCase) t = t.toLocaleLowerCase();
-    if (t && t.indexOf(phrase) > -1)
-      return [node]
+    if (rx?.test(node.textContent ?? "")) return [node]
     return []
   }
   if (candidates.length === 1) {
     const c = candidates[0] as HTMLElement
-    if (c.childNodes[0]?.nodeType === 1)
-      return gatherHighlights(phrase, c, normalizeCase)
+    if (c.childNodes[0]?.nodeType === 1) return gatherHighlights(phrase, c, rx)
     // we've drilled down deep enough
     return [c]
   }
   return candidates
-    .map((n) => gatherHighlights(phrase, n as HTMLElement, normalizeCase))
+    .map((n) => gatherHighlights(phrase, n as HTMLElement, rx))
     .flat(1)
 }
 
