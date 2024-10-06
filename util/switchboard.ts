@@ -3,32 +3,33 @@
  *
  */
 
-import { CitationRecord, ContentSelection } from "../types/common"
+import { Citation, Highlights } from "../types/common"
 
 export type MessageFromBackgroundToPopup =
   | { action: "url"; url?: string }
   | { action: "reloaded"; url?: string }
   | {
     action: "selection"
-    selection: ContentSelection
+    selection: Citation
     source: { title?: string; url?: string }
   }
 | Extract<
       MessageFromContentToBackground,
-      { action: "error" } | { action: "noSelection" }
+      { action: "error" } | { action: "noSelection" } | { action: "highlight"}
     >
 
 export type MessageFromBackgroundToContent =
   | { action: "getSelection" }
-  | { action: "goto"; citation: CitationRecord }
+  | { action: "goto"; citation: Citation }
   | { action: "load"; url: string }
-  | { action: "select"; selection: CitationRecord }
+  | { action: "select"; selection: Citation }
 
 export type MessageFromContentToBackground =
   | { action: "open" }
-  | { action: "selection"; selection: ContentSelection }
+  | { action: "selection"; selection: Citation }
   | { action: "noSelection" }
   | { action: "error"; message: string }
+  | { action: "highlight", highlights: Highlights }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }

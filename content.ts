@@ -1,4 +1,7 @@
-import { CitationRecord, ContentSelection } from "./types/common"
+import {
+  Citation,
+  Highlights,
+} from "./types/common"
 import {
   MessageFromBackgroundToContent,
   MessageFromContentToBackground,
@@ -8,200 +11,8 @@ console.log("content is ready for action...")
 /*
 Send non-trivial selections to the background process to prepare for annotation.
 
-Selections are serialized as the selection, its context -- text before and after -- and
-a selector to find its node.
+Selections are serialized as the selection and its context -- text before and after
 */
-
-// count the number of hits for a complete path
-const cachedPathCounts = new Map()
-function countHits(path) {
-  let count = cachedPathCounts[path]
-  if (count != null) {
-    return count
-  }
-  count = document.querySelectorAll(path).length
-  cachedPathCounts[path] = count
-  return count
-}
-
-/*
-given a list of classes (strings), return all sublists producible by deleting some
-members of the list, so, from ["foo", "bar", "baz"], ["", ".foo", ".bar", ".baz", ".foo.bar", ".foo.baz", ".bar.baz", ".foo.bar.baz"]
-the list is de-duped, so [1,1,1] returns ["", ".1", ".1.1", ".1.1.1"]
-*/
-function classCombinations(ar) {
-  const l = ar.length
-  const seen: Set<string> = new Set()
-  if (l) {
-    const n = 1 << l
-    const combinations: string[] = []
-    for (let i = 0; i < n; i++) {
-      let a = i,
-        s = ""
-      for (let j = 0; j < l; j++) {
-        if (a & 1) {
-          s += "." + ar[j]
-        }
-        a = a >> 1
-        if (!a) {
-          break
-        }
-      }
-      if (!seen.has(s)) {
-        seen.add(s)
-        combinations.push(s)
-      }
-    }
-    return combinations
-  }
-}
-
-// how selective is a particular class?
-const classUses: Map<string, number> = new Map()
-function hits(cz: string) {
-  let n = classUses[cz]
-  if (!n) {
-    // n will necessarily never be 0 after the line below
-    n = document.getElementsByClassName(cz).length
-    classUses[cz] = n
-  }
-  return n
-}
-
-// escapes weird characters in class names
-function escapeClass(cz: string): string {
-  const chars: string[] = []
-  const conv = function (c) {
-    return "\\" + c.codePointAt(0).toString(16) + " "
-  }
-  for (let i = 0; i < cz.length; i++) {
-    const c = cz.charAt(i)
-    if (/[\w-]/.test(c)) {
-      if (i || !/[\d-]/.test(c)) {
-        chars.push(c)
-      } else {
-        chars.push(conv(c))
-      }
-    } else {
-      chars.push(conv(c))
-    }
-  }
-  return chars.join("").replace(/ $/, "")
-}
-
-function escapeClasses(classes: string[]) {
-  const ar: string[] = []
-  for (let i = 0; i < classes.length; i++) {
-    ar.push(escapeClass(classes[i]))
-  }
-  return ar
-}
-
-// to reduce combinatorial explosions when looking for a good path, prune the class list to 4 or fewer useful classes
-function optimalClasses(classes: string[]) {
-  const uniq: Set<string> = new Set()
-  for (let i = 0; i < classes.length; ) {
-    if (uniq.has(classes[i])) {
-      classes.splice(i, 1)
-    } else {
-      uniq.add(classes[i])
-      i += 1
-    }
-  }
-  classes = escapeClasses(classes)
-  if (classes.length <= 4) {
-    return classes
-  }
-  classes.sort(function (a, b) {
-    // prefer the less common class
-    let cmp = hits(a) - hits(b)
-    if (!cmp) {
-      // prefer the class with a shorter name
-      cmp = a.length - b.length
-    }
-    if (!cmp) {
-      // as a tie breaker, prefer the class earlier in alphabetical order
-      cmp = a < b ? -1 : 1
-    }
-    return cmp
-  })
-  return classes.slice(0, 4)
-}
-
-// collect a set of ways one might find a particular node which we can then winnow down
-function descriptors(n: Node): string[] {
-  let descriptors: string[] = [n.nodeName]
-  if (n.hasOwnProperty("classList")) {
-    const node = n as HTMLElement
-    if (node.id) {
-      descriptors.push(`${node.nodeName}#${node.id}`)
-    }
-    let classes = classCombinations(optimalClasses([...node.classList]))
-    if (classes) {
-      let rv: string[] = []
-      for (let i = 0; i < classes.length; i++) {
-        let c = classes[i]
-        for (let j = 0; j < descriptors.length; j++) {
-          if (c) {
-            rv.push(descriptors[j] + c)
-          } else {
-            rv.push(descriptors[j])
-          }
-        }
-      }
-      return rv
-    } else {
-      return descriptors
-    }
-  } else {
-    return descriptors
-  }
-}
-
-// find a selector that is not terribly long but as specifically as possible identifies the given node
-const pathSymbol = Symbol("best path")
-function simplestPath(node: Node | null, suffix?: string): string | undefined {
-  if (node === null) return suffix
-  let path
-  if (!suffix) {
-    path = node[pathSymbol]
-    if (path) {
-      return path
-    }
-  }
-  let paths = descriptors(node)
-  if (suffix) {
-    for (let i = 0; i < paths.length; i++) {
-      paths[i] = paths[i] + " > " + suffix
-    }
-  }
-  path = paths.sort(function (a, b) {
-    return (
-      countHits(a) - countHits(b) || a.length - b.length || (a <= b ? -1 : 1)
-    )
-  })[0]
-  if (
-    ((node as HTMLElement).tagName &&
-      (node as HTMLElement).tagName === "BODY") ||
-    countHits(path) === 1
-  ) {
-    if (!suffix) {
-      node[pathSymbol] = path
-    }
-    return path
-  }
-  const maybeBetterPath = simplestPath(node.parentNode as Node, path)
-  if (countHits(path) <= countHits(maybeBetterPath)) {
-    if (!suffix) {
-      node[pathSymbol] = path
-    }
-    return path
-  }
-  if (!suffix) {
-    node[pathSymbol] = maybeBetterPath
-  }
-  return maybeBetterPath
-}
 
 function parents(node: Node) {
   const ar = [node]
@@ -226,26 +37,6 @@ function commonParent(anchor: Node, focus: Node) {
     }
     i += 1
   }
-}
-
-function absolutePath(ancestor: Node, descendant: Node): string {
-  let n = descendant
-  const steps: string[] = []
-  while (n !== ancestor) {
-    const children = n.parentNode!.children
-    for (let i = 0; i < children.length; i++) {
-      if (children[i] === n) {
-        steps.unshift(`:nth-child(${i + 1})`)
-        break
-      }
-    }
-    if (n && n.parentNode) {
-      n = n.parentNode! as Node
-    } else {
-      break
-    }
-  }
-  return steps.join(" > ")
 }
 
 function squish(string: string) {
@@ -274,29 +65,8 @@ function describeSelectionNode(n: Node, offset: number): NodeDescription {
   return { offset, node: n }
 }
 
-type TrimmedNode = {
-  path: string
-  offset: number
-  parentOffset?: number
-}
-
-// simplify the representation of a node
-function trimNode({
-  offset,
-  path,
-  parentOffset,
-  parent,
-}: NodeDescription): TrimmedNode {
-  if (path === undefined) throw "the object passed to trimNode must have a path"
-  if (parent) {
-    return { path, offset, parentOffset }
-  } else {
-    return { path, offset }
-  }
-}
-
 // extract the useful information out of a selection
-function wrapSelection(): ContentSelection | undefined {
+function wrapSelection(): Citation | undefined {
   const selection = document.getSelection()
   if (!selection || selection.isCollapsed) {
     return
@@ -318,63 +88,155 @@ function wrapSelection(): ContentSelection | undefined {
   const i = context.indexOf(phrase)
   const before = context.substr(0, i),
     after = context.substr(i + phrase.length)
-  const path = simplestPath(parent)!,
-    anchorPath = absolutePath(parent, ap),
-    focusPath = absolutePath(parent, fp)
-  anchor.path = anchorPath
-  focus.path = focusPath
   return {
-    phrase,
+    word: phrase,
     before,
     after,
-    selection: { path, anchor: trimNode(anchor), focus: trimNode(focus) },
+    when: new Date(),
   }
 }
 
-function findSelection({ phrase, before, after, selection }) {
-  const context = before + phrase + after
-  const candidates = document.querySelectorAll(selection.path)
-  for (let i = 0; i < candidates.length; i++) {
-    const candidate = candidates[i]
-    if ((squish(candidate.textContent) ?? "").indexOf(context) > -1) {
-      return candidate
+// a better highlighting function that relies on content, not ephemeral document structure
+// returns the number of instances highlighted
+function highlight(citation: Citation): Highlights {
+  const rv: Highlights = {
+    matches: 0,
+    preservedContext: true,
+    preservedCase: true,
+  }
+  const phrase = citation.word
+  let normalizingCase = false
+  const body = document.body
+  let candidates = gatherHighlights(phrase, body, normalizingCase)
+  if (candidates.length === 0) {
+    // maybe there has been some fiddling with case on the page?
+    rv.preservedCase = false
+    normalizingCase = true
+    candidates = gatherHighlights(
+      phrase.toLocaleLowerCase(),
+      body,
+      normalizingCase
+    )
+  }
+  if (candidates.length === 0) return rv
+  let fullContext = citation.before + phrase + citation.after
+  if (normalizingCase) fullContext = fullContext.toLocaleLowerCase()
+  let seekFullContext = (rv.preservedContext = false)
+  let elementsToHighlight: HTMLElement[]
+  if (candidates.length === 1) {
+    elementsToHighlight = candidates
+  } else {
+    // filter down to those with the correct context
+    const primeCandidates = candidates.filter((e) => {
+      const t =
+        (normalizingCase
+          ? e.textContent?.toLocaleLowerCase()
+          : e.textContent) || ""
+      return t.indexOf(fullContext) > -1
+    })
+    if (primeCandidates.length) {
+      seekFullContext = rv.preservedContext = true
+      elementsToHighlight = primeCandidates
+    } else {
+      elementsToHighlight = candidates
     }
   }
-}
-
-// attempt to find the original selection, select it again, and scroll it into view
-function highlightSelection(wrappedSelection: CitationRecord) {
-  const element = findSelection(wrappedSelection)
-  if (element) {
-    const { anchor: a, focus: f } = wrappedSelection.selection
-    let anchor: Node = a.path ? element.querySelector(a.path) : element
-    let focus: Node = f.path ? element.querySelector(f.path) : element
-    const scrollable: any = anchor ?? element
-    if (scrollable.scrollIntoView) {
-      scrollable.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
-      })
-    }
-    if (anchor && focus) {
-      if (a.hasOwnProperty("parentOffset")) {
-        anchor = anchor.childNodes[a.parentOffset!]
-      }
-      if (f.hasOwnProperty("parentOffset")) {
-        focus = focus.childNodes[f.parentOffset!]
-      }
-      const range = new Range()
-      range.setStart(anchor, a.offset)
-      range.setEnd(focus, f.offset)
-      if (squish(range.toString()) === wrappedSelection.phrase) {
-        document.getSelection()?.removeAllRanges()
+  document.getSelection()?.removeAllRanges()
+  const searchPhrase = seekFullContext
+    ? fullContext
+    : normalizingCase
+    ? phrase.toLocaleLowerCase()
+    : phrase
+  const offset = seekFullContext ? citation.before.length : 0
+  for (const c of elementsToHighlight) {
+    let n = 0
+    let t = c.textContent!
+    if (normalizingCase) t = t.toLocaleLowerCase()
+    while (n < t.length) {
+      let start = t.indexOf(searchPhrase, n)
+      if (start === -1) {
+        break
+      } else {
+        n = start + searchPhrase.length
+        start = start + offset
+        const end = start + phrase.length
+        const range = new Range()
+        let s = elementAndOffset(c, start);
+        if (!s) continue;
+        let e = elementAndOffset(c, end);
+        if (!e) continue;
+        range.setStart(...s)
+        range.setEnd(...e)
         document.getSelection()?.addRange(range)
+        rv.matches++
       }
     }
-    return true
   }
-  return false
+  // highlight the first match
+  elementsToHighlight[0].scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+    inline: "center",
+  })
+  return rv
+}
+
+// given a node, return the child node at a particular text offset and the offset within
+// the child corresponding to the offset
+function elementAndOffset(e: HTMLElement, offset: number): [ChildNode, number] | undefined {
+  let n = 0;
+  for (const c of e.childNodes) {
+    const l = (c.textContent ?? '').length
+    if (n + l < offset) {
+      n += l
+    } else {
+      const o = offset - n;
+      if (c.nodeType === 3) return [c, o]
+      return elementAndOffset(c as HTMLElement, o)
+    }
+  }
+}
+
+// recursively search the DOM for HTMLElements immediately dominating text containing a given phrase
+function gatherHighlights(
+  phrase: string,
+  node: HTMLElement,
+  normalizeCase: boolean
+): HTMLElement[] {
+  if (node.childNodes.length === 1 && node.childNodes[0].nodeType === 1)
+    return gatherHighlights(
+      phrase,
+      node.childNodes[0] as HTMLElement,
+      normalizeCase
+    )
+  const candidates = Array.from(node.childNodes)
+    .filter((n: any) => n.nodeType === 1)
+    .filter((n: any) => !(n.tagName === "SCRIPT" || n.tagName === "STYLE"))
+    .filter((n: any) => {
+      let t = n.textContent || ""
+      t = normalizeCase ? t.toLocaleLowerCase() : t
+      return t.indexOf(phrase) > -1
+    })
+  // the following handles the case where we had it in the parent node but we can't find it among
+  // the children
+  if (candidates.length === 0) {
+    // maybe the children just have part of it
+    let t = node.textContent || ''
+    if (normalizeCase) t = t.toLocaleLowerCase();
+    if (t && t.indexOf(phrase) > -1)
+      return [node]
+    return []
+  }
+  if (candidates.length === 1) {
+    const c = candidates[0] as HTMLElement
+    if (c.childNodes[0]?.nodeType === 1)
+      return gatherHighlights(phrase, c, normalizeCase)
+    // we've drilled down deep enough
+    return [c]
+  }
+  return candidates
+    .map((n) => gatherHighlights(phrase, n as HTMLElement, normalizeCase))
+    .flat(1)
 }
 
 // our communication channel to the background and, via the background, to the popup
@@ -393,16 +255,22 @@ port.onMessage.addListener(function (msg: MessageFromBackgroundToContent) {
       break
     case "goto":
       const { citation } = msg
-      if (citation?.source?.url) {
-        if (window.location.href === citation.source.url) {
-          if (!highlightSelection(citation)) {
+      if (citation?.where) {
+        if (window.location.href === citation.where) {
+          const highlights = highlight(citation)
+          if (highlights.matches === 0) {
             port.postMessage({
               action: "error",
               message: "could not find citation on page",
             })
+          } else {
+            port.postMessage({
+              action: "highlight",
+              highlights,
+            })
           }
         } else {
-          window.location.assign(citation.source.url)
+          window.location.assign(citation.where)
         }
       } else {
         port.postMessage({ action: "error", message: "received no URL" })
@@ -417,10 +285,16 @@ port.onMessage.addListener(function (msg: MessageFromBackgroundToContent) {
     case "select":
       const { selection: toSelect } = msg
       if (toSelect) {
-        if (!highlightSelection(toSelect)) {
+        const highlights = highlight(toSelect)
+        if (highlights.matches === 0) {
           port.postMessage({
             action: "error",
             message: "could not find citation on page",
+          })
+        } else {
+          port.postMessage({
+            action: "highlight",
+            highlights,
           })
         }
       } else {

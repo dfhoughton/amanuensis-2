@@ -1,4 +1,4 @@
-import { Container, Typography } from "@mui/material"
+import { Box, Container, Paper, Typography } from "@mui/material"
 import React, { createContext, useReducer, useState } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
 import { wordReducer } from "../util/provisional_reducer"
@@ -12,25 +12,23 @@ const App: React.FC = () => {
   useConnectionToBackground(dispatch)
   return (
     <WordContext.Provider value={state}>
-      <Container>
+      <Container sx={{ p: 1, width: '300px' }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Hello, world!
         </Typography>
         <div>
-          {state.word === undefined ? <i>no word yet</i> : state.word.lemma}
-        </div>
-        {state.word !== undefined && (
-          <>
-            <button onClick={() => dispatch({ action: "upper" })}>UPPER</button>
-            <button onClick={() => dispatch({ action: "lower" })}>lower</button>
-          </>
-        )}
-        <div>
-          <Typography variant="h3" component="h2">
-            Search Experiment
-          </Typography>
-          <input id="search"></input>
-          <button onClick={() => {}}>search</button>
+          {!state.word && <i>no word yet</i>}
+          {!!state.word && (
+            <>
+              {state.word.lemma}
+              <button onClick={() => dispatch({ action: "upper" })}>
+                UPPER
+              </button>
+              <button onClick={() => dispatch({ action: "lower" })}>
+                lower
+              </button>
+            </>
+          )}
         </div>
       </Container>
     </WordContext.Provider>

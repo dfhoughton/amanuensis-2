@@ -12,43 +12,12 @@ export type SelectableNode = {
   parentOffset?: number // the index of the relevant text node among the children of the parent node -- absent if the point in question is not within a text node
 }
 
-export type ContentSelection = {
-  phrase: string
-  before: string
-  after: string
-  selection: Selection
-}
-
-export type SourceRecord = {
-  url: string // the URL the selection was found on
-  title: string // the chrome extension provides this, and it may be useful for display and summary
-}
-
-export interface PhraseInContext {
-  phrase: string // the text selected
-  before: string // the context preceding the selection
-  after: string // the context following the selection
-}
-
-export interface CitationRecord extends PhraseInContext {
-  // some text extracted at the moment of selection
-  // this is saved for display and summary and because if pages change Selection objects may cease to work
-  note: string
-  when: Date[] // the times that this selection was looked up *on the same page*
-  selection: Selection // where the text was found on the page
-  source: SourceRecord // the page where the text was found
-}
-
 export interface Citation {
   word: string
-  context: {
-    before: string
-    after: string
-    instance: number // if there is more than one phrase with this before and after, which one is it
-  }
+  before: string
+  after: string
   when: Date
-  where: string // the URL of the tab
-  note?: string //
+  where?: string // the URL of the tab
 }
 
 export interface Word {
@@ -64,4 +33,11 @@ export interface dictionary {
 export type AppState = {
   word?: Word
   url?: string
+}
+
+// describes success of highlighting a citation on a page
+export type Highlights = {
+  matches: number
+  preservedContext: boolean
+  preservedCase: boolean
 }
