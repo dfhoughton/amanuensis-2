@@ -32,6 +32,9 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
           console.log('no active tab with a URL')
         }
       })
+      chrome.tabs.detectLanguage().then(locale => {
+        sendToPopup({action: 'locale', locale})
+      })
       break
     case "load":
     case "goto":

@@ -13,6 +13,9 @@ export const useConnectionToBackground = (dispatch: Dispatch<Action>) => {
       case "url":
         dispatch({ action: "url", url: message.url || "" })
         break
+      case 'locale':
+        dispatch(message)
+        break
       default:
         console.log({ message })
     }
@@ -20,12 +23,16 @@ export const useConnectionToBackground = (dispatch: Dispatch<Action>) => {
   useEffect(() => {
     const closedPort = chrome.runtime.connect({ name: "popup" })
     closedPort.onMessage.addListener((message, openPort) => {
-      if (!port) setPort(openPort)
+      if (!port) {
+        dispatch({action: 'openPort', port: openPort})
+        setPort(openPort)
+      }
       reducer(message)
     })
     // we open the port by using to to send a message
     closedPort.postMessage({ action: "open" })
     return () => {
+      dispatch({action: 'closePort'})
       port?.disconnect()
     }
   }, [])

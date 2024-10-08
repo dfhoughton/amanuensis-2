@@ -13,20 +13,17 @@ const App: React.FC = () => {
   return (
     <WordContext.Provider value={state}>
       <Container sx={{ p: 1, width: '300px' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Hello, world!
-        </Typography>
+        <label>locale:</label>
+        {!state.locale && <i>locale not detected</i>}
+        {!!state.locale && <>{state.locale}</>}
+        <Typography variant="h4">Citation</Typography>
         <div>
           {!state.word && <i>no word yet</i>}
           {!!state.word && (
             <>
-              {state.word.lemma}
-              <button onClick={() => dispatch({ action: "upper" })}>
-                UPPER
-              </button>
-              <button onClick={() => dispatch({ action: "lower" })}>
-                lower
-              </button>
+              {state.word.citations[0].before}
+              <b>{state.word.lemma}</b>
+              {state.word.citations[0].after}
             </>
           )}
         </div>

@@ -33,6 +33,8 @@ export interface dictionary {
 export type AppState = {
   word?: Word
   url?: string
+  locale?: string
+  port?: chrome.runtime.Port
 }
 
 // describes success of highlighting a citation on a page

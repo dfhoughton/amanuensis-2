@@ -2,13 +2,15 @@ import { AppState, Citation, Word } from "../types/common"
 
 export type Action =
   | { action: "selection"; selection: Citation }
-  | { action: "upper" }
-  | { action: "lower" }
   | { action: "url"; url: string }
+  | { action: "locale"; locale: string }
+  | { action: "openPort"; port: chrome.runtime.Port }
+  | { action: "closePort" }
 
 export function wordReducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "selection":
+      console.log({ state, action })
       const citation: Citation = {
         word: action.selection.word,
         when: new Date(),
@@ -21,28 +23,14 @@ export function wordReducer(state: AppState, action: Action): AppState {
         citations: [citation],
       }
       return { ...state, word }
-    case "upper":
-      if (state.word) {
-        const word = state.word
-        return {
-          ...state,
-          word: { ...word, lemma: word.lemma.toLocaleUpperCase() },
-        }
-      } else {
-        return { ...state }
-      }
-    case "lower":
-      if (state.word) {
-        const word = state.word
-        return {
-          ...state,
-          word: { ...word, lemma: word.lemma.toLocaleLowerCase() },
-        }
-      } else {
-        return { ...state }
-      }
     case "url":
       return { ...state, url: action.url }
+    case "locale":
+      return { ...state, locale: action.locale }
+    case "openPort":
+      return { ...state, port: action.port }
+    case "closePort":
+      return { ...state, port: undefined }
     default:
       console.error({ wut: action })
       return state
