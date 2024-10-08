@@ -1,5 +1,5 @@
 import { Citation, Highlights } from "./types/common"
-import { squish, wspat, wsrx } from "./util/string"
+import { squish, wsrx } from "./util/string"
 import {
   MessageFromBackgroundToContent,
   MessageFromContentToBackground,
@@ -97,7 +97,7 @@ function highlight(citation: Citation): Highlights {
     preservedCase: true,
   }
   const phrase = citation.word
-  let rx = wsrx(phrase)
+  let rx = new RegExp(wsrx(phrase)!)
   if (rx === undefined) return rv
 
   let normalizingCase = false
@@ -107,12 +107,12 @@ function highlight(citation: Citation): Highlights {
     // maybe there has been some fiddling with case on the page?
     rv.preservedCase = false
     normalizingCase = true
-    rx = wsrx(phrase, true)!
+    rx = new RegExp(wsrx(phrase)!, 'i')
     candidates = gatherHighlights(phrase, body, rx)
   }
   if (candidates.length === 0) return rv
   // we need to match before and the phrase so we can calculate the context
-  let fullContext = `(${wspat(citation.before)})(${wspat(phrase)})${wspat(citation.after)}`
+  let fullContext = `(${wsrx(citation.before)})(${wsrx(phrase)})${wsrx(citation.after)}`
   let fcrx = normalizingCase
     ? new RegExp(fullContext, "i")
     : new RegExp(fullContext)
@@ -139,7 +139,7 @@ function highlight(citation: Citation): Highlights {
   const searchRx = seekFullContext ? fcrx : rx
   for (const c of elementsToHighlight) {
     let n = 0
-    let t = c.textContent ?? ""
+    let t = nodeToText(c)
     while (n < t.length) {
       let m = t.substring(n).match(searchRx)
       if (m) {
@@ -179,6 +179,20 @@ function highlight(citation: Citation): Highlights {
   return rv
 }
 
+// an alternative to textContent that handles whitespace better
+function nodeToText(e: Node): string {
+  if (e.nodeType === 3) return e.textContent ?? '';
+  const pieces: string[] = [];
+  for (const n of e.childNodes) {
+    if (n.nodeType === 1) {
+      pieces.push(nodeToText(n as HTMLElement))
+    } else {
+      pieces.push(n.textContent ?? '')
+    }
+  }
+  return pieces.join('')
+}
+
 // given a node, return the child node at a particular text offset and the offset within
 // the child corresponding to the offset
 function elementAndOffset(
@@ -187,7 +201,8 @@ function elementAndOffset(
 ): [ChildNode, number] | undefined {
   let n = 0
   for (const c of e.childNodes) {
-    const l = (c.textContent ?? "").length
+    const t = nodeToText(c);
+    const l = t.length
     if (n + l < offset) {
       n += l
     } else {

@@ -7,21 +7,10 @@ export function squish(string: string) {
   }
 }
 
-// create a regular expression that matches all characters as given (modulo case-insensitivity)
-// except whitespace characters which can be any string of whitespace
-export function wsrx(
-  s: string,
-  caseInsensitive: boolean = false
-): RegExp | undefined {
-  const rx = wspat(s)
-  if (!rx) return
-  return caseInsensitive ? new RegExp(rx, "i") : new RegExp(rx)
-}
-
 // create a pattern to be compiled into a regular expression
 // the pattern matches all characters as given
 // except whitespace characters which can be any string of whitespace
-export function wspat(s: string): string | undefined {
+export function wsrx(s: string): string | undefined {
   if (!s) return
   const chars: string[] = []
   for (const c of s.split("")) {
