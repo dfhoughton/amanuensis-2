@@ -2,6 +2,7 @@ import { AppState, Citation, Word } from "../types/common"
 
 export type Action =
   | { action: "selection"; selection: Citation }
+  | { action: "select", selection: Citation }
   | { action: "url"; url: string }
   | { action: "locale"; locale: string }
   | { action: "openPort"; port: chrome.runtime.Port }
@@ -31,6 +32,9 @@ export function wordReducer(state: AppState, action: Action): AppState {
       return { ...state, port: action.port }
     case "closePort":
       return { ...state, port: undefined }
+    case "select":
+      state.port?.postMessage(action);
+      return state
     default:
       console.error({ wut: action })
       return state

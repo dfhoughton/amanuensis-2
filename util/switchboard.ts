@@ -9,14 +9,14 @@ export type MessageFromBackgroundToPopup =
   | { action: "url"; url?: string }
   | { action: "reloaded"; url?: string }
   | {
-    action: "selection"
-    selection: Citation
-    source: { title?: string; url?: string }
-  }
-  | { action: 'locale', locale: string }
-| Extract<
+      action: "selection"
+      selection: Citation
+      source: { title?: string; url?: string }
+    }
+  | { action: "locale"; locale: string }
+  | Extract<
       MessageFromContentToBackground,
-      { action: "error" } | { action: "noSelection" } | { action: "highlight"}
+      { action: "error" } | { action: "noSelection" } | { action: "highlight" }
     >
 
 export type MessageFromBackgroundToContent =
@@ -30,7 +30,7 @@ export type MessageFromContentToBackground =
   | { action: "selection"; selection: Citation }
   | { action: "noSelection" }
   | { action: "error"; message: string }
-  | { action: "highlight", highlights: Highlights }
+  | { action: "highlight"; highlights: Highlights }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }
@@ -39,6 +39,6 @@ export type MessageFromPopupToBackground =
       { action: "goto" } | { action: "load" } | { action: "select" }
     >
 
-export const handleMessageFromBackgroundToPopup = (msg: MessageFromBackgroundToPopup) => {
-
-}
+export const handleMessageFromBackgroundToPopup = (
+  msg: MessageFromBackgroundToPopup
+) => {}

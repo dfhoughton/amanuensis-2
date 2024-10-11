@@ -41,6 +41,8 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
     case "select":
       sendToContent(msg)
       break
+    default:
+      console.warn('could not handle action', msg)
   }
 }
 
