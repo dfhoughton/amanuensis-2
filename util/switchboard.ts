@@ -3,7 +3,7 @@
  *
  */
 
-import { Citation, Highlights } from "../types/common"
+import { Citation, Highlights, Phrase } from "../types/common"
 
 export type MessageFromBackgroundToPopup =
   | { action: "url"; url?: string }
@@ -13,6 +13,7 @@ export type MessageFromBackgroundToPopup =
       selection: Citation
       source: { title?: string; url?: string }
     }
+  | { action: 'phraseSelected', phrase: Phrase, others: Phrase[] }
   | { action: "locale"; locale: string }
   | Extract<
       MessageFromContentToBackground,

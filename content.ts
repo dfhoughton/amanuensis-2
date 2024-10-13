@@ -81,7 +81,7 @@ function wrapSelection(): Citation | undefined {
   const before = context.substring(0, i),
     after = context.substring(i + phrase.length)
   return {
-    word: phrase,
+    phrase: phrase,
     before,
     after,
     when: new Date(),
@@ -96,7 +96,7 @@ function highlight(citation: Citation): Highlights {
     preservedContext: true,
     preservedCase: true,
   }
-  const phrase = citation.word
+  const phrase = citation.phrase
   let rx = new RegExp(wsrx(phrase)!)
   if (rx === undefined) return rv
 

@@ -1,7 +1,7 @@
 import { Box, Button } from "@mui/material"
 import React from "react"
 import { AppState } from "../types/common"
-import { Action } from "../util/provisional_reducer"
+import { Action } from "../util/reducer"
 
 type NoteProps = {
   state: AppState
@@ -12,22 +12,22 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   return (
     <>
       <Box>
-        {!state.word && <i>no word yet</i>}
-        {!!state.word && (
+        {!state.phrase && <i>no word yet</i>}
+        {!!state.phrase && (
           <>
-            {state.word.citations[0].before}
-            <b>{state.word.citations[0].word}</b>
-            {state.word.citations[0].after}
+            {state.phrase.citations[0].before}
+            <b>{state.phrase.citations[0].phrase}</b>
+            {state.phrase.citations[0].after}
           </>
         )}
       </Box>
       {/** just for testing purposes */}
-      {!!state.word && (
+      {!!state.phrase && (
         <Button
           onClick={() => {
             dispatch({
               action: "select",
-              selection: state.word!.citations[0],
+              selection: state.phrase!.citations[0],
             })
           }}
         >

@@ -1,3 +1,4 @@
+import { citationToPhrase, languageForLocale } from "./util/database"
 import {
   MessageFromBackgroundToContent,
   MessageFromBackgroundToPopup,
@@ -32,9 +33,6 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
           console.log('no active tab with a URL')
         }
       })
-      chrome.tabs.detectLanguage().then(locale => {
-        sendToPopup({action: 'locale', locale})
-      })
       break
     case "load":
     case "goto":
@@ -54,7 +52,24 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
         const tab = tabs[0]
         if (tab) {
           const { title, url } = tab
-          sendToPopup({ ...msg, source: { title, url } })
+          const { selection } = msg;
+          selection.title = title
+          selection.url = url
+          const text = `${selection.before}${selection.phrase}${selection.after}`
+          chrome.i18n.detectLanguage(text).then((rv) => {
+            const locale = rv.languages.sort((a, b) =>  b.percentage - a.percentage)[0].language
+            citationToPhrase(selection, locale).then(([phrase, others]) => {
+              sendToPopup({action: 'phraseSelected', phrase, others})
+            }).catch((e) => {
+              console.error('here', e);
+              sendToPopup({action: 'error', message: e.message})
+            })
+          }).catch((e) => {
+            console.error(e);
+            sendToPopup({action: 'error', message: e.message})
+          })
+        } else {
+          console.log('no tab!')
         }
       })
       break

@@ -1,7 +1,7 @@
 import { Box, Button } from "@mui/material"
 import React from "react"
 import { AppState } from "../types/common"
-import { Action } from "../util/provisional_reducer"
+import { Action } from "../util/reducer"
 
 type DictionaryProps = {
   state: AppState

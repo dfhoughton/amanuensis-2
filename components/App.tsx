@@ -1,12 +1,7 @@
-import {
-  Box,
-  Container,
-  CssBaseline,
-  ThemeProvider,
-} from "@mui/material"
+import { Box, Container, CssBaseline, ThemeProvider } from "@mui/material"
 import React, { useReducer, useState } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
-import { Action, wordReducer } from "../util/provisional_reducer"
+import { Action, reducer } from "../util/reducer"
 import { AppState } from "../types/common"
 import { theme } from "../util/theme"
 import Tab from "@mui/material/Tab"
@@ -20,17 +15,9 @@ import { Dictionary } from "./Dictionary"
 import { Configuration } from "./Configuration"
 
 const App: React.FC = () => {
-  const dummyState = {
-    word: {
-      lemma: "foo",
-      citations: [
-        { before: "bws ", word: "wedi", after: " taro", when: new Date() },
-      ],
-    },
-  }
   const [state, dispatch] = useReducer<
     (state: AppState, action: Action) => AppState
-  >(wordReducer, dummyState)
+  >(reducer, {})
   useConnectionToBackground(dispatch)
   const [currentTab, setCurrentTab] = useState("1")
   return (
@@ -43,7 +30,6 @@ const App: React.FC = () => {
               onChange={(_e, tab) => {
                 setCurrentTab(tab)
               }}
-              aria-label="lab API tabs example"
             >
               <Tab icon={<CreateIcon />} value="1" />
               <Tab icon={<AutoStories />} value="2" />

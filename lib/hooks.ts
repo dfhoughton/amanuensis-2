@@ -1,6 +1,5 @@
-import { Dispatch, DispatchWithoutAction, useEffect, useState } from "react"
-import { MessageFromBackgroundToPopup } from "../util/switchboard"
-import { Action } from "../util/provisional_reducer"
+import { Dispatch, useEffect, useState } from "react"
+import { Action } from "../util/reducer"
 
 // obtain a port to send messages through; also the URL of the active tab
 export const useConnectionToBackground = (dispatch: Dispatch<Action>) => {
