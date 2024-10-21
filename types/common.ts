@@ -44,13 +44,17 @@ export interface dictionary {
 
 export type AppState = {
   phrase?: Phrase
+  citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
   maybeMerge?: Phrase[]
-  url?: string
-  locale?: string
-  language?: Language
-  port?: chrome.runtime.Port
-  error?: string
+  language?: Language // do we need this?
+  port?: chrome.runtime.Port // so the reducer can send stuff on to the background
+  error?: string // triggers the display of a toast
+  config?: Configuration
+}
+
+export type Configuration = {
+  showHelp?: boolean
 }
 
 // describes success of highlighting a citation on a page
@@ -62,7 +66,8 @@ export type Highlights = {
 
 export type Language = {
   id?: number
-  name: string,
+  name: string
+  locale?: string // the expected locale for this language
   // the keys are the two-letter locale identifiers Chrome may identify this language by
   // the values are the number of citations for the given language with this locale
   locales: Record<string, number>

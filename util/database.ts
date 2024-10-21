@@ -25,6 +25,7 @@ function init() {
       db.languages.add({
         id: 1,
         name: "unknown",
+        locale: "und",
         locales: {},
       })
     }
@@ -61,6 +62,27 @@ export function languageForLocale(locale: string): Promise<Language> {
   })
 }
 
+// returns languages and frequencies for display in configuration
+export function knownLanguages(): Promise<[Language, number][]> {
+  return db.transaction("r", db.languages, db.phrases, async () => {
+    const languages = await db.languages.toArray()
+    const stats: [Language, number][] = await Promise.all(
+      languages.map(async (l) => {
+        const count = await db.phrases
+          .where("language.id")
+          .equals(l.id!)
+          .count()
+        return [l, count]
+      })
+    )
+    // sort them primarily most used to least used and secondarily alphabetically
+    return stats.sort(([la, ca], [lb, cb]) => {
+      if (ca === cb) return la.name < lb.name ? -1 : la.name > lb.name ? 1 : 0
+      return cb - ca
+    })
+  })
+}
+
 // record an additional use of the locale with the language
 export function bumpLocaleCount(language: Language) {
   return db.languages.update(language.id!, { locales: language.locales })
@@ -89,7 +111,7 @@ export function citationToPhrase(
 
 // basically an upsert; returns the phrase with its database id
 export async function savePhrase(phrase: Phrase): Promise<Phrase> {
-    const id = await db.phrases.put(phrase, phrase.id);
-    if (id) phrase.id = id;
-    return phrase
+  const id = await db.phrases.put(phrase, phrase.id)
+  if (id) phrase.id = id
+  return phrase
 }

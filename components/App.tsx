@@ -1,4 +1,11 @@
-import { Box, Container, CssBaseline, ThemeProvider } from "@mui/material"
+import {
+  Alert,
+  Box,
+  Container,
+  CssBaseline,
+  Snackbar,
+  ThemeProvider,
+} from "@mui/material"
 import React, { useReducer, useState } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
 import { Action, reducer } from "../util/reducer"
@@ -46,6 +53,18 @@ const App: React.FC = () => {
             <Configuration state={state} dispatch={dispatch} />
           </TabPanel>
         </TabContext>
+        <Snackbar
+          open={!!state.error}
+          autoHideDuration={5000}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          onClose={() => {
+            dispatch({ action: "error" })
+          }}
+        >
+          <Alert severity="error" variant="filled">
+            {state.error}
+          </Alert>
+        </Snackbar>
       </Container>
     </ThemeProvider>
   )

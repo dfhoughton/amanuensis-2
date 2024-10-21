@@ -28,7 +28,6 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
         const { url } = tabs[0]
         if (url) {
           sendToContent({ action: "getSelection" })
-          sendToPopup({ action: "url", url })
         } else {
           console.log('no active tab with a URL')
         }
