@@ -14,11 +14,12 @@ type LanguageTable = {
 const languagesSchema = {
   languages: "++id, &name",
 }
+// just putting this here so the extension only manages stored data in the one way
 type ConfigurationTable = {
   configuration: Table<Configuration>
 }
 const configurationSchema = {
-  configuration: "++id",
+  configuration: "id",
 }
 type DexieTable = PhraseTable & LanguageTable & ConfigurationTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T

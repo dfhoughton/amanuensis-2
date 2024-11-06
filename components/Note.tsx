@@ -4,6 +4,7 @@ import {
   Collapse,
   IconButton,
   Link,
+  Paper,
   Stack,
   TextField,
   Tooltip,
@@ -41,7 +42,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     const selectedCitation = pickCitation(state)
     if (selectedCitation) {
       const [citation, citationIndex] = selectedCitation
-      console.log("picked a citation", { citation, citationIndex })
       setCitation(citation)
       if (citationIndex !== state.citationIndex) {
         dispatch({ action: "citationSelected", citationIndex })
@@ -86,13 +86,17 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               sx={{ pb: 1 }}
             >
               <TextField
-                onChange={debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                  console.log({ phrase, lemma: e.target.value })
-                  dispatch({
-                    action: "phrase",
-                    phrase: { ...phrase!, lemma: e.target.value },
-                  })
-                }, 500)}
+                onChange={
+                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                    console.log({ phrase, lemma: e.target.value })
+                    dispatch({
+                      action: "phrase",
+                      phrase: { ...phrase!, lemma: e.target.value },
+                    })
+                  }, 500) as React.ChangeEventHandler<
+                    HTMLInputElement | HTMLTextAreaElement
+                  >
+                }
                 variant="standard"
                 hiddenLabel
                 placeholder="Lemma"
@@ -103,18 +107,20 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             <LabelWithHelp
               hidden={hidden}
               label="Lemma Note"
-              explanation={
-                'A note that pertains to all citations.'
-              }
+              explanation={"A note that pertains to all citations."}
               sx={{ pb: 1 }}
             >
               <TextField
-                onChange={debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                  dispatch({
-                    action: "phrase",
-                    phrase: { ...phrase!, note: e.target.value },
-                  })
-                }, 500)}
+                onChange={
+                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                    dispatch({
+                      action: "phrase",
+                      phrase: { ...phrase!, note: e.target.value },
+                    })
+                  }, 500) as React.ChangeEventHandler<
+                    HTMLInputElement | HTMLTextAreaElement
+                  >
+                }
                 variant="standard"
                 hiddenLabel
                 placeholder="Lemma Note"
@@ -124,7 +130,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             </LabelWithHelp>
             {/** primary citation */}
             <LabelWithHelp hidden={hidden} label="Title and URL">
-              <TitleAndURL
+              <TitleDateAndUrl
                 citation={citation}
                 state={state}
                 dispatch={dispatch}
@@ -146,12 +152,51 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               {citation?.after}
             </LabelWithHelp>
             {/** other citations */}
+            {phrase?.citations.map((c, i) => (
+              <CitationInBrief
+                citation={c}
+                citationIndex={i}
+                key={i}
+                chosen={state.citationIndex === i}
+                dispatch={dispatch}
+              />
+            ))}
           </>
         )}
       </Box>
     </>
   )
 }
+
+type CitationInBriefProps = {
+  citation: Citation
+  citationIndex: number
+  chosen: boolean
+  dispatch: React.Dispatch<Action>
+}
+const CitationInBrief: React.FC<CitationInBriefProps> = ({
+  citation,
+  citationIndex,
+  chosen,
+  dispatch,
+}) => (
+  <Paper
+    elevation={chosen ? 2 : 1}
+    sx={{}}
+    onClick={() => {
+      if (!chosen) dispatch({ action: "citationSelected", citationIndex })
+    }}
+  >
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{ justifyContent: "space-between", m: 1 }}
+    >
+      <Box>{citation.phrase}</Box>
+      <Box>{citation.when.toLocaleDateString()}</Box>
+    </Stack>
+  </Paper>
+)
 
 const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
   const sx = {
@@ -230,7 +275,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   )
 }
 
-type TitleAndUrlProps = {
+type TitleDateAndUrlProps = {
   citation: Citation
   phrase?: Phrase
   clean: boolean
@@ -238,7 +283,7 @@ type TitleAndUrlProps = {
   dispatch: React.Dispatch<Action>
 }
 
-const TitleAndURL: React.FC<TitleAndUrlProps> = ({
+const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
   citation,
   state,
   dispatch,
@@ -252,6 +297,11 @@ const TitleAndURL: React.FC<TitleAndUrlProps> = ({
       sx={{ justifyContent: "space-between", m: 1 }}
     >
       <Title citation={citation} />
+      <Tooltip title={citation.when.toLocaleTimeString()}>
+        <Box sx={{ fontSize: "small", color: "grey" }}>
+          {citation.when.toLocaleDateString()}
+        </Box>
+      </Tooltip>
       <CitationLink
         state={state}
         dispatch={dispatch}

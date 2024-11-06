@@ -28,6 +28,10 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "phraseSelected":
       const { phrase, others } = action
+      // phrase arrives with dates serialized; must fix
+      for (const c of phrase.citations) {
+        if (typeof c.when === 'string') c.when = new Date(c.when)
+      }
       let { language } = state
       language ??= phrase.language
       const maybeMerge = others.length ? others : undefined
