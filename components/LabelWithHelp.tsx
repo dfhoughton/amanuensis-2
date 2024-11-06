@@ -3,6 +3,7 @@ import {
   Collapse,
   InputLabel,
   InputLabelProps,
+  Stack,
   Typography,
 } from "@mui/material"
 import React, { ReactNode, useState } from "react"
@@ -34,15 +35,25 @@ export const LabelWithHelp: React.FC<Props> = ({
   )
   return (
     <>
-      <InputLabel {...labelProps} sx={{ display: "inline" }}>
-        {label}
-      </InputLabel>
-      {!!explanation && (
-        <HelpOutlineIcon
-          fontSize="small"
-          sx={{ cursor: "pointer", ml: 1 }}
-          onClick={() => setCollapse(!collapse)}
-        />
+      {!!(label || explanation) && (
+        <Stack
+          direction="row"
+          sx={{ justifyContent: "space-between", width: "100%" }}
+        >
+          {!!label && (
+            <InputLabel {...labelProps} sx={{ display: "inline" }}>
+              {label}
+            </InputLabel>
+          )}
+          {!!(!label && explanation) && <span />}
+          {!!explanation && (
+            <HelpOutlineIcon
+              fontSize="small"
+              sx={{ cursor: "pointer", ml: label ? 1 : 0, mr: 1 }}
+              onClick={() => setCollapse(!collapse)}
+            />
+          )}
+        </Stack>
       )}
       <Box sx={sx}>{children}</Box>
       {!!explanation && (
