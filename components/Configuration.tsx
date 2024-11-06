@@ -10,6 +10,7 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -59,7 +60,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       <Typography variant="h5" component="h1">
         Configuration
       </Typography>
-      <Box>
+      <Stack spacing={2} sx={{alignItems: 'flex-start'}}>
         <FormControlLabel
           control={
             <Checkbox
@@ -92,8 +93,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         <Button onClick={() => setClearDbModalOpen(true)}>
           Clear Database
         </Button>
-      </Box>
-      <Box>
         <Typography variant="h6" component="h2">
           Languages
         </Typography>
@@ -125,7 +124,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             ))}
           </TableBody>
         </Table>
-      </Box>
+      </Stack>
       <ConfirmationModal
         open={clearDbModalOpen}
         title="Remove All Records from Database"
