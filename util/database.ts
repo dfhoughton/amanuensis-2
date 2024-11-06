@@ -1,33 +1,44 @@
 import BaseDexie, { Table } from "dexie"
-import { Citation, Language, Phrase } from "../types/common"
+import { Citation, Configuration, Language, Phrase } from "../types/common"
 
 type PhraseTable = {
   phrases: Table<Phrase>
 }
 const phrasesSchema = {
   phrases:
-    "++id, &lemma, &language.id, *tags, *citations.tags, *citations.phrase",
+    "++id, lemma, language.id, *tags, *citations.tags, *citations.phrase",
 }
 type LanguageTable = {
   languages: Table<Language>
 }
 const languagesSchema = {
-  languages: "++id, name",
+  languages: "++id, &name",
 }
-type DexieTable = PhraseTable & LanguageTable
+type ConfigurationTable = {
+  configuration: Table<Configuration>
+}
+const configurationSchema = {
+  configuration: "++id",
+}
+type DexieTable = PhraseTable & LanguageTable & ConfigurationTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T
 const db = new BaseDexie("amanuensis") as Dexie
-const schema = Object.assign({}, phrasesSchema, languagesSchema)
+const schema = Object.assign({}, phrasesSchema, languagesSchema, configurationSchema)
 db.version(1).stores(schema)
 function init() {
-  db.languages.get(1).then((l) => {
+  db.languages.get(0).then((l) => {
     if (!l) {
       db.languages.add({
-        id: 1,
+        id: 0,
         name: "unknown",
         locale: "und",
         locales: {},
       })
+    }
+  })
+  db.configuration.get(0).then((c) => {
+    if (!c) {
+      db.configuration.add({id: 0})
     }
   })
 }
@@ -35,10 +46,18 @@ init()
 
 // clear everything
 export function resetDatabase() {
-  return db.transaction("rw", db.phrases, db.languages, async () => {
+  return db.transaction("rw", db.phrases, db.languages, db.configuration, async () => {
     await Promise.all(db.tables.map((table) => table.clear()))
     await init()
   })
+}
+
+export function configuration(): Promise<Configuration | undefined> {
+  return db.configuration.get(0);
+}
+
+export function setConfiguration(configuration: Configuration): Promise<Configuration> {
+  return db.configuration.put(configuration, 0)
 }
 
 // get phrases in the same language that have some citation with the same phrase modulo case
@@ -57,7 +76,7 @@ export function languageForLocale(locale: string): Promise<Language> {
       return languages.sort((l) => -l[locale])[0]
     } else {
       // default language
-      return db.languages.get(1) as any as Language
+      return db.languages.get(0) as any as Language
     }
   })
 }

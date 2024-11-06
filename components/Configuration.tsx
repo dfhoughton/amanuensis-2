@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react"
-import { AppState, Language } from "../types/common"
+import {
+  AppState,
+  Language,
+  Configuration as ConfigurationType,
+} from "../types/common"
 import { Action } from "../util/reducer"
 import {
   Box,
@@ -13,7 +17,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material"
-import { knownLanguages, resetDatabase } from "../util/database"
+import {
+  configuration,
+  knownLanguages,
+  resetDatabase,
+  setConfiguration,
+} from "../util/database"
 import { ConfirmationModal } from "./ConfirmationModal"
 
 type ConfigurationProps = {
@@ -28,10 +37,18 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   const [languages, setLanguages] = useState<[Language, number][]>([])
   const [clearDbModalOpen, setClearDbModalOpen] = useState(false)
   const [version, setVersion] = useState(0)
+  const {config} = state;
   useEffect(() => {
     knownLanguages()
       .then((langs) => {
         setLanguages(langs)
+      })
+      .catch((e) => {
+        dispatch({ action: "error", message: e.message })
+      })
+      configuration()
+      .then((c) => {
+        dispatch({ action: "config", config: c ?? {} })
       })
       .catch((e) => {
         dispatch({ action: "error", message: e.message })
@@ -48,7 +65,15 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             <Checkbox
               checked={!!state?.config?.showHelp}
               onChange={(e) => {
-                dispatch({ action: "showHelp", on: e.target.checked })
+                const c: ConfigurationType = {
+                  ...config,
+                }
+                c.showHelp = e.target.checked
+                setConfiguration(c).then(() => {
+                  dispatch({ action: "config", config: c })
+                }).catch((e) => {
+                  dispatch({ action: "error", message: e.message })
+                })
               }}
             />
           }

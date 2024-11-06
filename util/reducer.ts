@@ -1,4 +1,13 @@
-import { AppState, Citation, Language, Phrase } from "../types/common"
+import {
+  AppState,
+  AppTabs,
+  Citation,
+  Configuration,
+  Language,
+  Phrase,
+} from "../types/common"
+import { setConfiguration } from "./database"
+import { deepClone } from "./general"
 
 export type Action =
   | { action: "selection"; selection: Citation }
@@ -7,8 +16,13 @@ export type Action =
   | { action: "closePort" }
   | { action: "language"; language: Language }
   | { action: "phraseSelected"; phrase: Phrase; others: Phrase[] }
-  | { action: "showHelp"; on: boolean }
   | { action: "error"; message?: string } // undefined message hides error
+  | { action: "config"; config: Configuration }
+  | { action: "phrase"; phrase: Phrase }
+  | { action: "phraseSaved" }
+  | { action: "citationSelected"; citationIndex: number }
+  | { action: "tab"; tab: AppTabs }
+  | { action: "goto"; phrase: Phrase; citationIndex: number }
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
@@ -27,10 +41,27 @@ export function reducer(state: AppState, action: Action): AppState {
       return state
     case "error":
       return { ...state, error: action.message }
-    case "showHelp":
-      const { config = {} } = state
-      config.showHelp = action.on
+    case "tab":
+      return { ...state, tab: action.tab }
+    case "config":
+      const { config } = action
+      setConfiguration(config)
       return { ...state, config }
+    case "phrase": // unsaved change to phrase
+      return { ...state, phrase: action.phrase }
+    case "phraseSaved":
+      return { ...state, priorPhrase: { ...state.phrase! } }
+    case "citationSelected":
+      return { ...state, citationIndex: action.citationIndex }
+    case "goto":
+      const { phrase: gotoPhrase, citationIndex } = action
+      return {
+        ...state,
+        phrase: gotoPhrase,
+        priorPhrase: deepClone(gotoPhrase),
+        citationIndex,
+        tab: AppTabs.Note,
+      }
     default:
       console.error({ wut: action })
       return state

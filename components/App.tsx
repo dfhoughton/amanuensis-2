@@ -6,10 +6,10 @@ import {
   Snackbar,
   ThemeProvider,
 } from "@mui/material"
-import React, { useReducer, useState } from "react"
+import React, { useEffect, useReducer, useState } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
 import { Action, reducer } from "../util/reducer"
-import { AppState } from "../types/common"
+import { AppState, AppTabs } from "../types/common"
 import { theme } from "../util/theme"
 import Tab from "@mui/material/Tab"
 import TabContext from "@mui/lab/TabContext"
@@ -20,36 +20,45 @@ import { AutoStories, Tune } from "@mui/icons-material"
 import { Note } from "./Note"
 import { Dictionary } from "./Dictionary"
 import { Configuration } from "./Configuration"
+import { configuration } from "../util/database"
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer<
     (state: AppState, action: Action) => AppState
-  >(reducer, {})
+  >(reducer, { tab: AppTabs.Note })
   useConnectionToBackground(dispatch)
-  const [currentTab, setCurrentTab] = useState("1")
+  useEffect(() => {
+    configuration()
+      .then((c) => {
+        dispatch({ action: "config", config: c ?? {} })
+      })
+      .catch((e) => {
+        dispatch({ action: "error", message: e.message })
+      })
+  }, [])
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container sx={{ width: "400px" }}>
-        <TabContext value={currentTab}>
+      <Container sx={{ width: "500px" }}>
+        <TabContext value={state.tab}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList
               onChange={(_e, tab) => {
-                setCurrentTab(tab)
+                dispatch({ action: "tab", tab })
               }}
             >
-              <Tab icon={<CreateIcon />} value="1" />
-              <Tab icon={<AutoStories />} value="2" />
-              <Tab icon={<Tune />} value="3" />
+              <Tab icon={<CreateIcon />} value={AppTabs.Note} />
+              <Tab icon={<AutoStories />} value={AppTabs.Dictionary} />
+              <Tab icon={<Tune />} value={AppTabs.Configuration} />
             </TabList>
           </Box>
-          <TabPanel value="1">
+          <TabPanel value={AppTabs.Note}>
             <Note state={state} dispatch={dispatch} />
           </TabPanel>
-          <TabPanel value="2">
+          <TabPanel value={AppTabs.Dictionary}>
             <Dictionary state={state} dispatch={dispatch} />
           </TabPanel>
-          <TabPanel value="3">
+          <TabPanel value={AppTabs.Configuration}>
             <Configuration state={state} dispatch={dispatch} />
           </TabPanel>
         </TabContext>

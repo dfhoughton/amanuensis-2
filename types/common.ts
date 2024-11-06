@@ -25,6 +25,7 @@ export interface Citation {
   title?: string
   url?: string
   locale?: string // the locale provided by Chrome for this particular citation
+  canonical?: boolean
 }
 
 export interface Phrase {
@@ -42,7 +43,14 @@ export interface dictionary {
   phrases: Phrase[]
 }
 
+export enum AppTabs {
+  Note = "note",
+  Dictionary = "dictionary",
+  Configuration = "configuration",
+}
+
 export type AppState = {
+  tab: AppTabs
   phrase?: Phrase
   citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
@@ -54,6 +62,7 @@ export type AppState = {
 }
 
 export type Configuration = {
+  id?: number // here to make configuration compatible with indexeddb
   showHelp?: boolean
 }
 
