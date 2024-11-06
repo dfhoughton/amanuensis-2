@@ -152,15 +152,21 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               {citation?.after}
             </LabelWithHelp>
             {/** other citations */}
-            {phrase?.citations.map((c, i) => (
-              <CitationInBrief
-                citation={c}
-                citationIndex={i}
-                key={i}
-                chosen={state.citationIndex === i}
-                dispatch={dispatch}
-              />
-            ))}
+            <LabelWithHelp
+              hidden={hidden}
+              label="All Citations for Lemma"
+              explanation="The currently selected citation is marked. Click on others to select them and see their details."
+            >
+              {phrase?.citations.map((c, i) => (
+                <CitationInBrief
+                  citation={c}
+                  citationIndex={i}
+                  key={i}
+                  chosen={state.citationIndex === i}
+                  dispatch={dispatch}
+                />
+              ))}
+            </LabelWithHelp>
           </>
         )}
       </Box>
