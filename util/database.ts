@@ -1,5 +1,13 @@
-import BaseDexie, { Table } from "dexie"
-import { Citation, Configuration, Language, Phrase } from "../types/common"
+import BaseDexie, { Collection, Table } from "dexie"
+import {
+  Citation,
+  Configuration,
+  Language,
+  Phrase,
+  Search,
+  SearchResults,
+} from "../types/common"
+import { fuzzyMatcher } from "./general"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -24,7 +32,12 @@ const configurationSchema = {
 type DexieTable = PhraseTable & LanguageTable & ConfigurationTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T
 const db = new BaseDexie("amanuensis") as Dexie
-const schema = Object.assign({}, phrasesSchema, languagesSchema, configurationSchema)
+const schema = Object.assign(
+  {},
+  phrasesSchema,
+  languagesSchema,
+  configurationSchema
+)
 db.version(1).stores(schema)
 function init() {
   db.languages.get(0).then((l) => {
@@ -39,7 +52,7 @@ function init() {
   })
   db.configuration.get(0).then((c) => {
     if (!c) {
-      db.configuration.add({id: 0})
+      db.configuration.add({ id: 0 })
     }
   })
 }
@@ -47,17 +60,25 @@ init()
 
 // clear everything
 export function resetDatabase() {
-  return db.transaction("rw", db.phrases, db.languages, db.configuration, async () => {
-    await Promise.all(db.tables.map((table) => table.clear()))
-    await init()
-  })
+  return db.transaction(
+    "rw",
+    db.phrases,
+    db.languages,
+    db.configuration,
+    async () => {
+      await Promise.all(db.tables.map((table) => table.clear()))
+      await init()
+    }
+  )
 }
 
 export function configuration(): Promise<Configuration | undefined> {
-  return db.configuration.get(0);
+  return db.configuration.get(0)
 }
 
-export function setConfiguration(configuration: Configuration): Promise<Configuration> {
+export function setConfiguration(
+  configuration: Configuration
+): Promise<Configuration> {
   return db.configuration.put(configuration, 0)
 }
 
@@ -134,4 +155,69 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
   const id = await db.phrases.put(phrase, phrase.id)
   if (id) phrase.id = id
   return phrase
+}
+
+export async function phraseSearch(search: Search): Promise<SearchResults> {
+  const {
+    phrase,
+    exact,
+    caseSensitive,
+    tags = [],
+    languages = [],
+    // these defaults should be redundant
+    page = 1,
+    pageSize = 10,
+  } = search
+  const rv: { phrases: Phrase[]; total: number } = await db.transaction(
+    "r",
+    db.phrases,
+    async () => {
+      let scope: any = db.phrases.orderBy("lemma")
+      if (languages.length) scope = scope.where("languages.id").anyOf(languages)
+      if (phrase) {
+        if (exact) {
+          if (caseSensitive) {
+            scope = scope.where("citations.phrase").equals(phrase)
+          } else {
+            scope = scope.where("citations.phrase").equalsIgnoreCase(phrase)
+          }
+        } else {
+          const rx = fuzzyMatcher(phrase, !caseSensitive)
+          scope = scope.filter((p: Phrase) => {
+            if (rx.test(p.lemma)) return true
+            for (const c of p.citations) {
+              if (rx.test(c.phrase)) return true
+            }
+            return false
+          })
+        }
+      }
+      if (tags.length) {
+        const tagSet = new Set(tags)
+        scope = scope.filter((p: Phrase) => {
+          if (p.tags) {
+            for (const t of p.tags) {
+              if (tagSet.has(t)) return true
+            }
+            for (const c of p.citations) {
+              if (c.tags) {
+                for (const t of c.tags) {
+                  if (tagSet.has(t)) return true
+                }
+              }
+            }
+          }
+          return false
+        })
+      }
+      const offset = (page - 1) * pageSize
+      const rs: Phrase[] = await scope.toArray()
+      const phrases = rs.slice(offset, offset + pageSize)
+      const total = rs.length
+      return { phrases, total }
+    }
+  )
+  const { phrases, total } = rv
+  const pages = Math.ceil(total / pageSize)
+  return { selected: -1, phrases, page, pages, pageSize, total }
 }

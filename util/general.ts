@@ -1,7 +1,7 @@
 /** generic utility functions */
 
-import isArray from 'lodash/isArray'
-import isObject from 'lodash/isObject'
+import isArray from "lodash/isArray"
+import isObject from "lodash/isObject"
 
 export function uniq<T>(things: T[], by?: (T) => any): T[] {
   const ar: T[] = []
@@ -28,4 +28,18 @@ export function deepClone<T>(obj: T): T {
     return t as T
   }
   return obj
+}
+
+// generates a regular expression that matches a sequence of
+// characters with optional other characters in between
+export function fuzzyMatcher(s: string, i: boolean | undefined) {
+  // squish
+  s = s.replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ")
+  s = s
+    .split("")
+    .map((c) =>
+      c === " " ? "s+" : /[.?+*^$\\{}\[\]\(\)]/.test(c) ? `\\${c}` : c
+    )
+    .join(".*")
+  return new RegExp(s, i ? "i" : "")
 }

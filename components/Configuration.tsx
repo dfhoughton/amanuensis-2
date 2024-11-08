@@ -4,9 +4,8 @@ import {
   Language,
   Configuration as ConfigurationType,
 } from "../types/common"
-import { Action } from "../util/reducer"
+import { Action, errorHandler } from "../util/reducer"
 import {
-  Box,
   Button,
   Checkbox,
   FormControlLabel,
@@ -45,16 +44,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       .then((langs) => {
         setLanguages(langs)
       })
-      .catch((e) => {
-        dispatch({ action: "error", message: e.message })
-      })
+      .catch(errorHandler(dispatch))
     configuration()
       .then((c) => {
         dispatch({ action: "config", config: c ?? {} })
       })
-      .catch((e) => {
-        dispatch({ action: "error", message: e.message })
-      })
+      .catch(errorHandler(dispatch))
   }, [version])
   const showingHelp = !!state?.config?.showHelp
   return (
@@ -81,9 +76,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                     .then(() => {
                       dispatch({ action: "config", config: c })
                     })
-                    .catch((e) => {
-                      dispatch({ action: "error", message: e.message })
-                    })
+                    .catch(errorHandler(dispatch))
                 }}
               />
             }
@@ -158,9 +151,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             .then(() => {
               setVersion(version + 1)
             })
-            .catch((e) => {
-              dispatch({ action: "error", message: e.message })
-            })
+            .catch(errorHandler(dispatch))
         }}
         setOpen={setClearDbModalOpen}
       />

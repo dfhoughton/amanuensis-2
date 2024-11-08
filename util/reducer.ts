@@ -1,3 +1,4 @@
+import { noSearchYet } from "../components/Dictionary";
 import {
   AppState,
   AppTabs,
@@ -5,6 +6,8 @@ import {
   Configuration,
   Language,
   Phrase,
+  Search,
+  SearchResults,
 } from "../types/common"
 import { setConfiguration } from "./database"
 import { deepClone } from "./general"
@@ -23,6 +26,8 @@ export type Action =
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
+  | { action: "searchInit"; search: Search; searchResults: SearchResults }
+  | { action: "selectResult"; selected: number }
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
@@ -30,7 +35,7 @@ export function reducer(state: AppState, action: Action): AppState {
       const { phrase, others } = action
       // phrase arrives with dates serialized; must fix
       for (const c of phrase.citations) {
-        if (typeof c.when === 'string') c.when = new Date(c.when)
+        if (typeof c.when === "string") c.when = new Date(c.when)
       }
       let { language } = state
       language ??= phrase.language
@@ -57,6 +62,20 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, priorPhrase: { ...state.phrase! } }
     case "citationSelected":
       return { ...state, citationIndex: action.citationIndex }
+    case "searchInit":
+      const { search, searchResults } = action
+      return { ...state, search, searchResults }
+    case "selectResult":
+      let { searchResults: results } = state
+      results ??= noSearchYet
+      const { selected } = action
+      const selectedPhrase = results.phrases[selected]
+      return {
+        ...state,
+        phrase: selectedPhrase,
+        tab: AppTabs.Note,
+        searchResults: { ...results, selected },
+      }
     case "goto":
       const { phrase: gotoPhrase, citationIndex } = action
       return {
@@ -70,4 +89,8 @@ export function reducer(state: AppState, action: Action): AppState {
       console.error({ wut: action })
       return state
   }
+}
+
+export function errorHandler(dispatch: React.Dispatch<Action>) {
+  return (e: any) => dispatch({ action: "error", message: e.message ?? `${e}` })
 }

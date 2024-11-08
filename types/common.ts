@@ -49,6 +49,25 @@ export enum AppTabs {
   Configuration = "configuration",
 }
 
+export type Search = {
+  phrase?: string
+  exact?: boolean
+  caseSensitive?: boolean
+  tags?: string[]
+  languages?: number[]
+  pageSize?: number
+  page?: number
+}
+
+export type SearchResults = {
+  selected: number // which individual result is selected
+  page: number // redundant
+  pageSize: number // redundant
+  pages: number
+  total: number
+  phrases: Phrase[]
+}
+
 export type AppState = {
   tab: AppTabs
   phrase?: Phrase
@@ -59,6 +78,8 @@ export type AppState = {
   port?: chrome.runtime.Port // so the reducer can send stuff on to the background
   error?: string // triggers the display of a toast
   config?: Configuration
+  search?: Search
+  searchResults?: SearchResults
 }
 
 export type Configuration = {
