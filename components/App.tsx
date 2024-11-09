@@ -6,9 +6,9 @@ import {
   Snackbar,
   ThemeProvider,
 } from "@mui/material"
-import React, { useEffect, useReducer, useState } from "react"
+import React, { useEffect, useReducer } from "react"
 import { useConnectionToBackground } from "../lib/hooks"
-import { Action, reducer } from "../util/reducer"
+import { Action, errorHandler, reducer } from "../util/reducer"
 import { AppState, AppTabs } from "../types/common"
 import { theme } from "../util/theme"
 import Tab from "@mui/material/Tab"
@@ -32,9 +32,7 @@ const App: React.FC = () => {
       .then((c) => {
         dispatch({ action: "config", config: c ?? {} })
       })
-      .catch((e) => {
-        dispatch({ action: "error", message: e.message })
-      })
+      .catch(errorHandler(dispatch))
   }, [])
   return (
     <ThemeProvider theme={theme}>
@@ -75,7 +73,7 @@ const App: React.FC = () => {
           </Alert>
         </Snackbar>
       </Container>
-    </ThemeProvider>
+      </ThemeProvider>
   )
 }
 

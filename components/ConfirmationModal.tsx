@@ -23,7 +23,20 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 350,
+          bgcolor: "background.paper",
+          boxShadow: 24,
+          pt: 2,
+          px: 4,
+          pb: 3,
+        }}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {title}
         </Typography>
@@ -31,7 +44,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {content}
         </Typography>
         <Stack
-          spacing="2"
+          spacing={2}
           direction="row"
           sx={{
             justifyContent: "flex-end",

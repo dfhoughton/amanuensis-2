@@ -19,35 +19,15 @@ import isEqual from "lodash/isEqual"
 import { Save } from "@mui/icons-material"
 import { savePhrase } from "../util/database"
 
-const pickCitation = (state: AppState): [Citation, number] | undefined => {
-  const { phrase, citationIndex } = state
-  if (phrase === undefined) return
-  const { citations } = phrase
-  if (citationIndex) return [citations[citationIndex], citationIndex]
-  const i = citations.findIndex((c) => c.canonical)
-  if (i > -1) return [citations[i], i]
-  return [citations[0], 0]
-}
-
 type NoteProps = {
   state: AppState
   dispatch: React.Dispatch<Action>
 }
 
 export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
-  const { phrase, priorPhrase } = state
-  const [citation, setCitation] = useState<Citation | undefined>(undefined)
+  const { phrase, priorPhrase, citationIndex = 0 } = state
+  const citation = phrase?.citations[citationIndex]
   const clean = isEqual(phrase, priorPhrase)
-  useEffect(() => {
-    const selectedCitation = pickCitation(state)
-    if (selectedCitation) {
-      const [citation, citationIndex] = selectedCitation
-      setCitation(citation)
-      if (citationIndex !== state.citationIndex) {
-        dispatch({ action: "citationSelected", citationIndex })
-      }
-    }
-  }, [state])
   const hidden = !state.config?.showHelp
   return (
     <>

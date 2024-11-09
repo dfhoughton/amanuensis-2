@@ -1,4 +1,4 @@
-import { noSearchYet } from "../components/Dictionary";
+import { noSearchYet } from "../components/Dictionary"
 import {
   AppState,
   AppTabs,
@@ -33,14 +33,22 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "phraseSelected":
       const { phrase, others } = action
+      const { citations } = phrase
       // phrase arrives with dates serialized; must fix
-      for (const c of phrase.citations) {
+      for (const c of citations) {
         if (typeof c.when === "string") c.when = new Date(c.when)
       }
       let { language } = state
       language ??= phrase.language
       const maybeMerge = others.length ? others : undefined
-      return { ...state, language, phrase, maybeMerge, priorPhrase: undefined }
+      return {
+        ...state,
+        language,
+        phrase,
+        maybeMerge,
+        priorPhrase: undefined,
+        citationIndex: selectCitation(citations),
+      }
     case "openPort":
       return { ...state, port: action.port }
     case "closePort":
@@ -73,6 +81,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         phrase: selectedPhrase,
+        citationIndex: selectCitation(selectedPhrase.citations),
         tab: AppTabs.Note,
         searchResults: { ...results, selected },
       }
@@ -93,4 +102,10 @@ export function reducer(state: AppState, action: Action): AppState {
 
 export function errorHandler(dispatch: React.Dispatch<Action>) {
   return (e: any) => dispatch({ action: "error", message: e.message ?? `${e}` })
+}
+
+const selectCitation = (citations: Citation[]): number => {
+  const i = citations.findIndex((c) => c.canonical)
+  if (i > -1) return i
+  return 0
 }
