@@ -81,6 +81,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         phrase: selectedPhrase,
+        priorPhrase: selectedPhrase,
         citationIndex: selectCitation(selectedPhrase.citations),
         tab: AppTabs.Note,
         searchResults: { ...results, selected },
