@@ -246,7 +246,7 @@ export const Languages: React.FC<LanguagesProps> = ({
                   </span>
                 ))}
               </TableCell>
-              <TableCell>{l.count.toLocaleString()}</TableCell>
+              <TableCell sx={{textAlign: 'right'}}>{l.count.toLocaleString()}</TableCell>
               <TableCell>
                 {!!l.id && (
                   <IconButton
