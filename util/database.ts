@@ -8,19 +8,20 @@ import {
   SearchResults,
 } from "../types/common"
 import { fuzzyMatcher } from "./general"
+import every from "lodash/every"
+import some from "lodash/some"
 
 type PhraseTable = {
   phrases: Table<Phrase>
 }
 const phrasesSchema = {
-  phrases:
-    "++id, lemma, language.id, *tags, *citations.tags, *citations.phrase",
+  phrases: "++id, lemma, languageId",
 }
 type LanguageTable = {
   languages: Table<Language>
 }
 const languagesSchema = {
-  languages: "++id, &name",
+  languages: "++id, &name, &locale",
 }
 // just putting this here so the extension only manages stored data in the one way
 type ConfigurationTable = {
@@ -47,6 +48,7 @@ function init() {
         name: "unknown",
         locale: "und",
         locales: {},
+        count: 0,
       })
     }
   })
@@ -84,18 +86,23 @@ export function setConfiguration(
 
 // get phrases in the same language that have some citation with the same phrase modulo case
 function phrasesForCitation(c: Citation, l: Language): Promise<Phrase[]> {
+  const phrase = c.phrase.toLowerCase()
   return db.phrases
-    .where("citations.phrase")
-    .equalsIgnoreCase(c.phrase)
-    .and((p) => p.language.id === l.id)
+    .where("languageId")
+    .equals(l.id!)
+    .and((p) => some(p.citations, (c) => c.phrase.toLowerCase() === phrase))
     .toArray()
 }
 
 export function languageForLocale(locale: string): Promise<Language> {
   return db.transaction("r", db.languages, async () => {
-    const languages = await db.languages.filter((l) => l[locale]).toArray()
+    const language = await db.languages.get({ locale })
+    if (language) return language
+    const languages = await db.languages
+      .filter((l) => !!(l.locales && l.locales[locale]))
+      .toArray()
     if (languages.length) {
-      return languages.sort((l) => -l[locale])[0]
+      return languages.sort((l) => -l.locales![locale])[0]
     } else {
       // default language
       return db.languages.get(0) as any as Language
@@ -104,29 +111,84 @@ export function languageForLocale(locale: string): Promise<Language> {
 }
 
 // returns languages and frequencies for display in configuration
-export function knownLanguages(): Promise<[Language, number][]> {
-  return db.transaction("r", db.languages, db.phrases, async () => {
+export function knownLanguages(): Promise<Language[]> {
+  return db.transaction("rw", db.languages, db.phrases, async () => {
+    void (await db.languages.toCollection().modify({ count: 0, locales: {} }))
     const languages = await db.languages.toArray()
-    const stats: [Language, number][] = await Promise.all(
-      languages.map(async (l) => {
-        const count = await db.phrases
-          .where("language.id")
-          .equals(l.id!)
-          .count()
-        return [l, count]
-      })
-    )
+    db.phrases.each((p) => {
+      const language = languages.find((l) => l.id === p.languageId)!
+      language.count++
+      for (const c of p.citations) {
+        if (c.locale) {
+          language.locales[c.locale] ??= 0
+          language.locales[c.locale]++
+        }
+      }
+    })
+    void (await db.languages.bulkPut(languages))
     // sort them primarily most used to least used and secondarily alphabetically
-    return stats.sort(([la, ca], [lb, cb]) => {
-      if (ca === cb) return la.name < lb.name ? -1 : la.name > lb.name ? 1 : 0
-      return cb - ca
+    return languages.sort((la, lb) => {
+      if (la.id === 0) return -1
+      if (lb.id === 0) return 1
+      const delta = lb.count - la.count
+      if (delta) return delta
+      return la.name < lb.name ? -1 : la.name > lb.name ? 1 : 0
     })
   })
 }
 
-// record an additional use of the locale with the language
-export function bumpLocaleCount(language: Language) {
-  return db.languages.update(language.id!, { locales: language.locales })
+// cheaper version of knownLanguages which doesn't promise accurate locales or counts
+export function perhapsStaleLanguages(): Promise<Language[]> {
+  return db.languages.toArray()
+}
+
+export function addLanguage(
+  name: string,
+  locale: string,
+  moveExisting: boolean
+): Promise<Language> {
+  return db.transaction("rw", db.phrases, db.languages, async () => {
+    const language: Language = { name, locale, locales: {}, count: 0 }
+    language.id = await db.languages.put(language)
+    if (moveExisting) {
+      const phrasesToModify = await db.phrases
+        .filter((p) => every(p.citations, (c) => c.locale === locale))
+        .toArray()
+      const updates = phrasesToModify.map((p: Phrase) => ({
+        key: p.id,
+        changes: { languageId: language.id },
+      }))
+      void (await db.phrases.bulkUpdate(updates))
+    }
+    return language
+  })
+}
+
+// count the number of phrases all of whose citations have the given locale
+export function countPhrasesWithLocale(locale: string): Promise<Number> {
+  return db.transaction("r", db.phrases, async () => {
+    return db.phrases
+      .filter((p) => every(p.citations, (c) => c.locale === locale))
+      .count()
+  })
+}
+
+export function removeLanguage(
+  language: Language,
+  moveExisting: boolean
+): Promise<void> {
+  return db.transaction("rw", db.phrases, db.languages, async () => {
+    if (moveExisting) {
+      void (await db.phrases
+        .where("languageId")
+        .equals(language.id!)
+        .modify({ languageId: 0 }))
+    } else {
+      void (await db.phrases.where("languageId").equals(language.id!).delete())
+    }
+    db.languages.bulkDelete([language.id!])
+    return
+  })
 }
 
 // generate a new *unsaved* phrase and return the phrase a list of phrases it might be merged with
@@ -136,12 +198,10 @@ export function citationToPhrase(
 ): Promise<[Phrase, Phrase[]]> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
     const language = await languageForLocale(locale)
-    language.locales[locale] ??= 0
-    language.locales[locale]++
-    void bumpLocaleCount(language)
+    c.locale = locale
     const phrase: Phrase = {
       lemma: c.phrase,
-      language: language,
+      languageId: language.id,
       citations: [c],
       updatedAt: new Date(),
     }

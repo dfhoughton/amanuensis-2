@@ -23,11 +23,14 @@ export type Action =
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
+  | { action: "phraseDeleted" }
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
   | { action: "searchInit"; search: Search; searchResults: SearchResults }
   | { action: "selectResult"; selected: number }
+  | { action: "noSelection" } // when popup is opened with nothing highlighted
+  | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
@@ -38,12 +41,12 @@ export function reducer(state: AppState, action: Action): AppState {
       for (const c of citations) {
         if (typeof c.when === "string") c.when = new Date(c.when)
       }
-      let { language } = state
-      language ??= phrase.language
+      let { languageId } = state
+      languageId ??= phrase.languageId
       const maybeMerge = others.length ? others : undefined
       return {
         ...state,
-        language,
+        languageId,
         phrase,
         maybeMerge,
         priorPhrase: undefined,
@@ -86,6 +89,9 @@ export function reducer(state: AppState, action: Action): AppState {
         tab: AppTabs.Note,
         searchResults: { ...results, selected },
       }
+    case "phraseDeleted":
+      if (state.priorPhrase) return { ...state, priorPhrase: undefined } // this will enable the save button
+      return state
     case "goto":
       const { phrase: gotoPhrase, citationIndex } = action
       return {
@@ -94,6 +100,14 @@ export function reducer(state: AppState, action: Action): AppState {
         priorPhrase: deepClone(gotoPhrase),
         citationIndex,
         tab: AppTabs.Note,
+      }
+    case "noSelection":
+      return state
+    case "changeLanguage":
+      const { phrase: changeLanguagePhrase } = state
+      return {
+        ...state,
+        phrase: { ...changeLanguagePhrase!, languageId: action.language.id },
       }
     default:
       console.error({ wut: action })

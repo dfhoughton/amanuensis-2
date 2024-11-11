@@ -1,23 +1,23 @@
 import {
   Box,
-  Button,
-  Collapse,
   IconButton,
   Link,
+  Menu,
+  MenuItem,
   Paper,
   Stack,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material"
-import React, { useCallback, useEffect, useState } from "react"
-import { AppState, Citation, Phrase } from "../types/common"
-import { Action } from "../util/reducer"
+import React, { useEffect, useState } from "react"
+import { AppState, Citation, Language, Phrase } from "../types/common"
+import { Action, errorHandler } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import isEqual from "lodash/isEqual"
-import { Save } from "@mui/icons-material"
-import { savePhrase } from "../util/database"
+import { Save, Language as LanguageIcon } from "@mui/icons-material"
+import { perhapsStaleLanguages, savePhrase } from "../util/database"
 
 type NoteProps = {
   state: AppState
@@ -25,10 +25,24 @@ type NoteProps = {
 }
 
 export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
+  const [languages, setLanguages] = useState<Language[]>([])
+  useEffect(() => {
+    perhapsStaleLanguages()
+      .then((languages) => setLanguages(languages))
+      .catch(errorHandler(dispatch))
+  }, [])
+  const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null)
+  const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const { phrase, priorPhrase, citationIndex = 0 } = state
   const citation = phrase?.citations[citationIndex]
   const clean = isEqual(phrase, priorPhrase)
   const hidden = !state.config?.showHelp
+  const changeLanguage = (language: Language) => () => {
+    setLanguageMenuAnchorEl(null)
+    if (phrase?.languageId !== language.id)
+      dispatch({ action: "changeLanguage", language })
+  }
   return (
     <>
       <Box>
@@ -56,6 +70,34 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                   </IconButton>
                 </span>
               </Tooltip>
+              {languages.length > 1 && (
+                <>
+                  <Tooltip title="Change language assignment for note">
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
+                    >
+                      <LanguageIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Menu
+                    anchorEl={languageMenuAnchorEl}
+                    open={languageMenuOpen}
+                    onClose={() => setLanguageMenuAnchorEl(null)}
+                  >
+                    {languages.map((l) => (
+                      <MenuItem
+                        key={l.id!}
+                        selected={l.id === phrase.languageId}
+                        onClick={changeLanguage(l)}
+                      >
+                        {l.name}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </>
+              )}
             </Stack>
             <LabelWithHelp
               hidden={hidden}
@@ -225,7 +267,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   const { citations } = phrase
   const i = citations!.indexOf(citation)
   const samePhrase =
-    isEqual(phrase.language, state.phrase?.language) &&
+    isEqual(phrase.languageId, state.phrase?.languageId) &&
     isEqual(phrase.lemma, state.phrase?.lemma)
   const sx = {
     fontSize: "small",

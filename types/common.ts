@@ -33,7 +33,7 @@ export interface Phrase {
   lemma: string
   note?: string
   tags?: string[]
-  language: Language
+  languageId?: number
   citations: Citation[]
   updatedAt: Date
 }
@@ -74,7 +74,7 @@ export type AppState = {
   citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
   maybeMerge?: Phrase[]
-  language?: Language // do we need this?
+  languageId?: number // do we need this?
   port?: chrome.runtime.Port // so the reducer can send stuff on to the background
   error?: string // triggers the display of a toast
   config?: Configuration
@@ -101,4 +101,5 @@ export type Language = {
   // the keys are the two-letter locale identifiers Chrome may identify this language by
   // the values are the number of citations for the given language with this locale
   locales: Record<string, number>
+  count: number // number of phrases assigned to language -- this is a denormalization
 }
