@@ -185,7 +185,7 @@ export const Languages: React.FC<LanguagesProps> = ({
     if (language.count) {
       setLanguageToRemove(language)
     } else {
-      removeLanguage(language, false)
+      removeLanguage(language, false).then(() => setVersion(version + 1))
     }
   }
   return (
