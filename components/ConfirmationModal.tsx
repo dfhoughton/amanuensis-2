@@ -9,20 +9,6 @@ type ConfirmationModalProps = {
   setOpen: (open: boolean) => void
 }
 
-/** this worked for this modal; exporting it seemed like an easy way to share the goodness */
-export const baseModalStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 350,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  pt: 2,
-  px: 4,
-  pb: 3,
-}
-
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   content,
@@ -37,7 +23,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{ ...baseModalStyle }}>
+      <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {title}
         </Typography>

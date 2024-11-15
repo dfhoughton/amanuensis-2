@@ -22,7 +22,6 @@ import some from "lodash/some"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import { deleteTag, knownTags, saveTag } from "../util/database"
-import { baseModalStyle } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
 
 type TagsProps = {
@@ -229,7 +228,7 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{ ...baseModalStyle }}>
+      <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {!tag?.id && <>Create a New Tag</>}
           {!!tag?.id && <>Edit Tag</>}
