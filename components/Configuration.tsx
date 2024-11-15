@@ -3,9 +3,11 @@ import {
   AppState,
   Language,
   Configuration as ConfigurationType,
+  MessageLevel,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
+  AlertColor,
   Box,
   Button,
   Checkbox,
@@ -32,7 +34,7 @@ import {
   resetDatabase,
   setConfiguration,
 } from "../util/database"
-import { baseModalStyle, ConfirmationModal } from "./ConfirmationModal"
+import { ConfirmationModal } from "./ConfirmationModal"
 import { LabelWithHelp } from "./LabelWithHelp"
 import AddIcon from "@mui/icons-material/Add"
 import LanguageIcon from "@mui/icons-material/Language"
@@ -95,8 +97,9 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           <Button
             onClick={() => {
               dispatch({
-                action: "error",
+                action: "message",
                 message: "Hello, World! I'm an error!",
+                messageLevel: 'error' as MessageLevel
               })
             }}
           >
@@ -167,7 +170,6 @@ export const Languages: React.FC<LanguagesProps> = ({
   const createLanguage = (languageName, locale) => () => {
     countPhrasesWithLocale(locale)
       .then((c) => {
-        console.log("number found", c)
         if (c === 0) {
           addLanguage(languageName, locale, false)
             .then(() => setVersion(version + 1))
@@ -308,7 +310,7 @@ const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{ ...baseModalStyle }}>
+      <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {`Add ${name} to Languages`}
         </Typography>
@@ -381,7 +383,7 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{ ...baseModalStyle }}>
+      <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {`Add ${name} to Languages`}
         </Typography>

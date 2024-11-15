@@ -33,7 +33,6 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
   const [tags, setTags] = useState<Tag[] | undefined>()
   const [openAddTagModal, setOpenAddTagModal] = useState(false)
   const [version, setVersion] = useState(0)
-  const [tagDeleted, setTagDeleted] = useState<Tag | undefined>()
   const { config = {} } = state
   useEffect(() => {
     knownTags()
@@ -73,17 +72,18 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
         </Paper>
       )}
       <Stack spacing={2} sx={{ mt: 2 }}>
-        {tags?.map((t) => (
-          <TagCard
-            key={t.id}
-            tag={t}
-            tags={tags}
-            version={version}
-            setVersion={setVersion}
-            setTagDeleted={setTagDeleted}
-            dispatch={dispatch}
-          />
-        ))}
+        {tags
+          ?.filter((t) => !!t)
+          .map((t) => (
+            <TagCard
+              key={t.id}
+              tag={t}
+              tags={tags}
+              version={version}
+              setVersion={setVersion}
+              dispatch={dispatch}
+            />
+          ))}
         {!tags?.length && <i>no tags yet</i>}
       </Stack>
       <EditTagModal
@@ -95,23 +95,6 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
         tags={tags ?? []}
         dispatch={dispatch}
       />
-      <Snackbar
-        open={!!tagDeleted}
-        autoHideDuration={5000}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        onClose={() => setTagDeleted(undefined)}
-      >
-        <>
-          {!!tagDeleted && (
-            <Alert severity="success" variant="filled">
-              <TagChip tag={tagDeleted[0]} /> has been deleted. This affected
-              {` ${tagDeleted![1]} `}
-              {tagDeleted[1] === 1 && "note"}
-              {tagDeleted[1] !== 1 && "notes"}.
-            </Alert>
-          )}
-        </>
-      </Snackbar>
     </Box>
   )
 }
@@ -121,7 +104,6 @@ export type TagCardProps = {
   tags: Tag[]
   version: number
   setVersion: (version: number) => void
-  setTagDeleted: (tag: Tag) => void
   dispatch: React.Dispatch<Action>
 }
 export const TagCard: React.FC<TagCardProps> = ({
@@ -129,7 +111,6 @@ export const TagCard: React.FC<TagCardProps> = ({
   tags,
   version,
   setVersion,
-  setTagDeleted,
   dispatch,
 }) => {
   const [open, setOpen] = useState(false)
@@ -161,12 +142,17 @@ export const TagCard: React.FC<TagCardProps> = ({
                 onClick={() => {
                   deleteTag(tag)
                     .then((count) => {
-                      console.log("count", count)
-                      setTagDeleted(tag)
-                    })
-                    .then(() => {
-                      console.log("version", version)
+                      const verb =
+                        count === 0
+                          ? `No phrases were`
+                          : count === 1
+                          ? `One phrase was`
+                          : `${count} phrases were`
                       setVersion(version + 1)
+                      dispatch({
+                        action: "message",
+                        message: `${verb} affected by the deletion of tag "${tag.name}".`,
+                      })
                     })
                     .catch(errorHandler(dispatch))
                 }}

@@ -165,9 +165,7 @@ export function deleteTag(tag: Tag): Promise<number> {
       }
     })
     if (mutated.length) await db.phrases.bulkPut(mutated)
-    console.log('deleting tag', tag)
-    await db.phrases.delete(tag.id)
-    console.log('count from db action', count)
+    await db.tags.delete(tag.id)
     return count
   })
 }

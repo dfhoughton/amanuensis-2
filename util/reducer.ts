@@ -5,6 +5,7 @@ import {
   Citation,
   Configuration,
   Language,
+  MessageLevel,
   Phrase,
   Search,
   SearchResults,
@@ -19,7 +20,11 @@ export type Action =
   | { action: "closePort" }
   | { action: "language"; language: Language }
   | { action: "phraseSelected"; phrase: Phrase; others: Phrase[] }
-  | { action: "error"; message?: string } // undefined message hides error
+  | {
+      action: "message"
+      message?: string
+      messageLevel?: MessageLevel
+    } // undefined message hides error
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
@@ -59,8 +64,12 @@ export function reducer(state: AppState, action: Action): AppState {
     case "select":
       state.port?.postMessage(action)
       return state
-    case "error":
-      return { ...state, error: action.message }
+    case "message":
+      return {
+        ...state,
+        message: action.message,
+        messageLevel: action.messageLevel,
+      }
     case "tab":
       return { ...state, tab: action.tab }
     case "config":
@@ -116,7 +125,12 @@ export function reducer(state: AppState, action: Action): AppState {
 }
 
 export function errorHandler(dispatch: React.Dispatch<Action>) {
-  return (e: any) => dispatch({ action: "error", message: e.message ?? `${e}` })
+  return (e: any) => {
+    const message = e.message ?? `${e}`
+    const messageLevel: MessageLevel = "error" as never // unclear why typescript requires this
+    const action: Action = { action: "message", message, messageLevel }
+    dispatch(action)
+  }
 }
 
 const selectCitation = (citations: Citation[]): number => {

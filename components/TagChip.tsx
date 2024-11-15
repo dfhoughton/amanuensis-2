@@ -9,8 +9,8 @@ type Props = {
 
 /** A label with a question mark icon. If you click the icon, some collapsed explanatory text appears. */
 export const TagChip: React.FC<Props> = ({ tag, onClick }) => {
-  const { name, color = "#000000", bgcolor = "#ffffff" } = tag
-  console.log('received by <TagChip>', {tag, name, color, bgcolor})
+  // somehow sometimes the tag is undefined
+  const { name = '', color = "#000000", bgcolor = "#ffffff" } = tag ?? {}
   return (
     <Chip
       label={name}

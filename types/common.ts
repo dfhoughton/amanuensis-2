@@ -1,3 +1,5 @@
+import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
+import { OverridableStringUnion } from '@material-ui/types';
 import { Action } from "../util/reducer"
 
 // a representation of a selection
@@ -69,6 +71,8 @@ export type SearchResults = {
   phrases: Phrase[]
 }
 
+export type MessageLevel = OverridableStringUnion<AlertColor, AlertPropsColorOverrides>
+
 export type AppState = {
   tab: AppTabs
   phrase?: Phrase
@@ -77,7 +81,8 @@ export type AppState = {
   maybeMerge?: Phrase[]
   languageId?: number // do we need this?
   port?: chrome.runtime.Port // so the reducer can send stuff on to the background
-  error?: string // triggers the display of a toast
+  message?: string // triggers the display of a toast
+  messageLevel?: MessageLevel // colors the toast
   config?: Configuration
   search?: Search
   searchResults?: SearchResults

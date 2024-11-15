@@ -110,7 +110,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               <TextField
                 onChange={
                   debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                    console.log({ phrase, lemma: e.target.value })
                     dispatch({
                       action: "phrase",
                       phrase: { ...phrase!, lemma: e.target.value },

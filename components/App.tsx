@@ -79,15 +79,15 @@ const App: React.FC = () => {
             </TabPanel>
           </TabContext>
           <Snackbar
-            open={!!state.error}
+            open={!!state.message}
             autoHideDuration={5000}
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             onClose={() => {
-              dispatch({ action: "error" })
+              dispatch({ action: "message" })
             }}
           >
-            <Alert severity="error" variant="filled">
-              {state.error}
+            <Alert severity={state.messageLevel ?? "success"} variant="filled">
+              {state.message}
             </Alert>
           </Snackbar>
         </Container>

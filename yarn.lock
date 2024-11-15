@@ -290,6 +290,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@material-ui/types@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@material-ui/types/-/types-5.1.0.tgz#efa1c7a0b0eaa4c7c87ac0390445f0f88b0d88f2"
+  integrity sha512-7cqRjrY50b8QzRSYyhSpx4WRw2YuO0KKIGQEVk5J8uoz2BanawykgZGoWEqKm7pVIbzFDN0SpPcVV4IhOFkl8A==
+
 "@mui/base@5.0.0-beta.59":
   version "5.0.0-beta.59"
   resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-beta.59.tgz#c50a35fb03f4c6f2da31242bc200cbdb75e6149a"
