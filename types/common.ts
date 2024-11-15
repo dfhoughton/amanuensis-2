@@ -21,7 +21,7 @@ export interface Citation {
   when: Date
   where?: string // the URL of the tab
   note?: string
-  tags?: string[]
+  tags?: number[] // foreign keys into the tags table
   title?: string
   url?: string
   locale?: string // the locale provided by Chrome for this particular citation
@@ -32,7 +32,7 @@ export interface Phrase {
   id?: number
   lemma: string
   note?: string
-  tags?: string[]
+  tags?: number[] // foreign keys into the tags table
   languageId?: number
   citations: Citation[]
   updatedAt: Date
@@ -46,6 +46,7 @@ export interface dictionary {
 export enum AppTabs {
   Note = "note",
   Dictionary = "dictionary",
+  Tags = "tags",
   Configuration = "configuration",
 }
 
@@ -53,7 +54,7 @@ export type Search = {
   phrase?: string
   exact?: boolean
   caseSensitive?: boolean
-  tags?: string[]
+  tags?: number[]
   languages?: number[]
   pageSize?: number
   page?: number
@@ -102,4 +103,13 @@ export type Language = {
   // the values are the number of citations for the given language with this locale
   locales: Record<string, number>
   count: number // number of phrases assigned to language -- this is a denormalization
+}
+
+// for tagging notes and citations
+export type Tag = {
+  id?: number
+  name: string
+  description?: string
+  color?: string
+  bgcolor?: string
 }

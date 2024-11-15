@@ -6,6 +6,7 @@ import {
   Phrase,
   Search,
   SearchResults,
+  Tag,
 } from "../types/common"
 import { fuzzyMatcher } from "./general"
 import every from "lodash/every"
@@ -23,6 +24,12 @@ type LanguageTable = {
 const languagesSchema = {
   languages: "++id, &name, &locale",
 }
+type TagTable = {
+  tags: Table<Tag>
+}
+const tagsSchema = {
+  tags: "++id, &name",
+}
 // just putting this here so the extension only manages stored data in the one way
 type ConfigurationTable = {
   configuration: Table<Configuration>
@@ -30,13 +37,14 @@ type ConfigurationTable = {
 const configurationSchema = {
   configuration: "id",
 }
-type DexieTable = PhraseTable & LanguageTable & ConfigurationTable
+type DexieTable = PhraseTable & LanguageTable & ConfigurationTable & TagTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T
 const db = new BaseDexie("amanuensis") as Dexie
 const schema = Object.assign(
   {},
   phrasesSchema,
   languagesSchema,
+  tagsSchema,
   configurationSchema
 )
 db.version(1).stores(schema)
@@ -107,6 +115,60 @@ export function languageForLocale(locale: string): Promise<Language> {
       // default language
       return db.languages.get(0) as any as Language
     }
+  })
+}
+
+export function knownTags(): Promise<Tag[]> {
+  return db.tags.toArray()
+}
+
+export function saveTag(tag: Tag): Promise<void> {
+  return db.tags.put(tag)
+}
+
+// deletes a tag and all its uses, returning the number of phrases affected
+export function deleteTag(tag: Tag): Promise<number> {
+  return db.transaction("rw", db.tags, db.phrases, async () => {
+    let count = 0
+    const mutated: Phrase[] = []
+    db.phrases.each((p) => {
+      let changed = false
+      if (p.tags) {
+        const newTags: number[] = []
+        for (const t of p.tags) {
+          if (t === tag.id) {
+            changed = true
+          } else {
+            newTags.push(t)
+          }
+        }
+        if (changed) p.tags = newTags
+      }
+      for (const c of p.citations) {
+        let citationChanged = false
+        if (c.tags) {
+          const newTags: number[] = []
+          for (const t of c.tags) {
+            if (t === tag.id) {
+              citationChanged = true
+            } else {
+              newTags.push(t)
+            }
+          }
+          if (citationChanged) c.tags = newTags
+        }
+        changed ||= citationChanged
+      }
+      if (changed) {
+        mutated.push(p)
+        count++
+      }
+    })
+    if (mutated.length) await db.phrases.bulkPut(mutated)
+    console.log('deleting tag', tag)
+    await db.phrases.delete(tag.id)
+    console.log('count from db action', count)
+    return count
   })
 }
 
@@ -231,6 +293,7 @@ export async function phraseSearch(search: Search): Promise<SearchResults> {
   const rv: { phrases: Phrase[]; total: number } = await db.transaction(
     "r",
     db.phrases,
+    db.tags,
     async () => {
       let scope: any = db.phrases.orderBy("lemma")
       if (languages.length) scope = scope.where("languages.id").anyOf(languages)
