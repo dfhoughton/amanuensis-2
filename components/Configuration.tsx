@@ -93,19 +93,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             label="Show Help Text"
           />
         </LabelWithHelp>
-        <LabelWithHelp hidden={!showingHelp} label="" explanation="">
-          <Button
-            onClick={() => {
-              dispatch({
-                action: "message",
-                message: "Hello, World! I'm an error!",
-                messageLevel: "error" as MessageLevel,
-              })
-            }}
-          >
-            Demonstrate Error State
-          </Button>
-        </LabelWithHelp>
         <LabelWithHelp
           hidden={!showingHelp}
           label=""
