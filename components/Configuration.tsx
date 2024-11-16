@@ -99,7 +99,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
               dispatch({
                 action: "message",
                 message: "Hello, World! I'm an error!",
-                messageLevel: 'error' as MessageLevel
+                messageLevel: "error" as MessageLevel,
               })
             }}
           >
@@ -199,7 +199,10 @@ export const Languages: React.FC<LanguagesProps> = ({
       >
         <Typography variant="h6" component="h2">
           Languages{" "}
-          <Tooltip title="You may categorize notes by language. Notes within the same language may be merged. Within a language there may be only one note per lemma.">
+          <Tooltip
+            arrow
+            title="You may categorize notes by language. Notes within the same language may be merged. Within a language there may be only one note per lemma."
+          >
             <LanguageIcon fontSize="small" />
           </Tooltip>
         </Typography>
@@ -248,7 +251,9 @@ export const Languages: React.FC<LanguagesProps> = ({
                   </span>
                 ))}
               </TableCell>
-              <TableCell sx={{textAlign: 'right'}}>{l.count.toLocaleString()}</TableCell>
+              <TableCell sx={{ textAlign: "right" }}>
+                {l.count.toLocaleString()}
+              </TableCell>
               <TableCell>
                 {!!l.id && (
                   <IconButton

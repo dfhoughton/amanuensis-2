@@ -22,9 +22,9 @@ export type Action =
   | { action: "phraseSelected"; phrase: Phrase; others: Phrase[] }
   | {
       action: "message"
-      message?: string
+      message?: string // undefined message hides notification
       messageLevel?: MessageLevel
-    } // undefined message hides error
+    }
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
@@ -77,7 +77,7 @@ export function reducer(state: AppState, action: Action): AppState {
       setConfiguration(config)
       return { ...state, config }
     case "phrase": // unsaved change to phrase
-      return { ...state, phrase: action.phrase }
+      return { ...state, phrase: action.phrase, searchResults: undefined }
     case "phraseSaved":
       return { ...state, priorPhrase: { ...state.phrase! } }
     case "citationSelected":
@@ -99,6 +99,7 @@ export function reducer(state: AppState, action: Action): AppState {
         searchResults: { ...results, selected },
       }
     case "phraseDeleted":
+      // TODO: this needs to force a refresh of search results, if nothing else
       if (state.priorPhrase) return { ...state, priorPhrase: undefined } // this will enable the save button
       return state
     case "goto":

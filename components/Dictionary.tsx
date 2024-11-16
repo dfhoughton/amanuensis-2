@@ -23,13 +23,12 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   const { search = { ...searchDefaults }, searchResults = noSearchYet } = state
   // get initial search results
   useEffect(() => {
-    if (!isEqual(search, state.search))
-      phraseSearch(search)
-        .then((searchResults) =>
-          dispatch({ action: "searchInit", search, searchResults })
-        )
-        .catch(errorHandler(dispatch))
-  }, [state.search])
+    phraseSearch(search)
+      .then((searchResults) =>
+        dispatch({ action: "searchInit", search, searchResults })
+      )
+      .catch(errorHandler(dispatch))
+  }, [state.search, state.searchResults])
   return (
     <>
       <SearchForm state={state} dispatch={dispatch} />

@@ -1,4 +1,4 @@
-import { Chip } from "@mui/material"
+import { Chip, Tooltip } from "@mui/material"
 import React from "react"
 import { Tag } from "../types/common"
 
@@ -10,8 +10,13 @@ type Props = {
 /** A label with a question mark icon. If you click the icon, some collapsed explanatory text appears. */
 export const TagChip: React.FC<Props> = ({ tag, onClick }) => {
   // somehow sometimes the tag is undefined
-  const { name = '', color = "#000000", bgcolor = "#ffffff" } = tag ?? {}
-  return (
+  const {
+    name = "",
+    color = "#000000",
+    bgcolor = "#ffffff",
+    description,
+  } = tag ?? {}
+  const chip = (
     <Chip
       label={name}
       variant="outlined"
@@ -20,5 +25,12 @@ export const TagChip: React.FC<Props> = ({ tag, onClick }) => {
       clickable={!!onClick}
       onClick={onClick}
     />
+  )
+  return description ? (
+    <Tooltip arrow title={description} enterDelay={500}>
+      {chip}
+    </Tooltip>
+  ) : (
+    chip
   )
 }

@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react"
 import { AppState, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
-  Alert,
   Box,
   Button,
   IconButton,
   Modal,
   Paper,
-  Snackbar,
   Stack,
   TextField,
   Tooltip,
@@ -45,7 +43,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
         <Typography variant="h5" component="h1">
           Tags
         </Typography>
-        <Tooltip title="Create a tag" arrow>
+        <Tooltip arrow title="Create a tag">
           <IconButton
             color="primary"
             size="small"
@@ -126,7 +124,7 @@ export const TagCard: React.FC<TagCardProps> = ({
           <TagChip tag={tag} />
           <Box>{tag.description}</Box>
           <Stack direction="row" spacing={1}>
-            <Tooltip title="remove tag" arrow>
+            <Tooltip arrow title="edit tag">
               <IconButton
                 color="primary"
                 size="small"
@@ -135,7 +133,7 @@ export const TagCard: React.FC<TagCardProps> = ({
                 <EditIcon fontSize="inherit" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="delete tag" arrow>
+            <Tooltip arrow title="delete tag">
               <IconButton
                 color="primary"
                 size="small"
