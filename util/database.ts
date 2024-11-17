@@ -8,7 +8,7 @@ import {
   SearchResults,
   Tag,
 } from "../types/common"
-import { fuzzyMatcher } from "./general"
+import { matcher } from "./general"
 import every from "lodash/every"
 import some from "lodash/some"
 
@@ -279,9 +279,8 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
 
 export async function phraseSearch(search: Search): Promise<SearchResults> {
   const {
-    phrase,
-    exact,
-    caseSensitive,
+    lemma,
+    text,
     tags = [],
     languages = [],
     // these defaults should be redundant
@@ -295,23 +294,25 @@ export async function phraseSearch(search: Search): Promise<SearchResults> {
     async () => {
       let scope: any = db.phrases.orderBy("lemma")
       if (languages.length) scope = scope.where("languages.id").anyOf(languages)
-      if (phrase) {
-        if (exact) {
-          if (caseSensitive) {
-            scope = scope.where("citations.phrase").equals(phrase)
-          } else {
-            scope = scope.where("citations.phrase").equalsIgnoreCase(phrase)
+      if (text && /\S/.test(text.text)) {
+        const {whole, exact, caseSensitive} = text
+        const rx = matcher(text.text, !!whole, !exact, !caseSensitive)
+        scope = scope.filter((p: Phrase) => {
+          if (rx.test(p.lemma)) return true
+          if (p.note && rx.test(p.note)) return true
+          for (const c of p.citations) {
+            if (rx.test(c.phrase)) return true
+            if (rx.test(c.before)) return true
+            if (rx.test(c.after)) return true
+            if (c.note && rx.test(c.note)) return true
           }
-        } else {
-          const rx = fuzzyMatcher(phrase, !caseSensitive)
-          scope = scope.filter((p: Phrase) => {
-            if (rx.test(p.lemma)) return true
-            for (const c of p.citations) {
-              if (rx.test(c.phrase)) return true
-            }
-            return false
-          })
-        }
+          return false
+        })
+      }
+      if (lemma && /\S/.test(lemma.text)) {
+        const {whole, exact, caseSensitive} = lemma
+        const rx = matcher(lemma.text, !!whole, !exact, !caseSensitive)
+        scope = scope.filter((p: Phrase) => (rx.test(p.lemma)))
       }
       if (tags.length) {
         const tagSet = new Set(tags)

@@ -2,6 +2,7 @@
 
 import isArray from "lodash/isArray"
 import isObject from "lodash/isObject"
+import { wsrx } from "./string"
 
 export function uniq<T>(things: T[], by?: (T) => any): T[] {
   const ar: T[] = []
@@ -30,16 +31,29 @@ export function deepClone<T>(obj: T): T {
   return obj
 }
 
-// generates a regular expression that matches a sequence of
-// characters with optional other characters in between
-export function fuzzyMatcher(s: string, i: boolean | undefined) {
+export function matcher(
+  s: string,
+  wholeWord: boolean,
+  fuzzy: boolean,
+  caseInsensitive: boolean
+): RegExp {
   // squish
   s = s.replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ")
-  s = s
-    .split("")
-    .map((c) =>
-      c === " " ? "s+" : /[.?+*^$\\{}\[\]\(\)]/.test(c) ? `\\${c}` : c
-    )
-    .join(".*")
-  return new RegExp(s, i ? "i" : "")
+  if (s.length === 0) return /(?!)/ // the null regex that matches nothing
+
+  let chars = s.split("")
+  let leftBound, rightBound
+  if (wholeWord) {
+    const left = /\w/.test(chars[0])
+    const right = /\w/.test(chars[chars.length - 1])
+    leftBound = left ? "\b" : "(?<=s|^)"
+    rightBound = right ? "\b" : "(?=s|$)"
+  }
+  chars = chars.map((c) => wsrx(c)!) // maybe map these to grouped expressions
+  if (wholeWord) {
+    chars.unshift(leftBound)
+    chars.push(rightBound)
+  }
+  s = chars.join(fuzzy ? ".*" : "")
+  return new RegExp(s, caseInsensitive ? "i" : "")
 }

@@ -52,10 +52,16 @@ export enum AppTabs {
   Configuration = "configuration",
 }
 
+export type TextSearch = {
+  text: string
+  exact: boolean
+  whole: boolean
+  caseSensitive: boolean
+}
+
 export type Search = {
-  phrase?: string
-  exact?: boolean
-  caseSensitive?: boolean
+  lemma?: TextSearch
+  text?: TextSearch
   tags?: number[]
   languages?: number[]
   pageSize?: number
