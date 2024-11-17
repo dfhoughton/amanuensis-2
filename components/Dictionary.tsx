@@ -182,7 +182,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                 }
                 onClick={() => {
                   let languages = search.languages ?? []
-                  if (some(languages, (lId) => lId === l.id)) {
+                  if (some(languages, (lId: number) => lId === l.id)) {
                     languages = languages.filter((lId) => lId !== l.id)
                   } else {
                     languages = [...languages, l.id!]
@@ -348,7 +348,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
     fontSize: "0.75rem",
     cursor: "pointer",
   }
-  if (checked) (sx as any).bgcolor = "red"
+  if (checked) (sx as any).bgcolor = "primary.main"
   return (
     <Tooltip arrow title={explanation} enterDelay={1000}>
       <Avatar
