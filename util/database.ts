@@ -292,10 +292,14 @@ export async function phraseSearch(search: Search): Promise<SearchResults> {
     db.phrases,
     db.tags,
     async () => {
-      let scope: any = db.phrases.orderBy("lemma")
-      if (languages.length) scope = scope.where("languages.id").anyOf(languages)
+      let scope: Collection<Phrase, any, Phrase>
+      if (languages.length) {
+        scope = db.phrases.where("languageId").anyOf(languages)
+      } else {
+        scope = db.phrases.toCollection()
+      }
       if (text && /\S/.test(text.text)) {
-        const {whole, exact, caseSensitive} = text
+        const { whole, exact, caseSensitive } = text
         const rx = matcher(text.text, !!whole, !exact, !caseSensitive)
         scope = scope.filter((p: Phrase) => {
           if (rx.test(p.lemma)) return true
@@ -310,9 +314,9 @@ export async function phraseSearch(search: Search): Promise<SearchResults> {
         })
       }
       if (lemma && /\S/.test(lemma.text)) {
-        const {whole, exact, caseSensitive} = lemma
+        const { whole, exact, caseSensitive } = lemma
         const rx = matcher(lemma.text, !!whole, !exact, !caseSensitive)
-        scope = scope.filter((p: Phrase) => (rx.test(p.lemma)))
+        scope = scope.filter((p: Phrase) => rx.test(p.lemma))
       }
       if (tags.length) {
         const tagSet = new Set(tags)
@@ -333,7 +337,7 @@ export async function phraseSearch(search: Search): Promise<SearchResults> {
         })
       }
       const offset = (page - 1) * pageSize
-      const rs: Phrase[] = await scope.toArray()
+      const rs: Phrase[] = await scope.sortBy("lemma")
       const phrases = rs.slice(offset, offset + pageSize)
       const total = rs.length
       return { phrases, total }
