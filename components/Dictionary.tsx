@@ -42,13 +42,17 @@ export const noSearchYet: SearchResults = {
 
 export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   const { search = { ...searchDefaults }, searchResults = noSearchYet } = state
+  const [lastSearch, setLastSearch] = useState<Search | undefined>()
   // get initial search results
   useEffect(() => {
-    phraseSearch(search)
-      .then((searchResults) =>
-        dispatch({ action: "search", search, searchResults })
-      )
-      .catch(errorHandler(dispatch))
+    if (search && !isEqual(search, lastSearch)) {
+      phraseSearch(search)
+        .then((searchResults) => {
+          setLastSearch(search)
+          dispatch({ action: "search", search, searchResults })
+        })
+        .catch(errorHandler(dispatch))
+    }
   }, [state.search, state.searchResults])
   return (
     <>
@@ -327,16 +331,18 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
   switch (subField) {
     case "whole":
       letter = "w"
-      explanation = "match whole words only"
+      explanation =
+        "whole words: the first at last letters typed should be at word boundaries"
       break
     case "exact":
-      letter = "e"
+      letter = "f"
       explanation =
-        "match this exact sequence; do not allow intervening characters"
+        "fuzzy match: other characters may appear between the letters typed"
+      checked = !on
       break
     case "caseSensitive":
       letter = "i"
-      explanation = "disregard case"
+      explanation = "case insensitive: disregard case"
       checked = !on
       break
     default:
@@ -346,6 +352,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
     width: "20px",
     height: "20px",
     fontSize: "0.75rem",
+    fontWeight: 800,
     cursor: "pointer",
   }
   if (checked) (sx as any).bgcolor = "primary.main"

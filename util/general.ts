@@ -46,8 +46,8 @@ export function matcher(
   if (wholeWord) {
     const left = /\w/.test(chars[0])
     const right = /\w/.test(chars[chars.length - 1])
-    leftBound = left ? "\b" : "(?<=s|^)"
-    rightBound = right ? "\b" : "(?=s|$)"
+    leftBound = left ? "\\b" : "(?<=s|^)"
+    rightBound = right ? "\\b" : "(?=s|$)"
   }
   chars = chars.map((c) => wsrx(c)!) // maybe map these to grouped expressions
   if (wholeWord) {
