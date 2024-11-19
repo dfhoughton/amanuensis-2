@@ -238,16 +238,14 @@ export const Languages: React.FC<LanguagesProps> = ({
               <TableCell>
                 <Link
                   onClick={() => {
-                    const { search, searchResults } = state
-                    const { languages = [] } = search ?? {}
-                    languages.push(l.id!)
-                    phraseSearch({ languages })
+                    const langs = [l.id!]
+                    phraseSearch({ languages: langs })
                       .then((searchResults) => {
                         dispatch({
                           action: "search",
-                          search: { languages },
+                          search: { languages: langs },
                           searchResults,
-                          tab: AppTabs.Dictionary
+                          tab: AppTabs.Dictionary,
                         })
                       })
                       .catch(errorHandler(dispatch))
