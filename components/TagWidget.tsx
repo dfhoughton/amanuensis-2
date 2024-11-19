@@ -15,6 +15,7 @@ import {
 import AddIcon from "@mui/icons-material/Add"
 import RemoveIcon from "@mui/icons-material/Remove"
 import LocalOfferIcon from "@mui/icons-material/LocalOffer"
+import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type TagWidgeProps = {
   hideHelp: boolean
@@ -44,7 +45,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
     <LabelWithHelp
       hidden={hideHelp}
       label="Tags"
-      sx={{width: '100%'}}
+      sx={{ width: "100%" }}
       explanation={
         <>
           <Typography>
@@ -69,78 +70,45 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
           sx={{ justifyContent: "space-between" }}
         >
           <Stack direction="row" spacing={1}>
+            {!presentTags?.length && <FauxPlaceholder>Tags</FauxPlaceholder>}
             {presentTags
               ?.map((i) => tags.find((t: Tag) => t.id === i)!)
               .map((t) => (
-                <TagChip key={t.id} tag={t} />
+                <TagChip key={t.id} tag={t} onDelete={() => removeTag(t)} />
               ))}
           </Stack>
-          <Stack direction="row" spacing={1}>
-            {(!presentTags || tags.length > presentTags.length) && (
-              <>
-                <Tooltip arrow title="Add a tag">
-                  <IconButton
-                    color="primary"
-                    size="small"
-                    onClick={(e) => setAddTagMenuAnchorEl(e.currentTarget)}
-                  >
-                    <AddIcon fontSize="inherit" />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  anchorEl={addTagMenuAnchorEl}
-                  open={addTagMenuOpen}
-                  onClose={() => setAddTagMenuAnchorEl(null)}
+          {(!presentTags || tags.length > presentTags.length) && (
+            <>
+              <Tooltip arrow title="Add a tag">
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={(e) => setAddTagMenuAnchorEl(e.currentTarget)}
                 >
-                  {tags
-                    .filter((t) => !usedTags.has(t.id!))
-                    .map((t) => (
-                      <MenuItem
-                        key={t.id!}
-                        onClick={() => {
-                          addTag(t)
-                          setAddTagMenuAnchorEl(null)
-                        }}
-                      >
-                        {t.name}
-                      </MenuItem>
-                    ))}
-                </Menu>
-              </>
-            )}
-            {!!presentTags?.length && (
-              <>
-                <Tooltip arrow title="Remove a tag">
-                  <IconButton
-                    color="primary"
-                    size="small"
-                    onClick={(e) => setRemoveTagMenuAnchorEl(e.currentTarget)}
-                  >
-                    <RemoveIcon fontSize="inherit" />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  anchorEl={removeTagMenuAnchorEl}
-                  open={removeTagMenuOpen}
-                  onClose={() => setRemoveTagMenuAnchorEl(null)}
-                >
-                  {tags
-                    .filter((t) => usedTags.has(t.id!))
-                    .map((t) => (
-                      <MenuItem
-                        key={t.id!}
-                        onClick={() => {
-                          removeTag(t)
-                          setRemoveTagMenuAnchorEl(null)
-                        }}
-                      >
-                        {t.name}
-                      </MenuItem>
-                    ))}
-                </Menu>
-              </>
-            )}
-          </Stack>
+                  <AddIcon fontSize="inherit" />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={addTagMenuAnchorEl}
+                open={addTagMenuOpen}
+                onClose={() => setAddTagMenuAnchorEl(null)}
+              >
+                {tags
+                  .filter((t) => !usedTags.has(t.id!))
+                  .map((t) => (
+                    <MenuItem
+                      key={t.id!}
+                      onClick={() => {
+                        addTag(t)
+                        setAddTagMenuAnchorEl(null)
+                      }}
+                    >
+                      {t.name}
+                    </MenuItem>
+                  ))}
+              </Menu>
+            </>
+          )}
         </Stack>
       )}
     </LabelWithHelp>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { AppState, Tag } from "../types/common"
+import { AppState, AppTabs, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
@@ -19,7 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import some from "lodash/some"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
-import { deleteTag, knownTags, saveTag } from "../util/database"
+import { deleteTag, knownTags, phraseSearch, saveTag } from "../util/database"
 import { TagChip } from "./TagChip"
 
 type TagsProps = {
@@ -79,6 +79,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
               tags={tags}
               version={version}
               setVersion={setVersion}
+              state={state}
               dispatch={dispatch}
             />
           ))}
@@ -102,6 +103,7 @@ export type TagCardProps = {
   tags: Tag[]
   version: number
   setVersion: (version: number) => void
+  state: AppState
   dispatch: React.Dispatch<Action>
 }
 export const TagCard: React.FC<TagCardProps> = ({
@@ -109,6 +111,7 @@ export const TagCard: React.FC<TagCardProps> = ({
   tags,
   version,
   setVersion,
+  state,
   dispatch,
 }) => {
   const [open, setOpen] = useState(false)
@@ -121,7 +124,22 @@ export const TagCard: React.FC<TagCardProps> = ({
           justifyContent={"space-between"}
           sx={{ width: "100%", p: 2 }}
         >
-          <TagChip tag={tag} />
+          <TagChip
+            tag={tag}
+            onClick={() => {
+              const s = { tags: [tag.id!] }
+              phraseSearch(s)
+                .then((searchResults) => {
+                  dispatch({
+                    action: "search",
+                    search: s,
+                    searchResults,
+                    tab: AppTabs.Dictionary,
+                  })
+                })
+                .catch(errorHandler(dispatch))
+            }}
+          />
           <Box>{tag.description}</Box>
           <Stack direction="row" spacing={1}>
             <Tooltip arrow title="edit tag">

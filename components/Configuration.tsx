@@ -4,6 +4,7 @@ import {
   Language,
   Configuration as ConfigurationType,
   MessageLevel,
+  AppTabs,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
@@ -13,6 +14,7 @@ import {
   Checkbox,
   FormControlLabel,
   IconButton,
+  Link,
   Menu,
   MenuItem,
   Modal,
@@ -30,6 +32,7 @@ import {
   configuration,
   countPhrasesWithLocale,
   knownLanguages,
+  phraseSearch,
   removeLanguage,
   resetDatabase,
   setConfiguration,
@@ -103,6 +106,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           </Button>
         </LabelWithHelp>
         <Languages
+          state={state}
           dispatch={dispatch}
           version={version}
           setVersion={setVersion}
@@ -127,12 +131,14 @@ export const Configuration: React.FC<ConfigurationProps> = ({
 }
 
 type LanguagesProps = {
+  state: AppState
   dispatch: React.Dispatch<Action>
   version: number
   setVersion: (version: number) => void
 }
 /** lists and allows the editing of languages */
 export const Languages: React.FC<LanguagesProps> = ({
+  state,
   dispatch,
   version,
   setVersion,
@@ -229,7 +235,27 @@ export const Languages: React.FC<LanguagesProps> = ({
         <TableBody>
           {languages.map((l) => (
             <TableRow key={l.id}>
-              <TableCell>{l.name}</TableCell>
+              <TableCell>
+                <Link
+                  onClick={() => {
+                    const { search, searchResults } = state
+                    const { languages = [] } = search ?? {}
+                    languages.push(l.id!)
+                    phraseSearch({ languages })
+                      .then((searchResults) => {
+                        dispatch({
+                          action: "search",
+                          search: { languages },
+                          searchResults,
+                          tab: AppTabs.Dictionary
+                        })
+                      })
+                      .catch(errorHandler(dispatch))
+                  }}
+                >
+                  {l.name}
+                </Link>
+              </TableCell>
               <TableCell>{l.locale ?? <i>none assigned</i>}</TableCell>
               <TableCell>
                 {Object.entries(l.locales).map(([k, v], i) => (

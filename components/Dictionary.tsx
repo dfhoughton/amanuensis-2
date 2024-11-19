@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react"
+import React, { ReactNode, useEffect, useState } from "react"
 import { AppState, Language, Search, SearchResults, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
   Avatar,
+  Box,
+  Chip,
   Divider,
   IconButton,
   Menu,
@@ -14,6 +16,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Language as LanguageIcon } from "@mui/icons-material"
+import ClearIcon from "@mui/icons-material/Clear"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
@@ -25,6 +28,7 @@ import { TagWidget } from "./TagWidget"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import some from "lodash/some"
+import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type DictionaryProps = {
   state: AppState
@@ -133,8 +137,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
         searchResults={searchResults}
         dispatch={dispatch}
       />
-      <Grid container columns={12} spacing={1}>
-        <Grid size={10}>
+      <Grid container columns={12} spacing={1} sx={{ width: "100%" }}>
+        <Grid size={6}>
           <TagWidget
             hideHelp={hideHelp}
             tags={tags}
@@ -162,47 +166,85 @@ const SearchForm: React.FC<SearchFormProps> = ({
             }}
           />
         </Grid>
-        <Grid size={2}>
-          <Tooltip arrow title="Filter by language">
-            <IconButton
-              color="primary"
-              size="small"
-              onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
-            >
-              <LanguageIcon fontSize="inherit" />
-            </IconButton>
-          </Tooltip>
-          <Menu
-            anchorEl={languageMenuAnchorEl}
-            open={languageMenuOpen}
-            onClose={() => setLanguageMenuAnchorEl(null)}
+        <Grid size={6}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ justifyContent: "space-between" }}
           >
-            {languages.map((l) => (
-              <MenuItem
-                key={l.id!}
-                selected={
-                  search.languages &&
-                  some(search.languages, (lId) => lId === l.id)
-                }
-                onClick={() => {
-                  let languages = search.languages ?? []
-                  if (some(languages, (lId: number) => lId === l.id)) {
-                    languages = languages.filter((lId) => lId !== l.id)
-                  } else {
-                    languages = [...languages, l.id!]
-                  }
-                  const s = { ...search, languages }
-                  phraseSearch(s)
-                    .then((searchResults) =>
-                      dispatch({ action: "search", search: s, searchResults })
-                    )
-                    .catch(errorHandler(dispatch))
-                }}
+            <Box>
+              {!search.languages?.length && (
+                <FauxPlaceholder>Languages</FauxPlaceholder>
+              )}
+              {(search.languages ?? []).map((l) => {
+                const lang = languages.find((lang) => lang.id === l)
+                if (!lang) return <></>
+                return (
+                  <Chip
+                    label={lang.locale}
+                    key={lang.id}
+                    size="small"
+                    onDelete={() => {
+                      let languages = (search.languages ?? []).filter(
+                        (la) => la !== lang.id
+                      )
+                      const s = { ...search, languages }
+                      phraseSearch(s)
+                        .then((searchResults) =>
+                          dispatch({
+                            action: "search",
+                            search: s,
+                            searchResults,
+                          })
+                        )
+                        .catch(errorHandler(dispatch))
+                    }}
+                  />
+                )
+              })}
+            </Box>
+            <Tooltip arrow title="Filter by language">
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
               >
-                {l.name}
-              </MenuItem>
-            ))}
-          </Menu>
+                <LanguageIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={languageMenuAnchorEl}
+              open={languageMenuOpen}
+              onClose={() => setLanguageMenuAnchorEl(null)}
+            >
+              {languages.map((l) => (
+                <MenuItem
+                  key={l.id!}
+                  selected={
+                    search.languages &&
+                    some(search.languages, (lId) => lId === l.id)
+                  }
+                  onClick={() => {
+                    let languages = search.languages ?? []
+                    if (some(languages, (lId: number) => lId === l.id)) {
+                      languages = languages.filter((lId) => lId !== l.id)
+                    } else {
+                      languages = [...languages, l.id!]
+                    }
+                    const s = { ...search, languages }
+                    phraseSearch(s)
+                      .then((searchResults) => {
+                        dispatch({ action: "search", search: s, searchResults })
+                        setLanguageMenuAnchorEl(null)
+                      })
+                      .catch(errorHandler(dispatch))
+                  }}
+                >
+                  {l.name}
+                </MenuItem>
+              ))}
+            </Menu>
+          </Stack>
         </Grid>
       </Grid>
     </Stack>
@@ -235,7 +277,6 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
     exact: false,
     caseSensitive: false,
   }
-  const { text, whole, exact, caseSensitive } = ts
   return (
     <LabelWithHelp
       label={label}
@@ -248,7 +289,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
       sx={{ width: "100%" }}
     >
       <Grid container spacing={1} columns={12}>
-        <Grid size={10}>
+        <Grid size={9}>
           <TextField
             sx={{ width: "100%" }}
             onChange={
@@ -267,10 +308,10 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
             variant="standard"
             hiddenLabel
             placeholder={placeholder}
-            defaultValue={text}
+            defaultValue={ts.text}
           />
         </Grid>
-        <Grid container size={2} spacing={1} columns={3}>
+        <Grid container size={3} spacing={0.75} columns={4}>
           <Grid size={1}>
             <BooleanBubble
               search={search}
@@ -297,6 +338,33 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
               subField="caseSensitive"
               dispatch={dispatch}
             />
+          </Grid>
+          <Grid size={1}>
+            <Tooltip arrow title={"clear"} enterDelay={1000}>
+              <Avatar
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  fontSize: "0.75rem",
+                  color: "gray",
+                  bgcolor: "transparent",
+                  border: "1px solid gray",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  ts.text = ""
+                  search = { ...search, [field]: ts }
+                  phraseSearch(search)
+                    .then((searchResults) =>
+                      dispatch({ action: "search", search, searchResults })
+                    )
+                    .catch(errorHandler(dispatch))
+                }}
+              >
+                x
+              </Avatar>
+            </Tooltip>
           </Grid>
         </Grid>
       </Grid>

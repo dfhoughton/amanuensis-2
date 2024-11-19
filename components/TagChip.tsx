@@ -5,10 +5,11 @@ import { Tag } from "../types/common"
 type Props = {
   tag: Tag
   onClick?: VoidFunction
+  onDelete?: VoidFunction
 }
 
 /** A label with a question mark icon. If you click the icon, some collapsed explanatory text appears. */
-export const TagChip: React.FC<Props> = ({ tag, onClick }) => {
+export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
   // somehow sometimes the tag is undefined
   const {
     name = "",
@@ -21,9 +22,13 @@ export const TagChip: React.FC<Props> = ({ tag, onClick }) => {
       label={name}
       variant="outlined"
       size="small"
-      sx={{ color, backgroundColor: bgcolor }}
+      sx={{
+        color,
+        backgroundColor: bgcolor,
+      }}
       clickable={!!onClick}
       onClick={onClick}
+      onDelete={onDelete}
     />
   )
   return description ? (

@@ -32,7 +32,7 @@ export type Action =
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
-  | { action: "search"; search: Search; searchResults: SearchResults }
+  | { action: "search"; search: Search; searchResults: SearchResults; tab?: AppTabs }
   | { action: "selectResult"; selected: number }
   | { action: "noSelection" } // when popup is opened with nothing highlighted
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
@@ -83,8 +83,9 @@ export function reducer(state: AppState, action: Action): AppState {
     case "citationSelected":
       return { ...state, citationIndex: action.citationIndex }
     case "search":
-      const { search, searchResults } = action
-      return { ...state, search, searchResults }
+      let { search, searchResults, tab } = action
+      tab ??= state.tab
+      return { ...state, search, searchResults, tab }
     case "selectResult":
       let { searchResults: results } = state
       results ??= noSearchYet
