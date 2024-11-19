@@ -75,9 +75,8 @@ export function resetDatabase() {
     db.phrases,
     db.languages,
     db.configuration,
-    async () => {
-      await Promise.all(db.tables.map((table) => table.clear()))
-      await init()
+    () => {
+      Promise.all(db.tables.map((table) => table.clear())).then(init)
     }
   )
 }

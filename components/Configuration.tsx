@@ -8,7 +8,6 @@ import {
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
-  AlertColor,
   Box,
   Button,
   Checkbox,
@@ -42,6 +41,7 @@ import { LabelWithHelp } from "./LabelWithHelp"
 import AddIcon from "@mui/icons-material/Add"
 import LanguageIcon from "@mui/icons-material/Language"
 import DeleteIcon from "@mui/icons-material/Delete"
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
 import { languageList } from "../util/languages"
 import some from "lodash/some"
 
@@ -74,7 +74,15 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         <LabelWithHelp
           hidden={!showingHelp}
           label=""
-          explanation="To save space, Amanuensis leaves many interface elements unlabeled. Check this to add labels and, in most cases, further explanatory text. If there is explanatory text, there will be an information icon you can click to see it."
+          explanation={
+            <>
+              To save space, Amanuensis leaves many interface elements
+              unlabeled. Check this to add labels and, in most cases, further
+              explanatory text. If there is explanatory text, there will be an
+              information icon <HelpOutlineIcon fontSize="inherit" /> you can
+              click to see it.
+            </>
+          }
         >
           <FormControlLabel
             control={
@@ -99,7 +107,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         <LabelWithHelp
           hidden={!showingHelp}
           label=""
-          explanation="Clicking this will remove all notes, languages, and configuration."
+          explanation="Clicking this will remove all notes, tags, languages, and configuration."
         >
           <Button onClick={() => setClearDbModalOpen(true)}>
             Clear Database

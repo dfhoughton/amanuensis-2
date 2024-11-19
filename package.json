@@ -29,6 +29,7 @@
     "devDependencies": {
         "@types/chrome": "^0.0.271",
         "@types/jest": "^29.2.0",
+        "@types/lodash": "^4.17.13",
         "@types/react-dom": "^18.0.6",
         "chrome-types": "^0.1.305",
         "ts-jest": "^29.0.3",

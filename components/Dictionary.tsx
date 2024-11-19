@@ -167,84 +167,94 @@ const SearchForm: React.FC<SearchFormProps> = ({
           />
         </Grid>
         <Grid size={6}>
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ justifyContent: "space-between" }}
+          <LabelWithHelp
+            label="Languages"
+            explanation="TODO: think of something to put here"
+            hidden={hideHelp}
           >
-            <Box>
-              {!search.languages?.length && (
-                <FauxPlaceholder>Languages</FauxPlaceholder>
-              )}
-              {(search.languages ?? []).map((l) => {
-                const lang = languages.find((lang) => lang.id === l)
-                if (!lang) return <></>
-                return (
-                  <Chip
-                    label={lang.locale}
-                    key={lang.id}
-                    size="small"
-                    onDelete={() => {
-                      let languages = (search.languages ?? []).filter(
-                        (la) => la !== lang.id
-                      )
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: "space-between" }}
+            >
+              <Box>
+                {!search.languages?.length && (
+                  <FauxPlaceholder>Languages</FauxPlaceholder>
+                )}
+                {(search.languages ?? []).map((l) => {
+                  const lang = languages.find((lang) => lang.id === l)
+                  if (!lang) return <></>
+                  return (
+                    <Chip
+                      label={lang.locale}
+                      key={lang.id}
+                      size="small"
+                      onDelete={() => {
+                        let languages = (search.languages ?? []).filter(
+                          (la) => la !== lang.id
+                        )
+                        const s = { ...search, languages }
+                        phraseSearch(s)
+                          .then((searchResults) =>
+                            dispatch({
+                              action: "search",
+                              search: s,
+                              searchResults,
+                            })
+                          )
+                          .catch(errorHandler(dispatch))
+                      }}
+                    />
+                  )
+                })}
+              </Box>
+              <Tooltip arrow title="Filter by language">
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
+                >
+                  <LanguageIcon fontSize="inherit" />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={languageMenuAnchorEl}
+                open={languageMenuOpen}
+                onClose={() => setLanguageMenuAnchorEl(null)}
+              >
+                {languages.map((l) => (
+                  <MenuItem
+                    key={l.id!}
+                    selected={
+                      search.languages &&
+                      some(search.languages, (lId) => lId === l.id)
+                    }
+                    onClick={() => {
+                      let languages = search.languages ?? []
+                      if (some(languages, (lId: number) => lId === l.id)) {
+                        languages = languages.filter((lId) => lId !== l.id)
+                      } else {
+                        languages = [...languages, l.id!]
+                      }
                       const s = { ...search, languages }
                       phraseSearch(s)
-                        .then((searchResults) =>
+                        .then((searchResults) => {
                           dispatch({
                             action: "search",
                             search: s,
                             searchResults,
                           })
-                        )
+                          setLanguageMenuAnchorEl(null)
+                        })
                         .catch(errorHandler(dispatch))
                     }}
-                  />
-                )
-              })}
-            </Box>
-            <Tooltip arrow title="Filter by language">
-              <IconButton
-                color="primary"
-                size="small"
-                onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
-              >
-                <LanguageIcon fontSize="inherit" />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              anchorEl={languageMenuAnchorEl}
-              open={languageMenuOpen}
-              onClose={() => setLanguageMenuAnchorEl(null)}
-            >
-              {languages.map((l) => (
-                <MenuItem
-                  key={l.id!}
-                  selected={
-                    search.languages &&
-                    some(search.languages, (lId) => lId === l.id)
-                  }
-                  onClick={() => {
-                    let languages = search.languages ?? []
-                    if (some(languages, (lId: number) => lId === l.id)) {
-                      languages = languages.filter((lId) => lId !== l.id)
-                    } else {
-                      languages = [...languages, l.id!]
-                    }
-                    const s = { ...search, languages }
-                    phraseSearch(s)
-                      .then((searchResults) => {
-                        dispatch({ action: "search", search: s, searchResults })
-                        setLanguageMenuAnchorEl(null)
-                      })
-                      .catch(errorHandler(dispatch))
-                  }}
-                >
-                  {l.name}
-                </MenuItem>
-              ))}
-            </Menu>
-          </Stack>
+                  >
+                    {l.name}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Stack>
+          </LabelWithHelp>
         </Grid>
       </Grid>
     </Stack>
@@ -277,6 +287,8 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
     exact: false,
     caseSensitive: false,
   }
+  const [textEl, setTextEl] = React.useState<null | HTMLInputElement>(null)
+  console.log("text", ts.text, "search", search)
   return (
     <LabelWithHelp
       label={label}
@@ -294,7 +306,9 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
             sx={{ width: "100%" }}
             onChange={
               debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                setTextEl(e.target)
                 ts.text = e.target.value
+                console.log('after debounce', ts)
                 search = { ...search, [field]: ts }
                 phraseSearch(search)
                   .then((searchResults) =>
@@ -354,6 +368,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
                 }}
                 onClick={() => {
                   ts.text = ""
+                  if (textEl) textEl.value = ''
                   search = { ...search, [field]: ts }
                   phraseSearch(search)
                     .then((searchResults) =>
