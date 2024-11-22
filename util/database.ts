@@ -2,15 +2,18 @@ import BaseDexie, { Collection, Table } from "dexie"
 import {
   Citation,
   Configuration,
+  FreeFormSearch,
   Language,
   Phrase,
   Search,
   SearchResults,
+  SimilaritySearch,
   Tag,
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
 import some from "lodash/some"
+import { SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -276,7 +279,22 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
   return phrase
 }
 
-export async function phraseSearch(search: Search): Promise<SearchResults> {
+/** search for phrases that might be merged with a phrase/citation */
+export async function similaritySearch(search: SimilaritySearch): Promise<SearchResults> {
+  const { phrase, limit, language, page = 1, pageSize = 10 } = search
+  const phrases = await db.transaction('r', db.phrases, async () => {
+    const scope = typeof language === 'number' ? db.phrases.where('languageId').equals(language) : db.phrases.toCollection()
+    const sims = new SimilaritySorter(phrase, limit)
+    void await scope.each((p) => sims.add(p))
+    return sims.toArray()
+  })
+  const total = phrases.length
+  const pages = Math.ceil(total / pageSize)
+  return { selected: -1, phrases, page, pages, pageSize, total }
+}
+
+/** general search */
+export async function phraseSearch(search: FreeFormSearch): Promise<SearchResults> {
   const {
     lemma,
     text,

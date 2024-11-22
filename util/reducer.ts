@@ -1,4 +1,3 @@
-import { noSearchYet } from "../components/Dictionary"
 import {
   AppState,
   AppTabs,
@@ -32,7 +31,12 @@ export type Action =
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
-  | { action: "search"; search: Search; searchResults: SearchResults; tab?: AppTabs }
+  | {
+      action: "search"
+      search: Search
+      searchResults: SearchResults
+      tab?: AppTabs
+    }
   | { action: "selectResult"; selected: number }
   | { action: "noSelection" } // when popup is opened with nothing highlighted
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
@@ -88,9 +92,16 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, search, searchResults, tab }
     case "selectResult":
       let { searchResults: results } = state
-      results ??= noSearchYet
+      results ??= {
+        selected: -1,
+        phrases: [],
+        total: 0,
+        page: 1,
+        pageSize: 10,
+        pages: 0,
+      }
       const { selected } = action
-      const selectedPhrase = results.phrases[selected]
+      const selectedPhrase = results!.phrases[selected]
       return {
         ...state,
         phrase: selectedPhrase,

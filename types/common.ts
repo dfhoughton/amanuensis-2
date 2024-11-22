@@ -1,5 +1,5 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
-import { OverridableStringUnion } from '@material-ui/types';
+import { OverridableStringUnion } from "@material-ui/types"
 import { Action } from "../util/reducer"
 
 // a representation of a selection
@@ -59,7 +59,8 @@ export type TextSearch = {
   caseSensitive: boolean
 }
 
-export type Search = {
+// used to find phrases in the dictionary
+export type FreeFormSearch = {
   lemma?: TextSearch
   text?: TextSearch
   tags?: number[]
@@ -67,6 +68,19 @@ export type Search = {
   pageSize?: number
   page?: number
 }
+
+// used to find phrases a citation/phrase might be merged with
+export type SimilaritySearch = {
+  phrase: string
+  limit: number
+  language?: number
+  pageSize?: number
+  page?: number
+}
+
+export type Search =
+  | { type: "free"; params: FreeFormSearch }
+  | { type: "similar"; params: SimilaritySearch }
 
 export type SearchResults = {
   selected: number // which individual result is selected
@@ -77,7 +91,10 @@ export type SearchResults = {
   phrases: Phrase[]
 }
 
-export type MessageLevel = OverridableStringUnion<AlertColor, AlertPropsColorOverrides>
+export type MessageLevel = OverridableStringUnion<
+  AlertColor,
+  AlertPropsColorOverrides
+>
 
 export type AppState = {
   tab: AppTabs

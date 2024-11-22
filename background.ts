@@ -6,8 +6,6 @@ import {
   MessageFromPopupToBackground,
 } from "./util/switchboard"
 
-console.log("background is ready for action...")
-
 const state: {
   contentPort?: chrome.runtime.Port
   popupPort?: chrome.runtime.Port
@@ -21,15 +19,12 @@ function sendToPopup(msg: MessageFromBackgroundToPopup) {
 }
 
 function handlePopupMessage(msg: MessageFromPopupToBackground) {
-  console.log("from popup", msg)
   switch (msg.action) {
     case "open":
       chrome.tabs.query({ active: true }, (tabs) => {
         const { url } = tabs[0]
         if (url) {
           sendToContent({ action: "getSelection" })
-        } else {
-          console.log('no active tab with a URL')
         }
       })
       break
@@ -44,7 +39,6 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
 }
 
 function handleContentMessage(msg: MessageFromContentToBackground) {
-  console.log("from content", msg)
   switch (msg.action) {
     case "selection":
       chrome.tabs.query({ active: true }, (tabs) => {
@@ -67,8 +61,6 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
             console.error(e);
             sendToPopup({action: 'error', message: e.message})
           })
-        } else {
-          console.log('no tab!')
         }
       })
       break
@@ -91,7 +83,6 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
 
 chrome.runtime.onConnect.addListener(function (port) {
   port.onMessage.addListener(function (msg) {
-    console.log(port.name, msg)
     switch (port.name) {
       case "content":
         state.contentPort = port
@@ -106,7 +97,6 @@ chrome.runtime.onConnect.addListener(function (port) {
     }
   })
   port.onDisconnect.addListener(function () {
-    console.log(port.name, "disconnect")
     switch (port.name) {
       case "popup":
         state.popupPort = undefined

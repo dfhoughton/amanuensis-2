@@ -5,7 +5,6 @@ import {
   MessageFromContentToBackground,
 } from "./util/switchboard"
 
-console.log("content is ready for action...")
 /*
 Send non-trivial selections to the background process to prepare for annotation.
 
