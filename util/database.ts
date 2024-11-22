@@ -5,7 +5,6 @@ import {
   FreeFormSearch,
   Language,
   Phrase,
-  Search,
   SearchResults,
   SimilaritySearch,
   Tag,
@@ -92,16 +91,6 @@ export function setConfiguration(
   configuration: Configuration
 ): Promise<Configuration> {
   return db.configuration.put(configuration, 0)
-}
-
-// get phrases in the same language that have some citation with the same phrase modulo case
-function phrasesForCitation(c: Citation, l: Language): Promise<Phrase[]> {
-  const phrase = c.phrase.toLowerCase()
-  return db.phrases
-    .where("languageId")
-    .equals(l.id!)
-    .and((p) => some(p.citations, (c) => c.phrase.toLowerCase() === phrase))
-    .toArray()
 }
 
 export function languageForLocale(locale: string): Promise<Language> {
@@ -257,7 +246,7 @@ export function removeLanguage(
 export function citationToPhrase(
   c: Citation,
   locale: string
-): Promise<[Phrase, Phrase[]]> {
+): Promise<Phrase> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
     const language = await languageForLocale(locale)
     c.locale = locale
@@ -267,8 +256,7 @@ export function citationToPhrase(
       citations: [c],
       updatedAt: new Date(),
     }
-    const others = await phrasesForCitation(c, language)
-    return [phrase, others]
+    return phrase
   })
 }
 

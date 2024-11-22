@@ -101,7 +101,6 @@ export type AppState = {
   phrase?: Phrase
   citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
-  maybeMerge?: Phrase[]
   languageId?: number // do we need this?
   port?: chrome.runtime.Port // so the reducer can send stuff on to the background
   message?: string // triggers the display of a toast

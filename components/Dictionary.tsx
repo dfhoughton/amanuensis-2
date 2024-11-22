@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   AppState,
   FreeFormSearch,
@@ -13,7 +13,6 @@ import {
   Avatar,
   Box,
   Chip,
-  Divider,
   IconButton,
   Menu,
   MenuItem,
@@ -26,7 +25,6 @@ import {
   Typography,
 } from "@mui/material"
 import { Language as LanguageIcon } from "@mui/icons-material"
-import ClearIcon from "@mui/icons-material/Clear"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
@@ -149,9 +147,9 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
       </TabContext>
       {!searchResults && (
         <Stack spacing={1}>
-          {new Array(10).fill(null).map((_n, i) => (
-            <Skeleton key={i} sx={{ fontSize: "2rem" }} />
-          ))}
+          <Skeleton sx={{ fontSize: "2rem" }} />
+          <Skeleton sx={{ fontSize: "2rem" }} />
+          <Skeleton sx={{ fontSize: "2rem" }} />
         </Stack>
       )}
       {!!searchResults && (
@@ -367,7 +365,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
-  const currentLanguage =  languages?.find((l) => l.id === language)
+  const currentLanguage = languages?.find((l) => l.id === language)
   return (
     <Grid container spacing={1} columns={5}>
       <Grid size={3}>

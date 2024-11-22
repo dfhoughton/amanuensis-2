@@ -51,10 +51,10 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
           const text = `${selection.before}${selection.phrase}${selection.after}`
           chrome.i18n.detectLanguage(text).then((rv) => {
             const locale = rv.languages.sort((a, b) =>  b.percentage - a.percentage)[0].language
-            citationToPhrase(selection, locale).then(([phrase, others]) => {
-              sendToPopup({action: 'phraseSelected', phrase, others})
+            citationToPhrase(selection, locale).then((phrase) => {
+              sendToPopup({action: 'phraseSelected', phrase})
             }).catch((e) => {
-              console.error('here', e);
+              console.error('trouble getting citations for phrase', e);
               sendToPopup({action: 'error', message: e.message})
             })
           }).catch((e) => {

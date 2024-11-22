@@ -18,7 +18,7 @@ export type Action =
   | { action: "openPort"; port: chrome.runtime.Port }
   | { action: "closePort" }
   | { action: "language"; language: Language }
-  | { action: "phraseSelected"; phrase: Phrase; others: Phrase[] }
+  | { action: "phraseSelected"; phrase: Phrase }
   | {
       action: "message"
       message?: string // undefined message hides notification
@@ -44,7 +44,7 @@ export type Action =
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "phraseSelected":
-      const { phrase, others } = action
+      const { phrase } = action
       const { citations } = phrase
       // phrase arrives with dates serialized; must fix
       for (const c of citations) {
@@ -52,14 +52,16 @@ export function reducer(state: AppState, action: Action): AppState {
       }
       let { languageId } = state
       languageId ??= phrase.languageId
-      const maybeMerge = others.length ? others : undefined
       return {
         ...state,
         languageId,
         phrase,
-        maybeMerge,
         priorPhrase: undefined,
         citationIndex: selectCitation(citations),
+        search: {
+          type: "similar",
+          params: { phrase: phrase.lemma, language: languageId, limit: 10 }, // TODO: make limit a configuration parameter
+        },
       }
     case "openPort":
       return { ...state, port: action.port }
