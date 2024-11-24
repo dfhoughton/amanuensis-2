@@ -1,4 +1,4 @@
-import { citationToPhrase, languageForLocale } from "./util/database"
+import { citationToPhrase } from "./util/database"
 import {
   MessageFromBackgroundToContent,
   MessageFromBackgroundToPopup,

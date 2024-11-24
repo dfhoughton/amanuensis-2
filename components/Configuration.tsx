@@ -43,7 +43,6 @@ import LanguageIcon from "@mui/icons-material/Language"
 import DeleteIcon from "@mui/icons-material/Delete"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
 import { languageList } from "../util/languages"
-import some from "lodash/some"
 
 type ConfigurationProps = {
   state: AppState
@@ -221,7 +220,7 @@ export const Languages: React.FC<LanguagesProps> = ({
         >
           {Object.entries(languageList)
             .filter(
-              ([_k, v]) => !some(languages, (l: Language) => l.locale === v)
+              ([_k, v]) => !languages.some((l: Language) => l.locale === v)
             )
             .map(([k, v]) => (
               <MenuItem key={v} onClick={createLanguage(k, v)}>

@@ -3,11 +3,13 @@ import {
   AppTabs,
   Citation,
   Configuration,
+  FreeFormSearch,
   Language,
   MessageLevel,
   Phrase,
-  Search,
   SearchResults,
+  SearchTabs,
+  SimilaritySearch,
 } from "../types/common"
 import { setConfiguration } from "./database"
 import { deepClone } from "./general"
@@ -18,7 +20,7 @@ export type Action =
   | { action: "openPort"; port: chrome.runtime.Port }
   | { action: "closePort" }
   | { action: "language"; language: Language }
-  | { action: "phraseSelected"; phrase: Phrase }
+  | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | {
       action: "message"
       message?: string // undefined message hides notification
@@ -33,10 +35,17 @@ export type Action =
   | { action: "goto"; phrase: Phrase; citationIndex: number }
   | {
       action: "search"
-      search: Search
+      search: FreeFormSearch
       searchResults: SearchResults
       tab?: AppTabs
     }
+  | {
+      action: "similaritySearch"
+      search: SimilaritySearch
+      searchResults: SearchResults
+      tab?: AppTabs
+    }
+  | { action: "switchSearch" }
   | { action: "selectResult"; selected: number }
   | { action: "noSelection" } // when popup is opened with nothing highlighted
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
@@ -44,7 +53,9 @@ export type Action =
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
     case "phraseSelected":
-      const { phrase } = action
+      const {
+        phrase: [phrase, others],
+      } = action
       const { citations } = phrase
       // phrase arrives with dates serialized; must fix
       for (const c of citations) {
@@ -52,16 +63,36 @@ export function reducer(state: AppState, action: Action): AppState {
       }
       let { languageId } = state
       languageId ??= phrase.languageId
+      const languages = languageId === undefined ? [] : [languageId]
+      let maybeMeld,
+        message,
+        messageLevel,
+        searchTab = SearchTabs.Free
+      if (others.length) {
+        maybeMeld = others
+        message = `There ${
+          others.length === 1
+            ? "is a phrase"
+            : `are ${others.length} other phrases`
+        } you may wish to attach this citation to. See the search tab.`
+        messageLevel = "info"
+        searchTab = SearchTabs.Similar
+      }
       return {
         ...state,
         languageId,
         phrase,
+        maybeMeld,
+        message,
+        messageLevel,
         priorPhrase: undefined,
         citationIndex: selectCitation(citations),
-        search: {
-          type: "similar",
-          params: { phrase: phrase.lemma, language: languageId, limit: 10 }, // TODO: make limit a configuration parameter
-        },
+        similaritySearch: {
+          phrase: phrase.lemma,
+          languages,
+          limit: 10,
+        }, // TODO: make limit a configuration parameter
+        searchTab,
       }
     case "openPort":
       return { ...state, port: action.port }
@@ -89,9 +120,40 @@ export function reducer(state: AppState, action: Action): AppState {
     case "citationSelected":
       return { ...state, citationIndex: action.citationIndex }
     case "search":
-      let { search, searchResults, tab } = action
+      let { search, searchResults: freeSearchResults, tab } = action
       tab ??= state.tab
-      return { ...state, search, searchResults, tab }
+      return {
+        ...state,
+        freeSearch: search,
+        freeSearchResults,
+        searchResults: freeSearchResults,
+        tab,
+        searchTab: SearchTabs.Free,
+      }
+    case "similaritySearch":
+      let {
+        search: similaritySearch,
+        searchResults: similaritySearchResults,
+        tab: appTabb,
+      } = action
+      appTabb ??= state.tab
+      return {
+        ...state,
+        similaritySearch,
+        similaritySearchResults,
+        searchResults: similaritySearchResults,
+        tab: appTabb,
+        searchTab: SearchTabs.Similar,
+      }
+    case "switchSearch":
+      const nowFree = state.searchTab === SearchTabs.Similar
+      return {
+        ...state,
+        searchTab: nowFree ? SearchTabs.Free : SearchTabs.Similar,
+        searchResults: nowFree
+          ? state.similaritySearchResults
+          : state.freeSearchResults,
+      }
     case "selectResult":
       let { searchResults: results } = state
       results ??= {

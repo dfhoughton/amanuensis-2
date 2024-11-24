@@ -11,7 +11,6 @@ import {
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
-import some from "lodash/some"
 import { SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
@@ -91,22 +90,6 @@ export function setConfiguration(
   configuration: Configuration
 ): Promise<Configuration> {
   return db.configuration.put(configuration, 0)
-}
-
-export function languageForLocale(locale: string): Promise<Language> {
-  return db.transaction("r", db.languages, async () => {
-    const language = await db.languages.get({ locale })
-    if (language) return language
-    const languages = await db.languages
-      .filter((l) => !!(l.locales && l.locales[locale]))
-      .toArray()
-    if (languages.length) {
-      return languages.sort((l) => -l.locales![locale])[0]
-    } else {
-      // default language
-      return db.languages.get(0) as any as Language
-    }
-  })
 }
 
 export function knownTags(): Promise<Tag[]> {
@@ -246,17 +229,28 @@ export function removeLanguage(
 export function citationToPhrase(
   c: Citation,
   locale: string
-): Promise<Phrase> {
+): Promise<[Phrase, Phrase[]]> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
-    const language = await languageForLocale(locale)
+    const languages = (await db.languages.toArray()).filter((l) => l.locale === locale || l.locales[locale])
+    let languageId = 0
+    if (languages.length > 1) {
+      languageId = languages.sort((a, b) => {
+        if (a.locale === locale) return -1
+        if (b.locale === locale) return 1
+        return (a.locales[locale] ?? 0) - (b.locales[locale] ?? 0)
+      })[0].id!
+    } else if (languages.length === 1) languageId = languages[0].id!
+    const languageIds = languages.length ? languages.map(l => l.id!) : [0]
+    const key = c.phrase.toLowerCase()
+    const others = await db.phrases.where('languageId').anyOf(languageIds).filter(p => p.citations.some(o => o.phrase.toLowerCase() === key)).toArray()
     c.locale = locale
     const phrase: Phrase = {
       lemma: c.phrase,
-      languageId: language.id,
+      languageId,
       citations: [c],
       updatedAt: new Date(),
     }
-    return phrase
+    return [phrase, others]
   })
 }
 
@@ -269,9 +263,10 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
 
 /** search for phrases that might be merged with a phrase/citation */
 export async function similaritySearch(search: SimilaritySearch): Promise<SearchResults> {
-  const { phrase, limit, language, page = 1, pageSize = 10 } = search
+  const { phrase, limit, languages = [], page = 1, pageSize = 10 } = search
   const phrases = await db.transaction('r', db.phrases, async () => {
-    const scope = typeof language === 'number' ? db.phrases.where('languageId').equals(language) : db.phrases.toCollection()
+    if (!search.phrase) return []
+    const scope = languages.length ? db.phrases.where('languageId').anyOf(languages) : db.phrases.toCollection()
     const sims = new SimilaritySorter(phrase, limit)
     void await scope.each((p) => sims.add(p))
     return sims.toArray()

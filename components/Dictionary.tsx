@@ -3,8 +3,8 @@ import {
   AppState,
   FreeFormSearch,
   Language,
-  Search,
   SearchResults,
+  SearchTabs,
   SimilaritySearch,
   Tag,
 } from "../types/common"
@@ -36,9 +36,13 @@ import {
 import { TagWidget } from "./TagWidget"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
-import some from "lodash/some"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
+
+const searchDefaults = {
+  page: 1,
+  pageSize: 10,
+}
 
 type DictionaryProps = {
   state: AppState
@@ -47,34 +51,60 @@ type DictionaryProps = {
 
 export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   const {
-    search = { type: "free", params: searchDefaults },
-    searchResults: sr,
+    freeSearch = searchDefaults,
+    similaritySearch: sSearch = { phrase: "", limit: 10 }, // TODO: don't just type in these constants willy-nilly
+    searchResults,
+    searchTab = SearchTabs.Free,
+    freeSearchResults,
+    similaritySearchResults,
   } = state
-  const freeSearch = search.type === "free"
-  const [searchResults, setSearchResults] = useState(sr)
-  const [lastSearch, setLastSearch] = useState<Search | undefined>()
-  const [searchTab, setSearchTab] = useState<"free" | "similar">(search.type)
+  const [fs, setFs] = useState<FreeFormSearch>(freeSearch)
+  const [ss, setSs] = useState<SimilaritySearch>(sSearch)
   // get initial search results
   useEffect(() => {
-    if (!isEqual(searchResults, state.searchResults))
-      setSearchResults(state.searchResults)
-    if (search && !isEqual(search, lastSearch)) {
-      if (search.type === "free")
-        phraseSearch(search.params)
+    if (searchTab === SearchTabs.Free) {
+      if (
+        !(
+          searchResults &&
+          isEqual(searchResults, freeSearchResults) &&
+          isEqual(freeSearch, fs)
+        )
+      ) {
+        phraseSearch(freeSearch)
           .then((searchResults) => {
-            setLastSearch(search)
-            dispatch({ action: "search", search, searchResults })
+            setFs(freeSearch)
+            dispatch({ action: "search", searchResults, search: freeSearch })
           })
           .catch(errorHandler(dispatch))
-      else
-        similaritySearch(search.params)
+      }
+    } else {
+      if (
+        !(
+          searchResults &&
+          isEqual(searchResults, similaritySearchResults) &&
+          isEqual(sSearch, ss)
+        )
+      ) {
+        similaritySearch(sSearch)
           .then((searchResults) => {
-            setLastSearch(search)
-            dispatch({ action: "search", search, searchResults })
+            setSs(sSearch)
+            dispatch({
+              action: "similaritySearch",
+              searchResults,
+              search: sSearch,
+            })
           })
           .catch(errorHandler(dispatch))
+      }
     }
-  }, [state.search, state.searchResults])
+  }, [
+    freeSearch,
+    sSearch,
+    searchResults,
+    freeSearchResults,
+    similaritySearchResults,
+    searchTab,
+  ])
   const [languages, setLanguages] = useState<Language[]>([])
   useEffect(() => {
     perhapsStaleLanguages()
@@ -85,38 +115,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     <>
       <TabContext value={searchTab}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <TabList
-            onChange={(_e, tab) => {
-              setSearchResults(undefined)
-              setSearchTab(tab)
-              if (tab === "similar") {
-                const params: SimilaritySearch = {
-                  phrase: state.phrase?.citations[0].phrase ?? "",
-                  language: state.phrase?.languageId,
-                  limit: 10,
-                }
-                similaritySearch(params)
-                  .then((searchResults) =>
-                    dispatch({
-                      action: "search",
-                      search: { type: "similar", params },
-                      searchResults,
-                    })
-                  )
-                  .catch(errorHandler(dispatch))
-              } else {
-                phraseSearch(searchDefaults)
-                  .then((searchResults) =>
-                    dispatch({
-                      action: "search",
-                      search: { type: "free", params: searchDefaults },
-                      searchResults,
-                    })
-                  )
-                  .catch(errorHandler(dispatch))
-              }
-            }}
-          >
+          <TabList onChange={() => dispatch({ action: "switchSearch" })}>
             <Tab label="Search" value="free" />
             <Tab label="Similar Phrases" value="similar" />
           </TabList>
@@ -164,11 +163,6 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   )
 }
 
-const searchDefaults = {
-  page: 1,
-  pageSize: 10,
-}
-
 type SearchFormProps = {
   languages: Language[] | undefined
   searchResults: SearchResults
@@ -182,8 +176,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   state,
   dispatch,
 }) => {
-  const { search: gs = { type: "free", params: { ...searchDefaults } } } = state
-  const search = gs.params as any as FreeFormSearch
+  const { freeSearch: search = { ...searchDefaults } } = state
   const hideHelp = !state.config?.showHelp
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
@@ -228,12 +221,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
             dispatch={dispatch}
             addTag={(t) => {
               const tags = [...(search.tags ?? []), t.id!]
-              let s: FreeFormSearch = { ...search, tags }
+              const s = { ...search, tags }
               phraseSearch(s)
                 .then((searchResults) =>
                   dispatch({
                     action: "search",
-                    search: { type: "free", params: s },
+                    search: s,
                     searchResults,
                   })
                 )
@@ -241,12 +234,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
             }}
             removeTag={(t) => {
               const tags = search.tags!.filter((tag) => tag !== t.id)
-              let s: FreeFormSearch = { ...search, tags }
+              const s = { ...search, tags }
               phraseSearch(s)
                 .then((searchResults) =>
                   dispatch({
                     action: "search",
-                    search: { type: "free", params: s },
+                    search: s,
                     searchResults,
                   })
                 )
@@ -260,91 +253,107 @@ const SearchForm: React.FC<SearchFormProps> = ({
             explanation="TODO: think of something to put here"
             hidden={hideHelp}
           >
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ justifyContent: "space-between" }}
-            >
-              <Box>
-                {!search.languages?.length && (
-                  <FauxPlaceholder>Languages</FauxPlaceholder>
-                )}
-                {(search.languages ?? []).map((l) => {
-                  const lang = languages?.find((lang) => lang.id === l)
-                  if (!lang) return <></>
-                  return (
-                    <Chip
-                      label={lang.locale}
-                      key={lang.id}
-                      size="small"
-                      onDelete={() => {
-                        let languages = (search.languages ?? []).filter(
-                          (la) => la !== lang.id
-                        )
-                        const s = { ...search, languages }
-                        phraseSearch(s)
-                          .then((searchResults) =>
-                            dispatch({
-                              action: "search",
-                              search: { type: "free", params: s },
-                              searchResults,
-                            })
-                          )
-                          .catch(errorHandler(dispatch))
-                      }}
-                    />
+            <LanguagePickerWidget
+              languageIds={search.languages ?? []}
+              languages={languages!}
+              onDelete={(lang) => () => {
+                let languages = (search.languages ?? []).filter(
+                  (la) => la !== lang.id
+                )
+                const s = { ...search, languages }
+                phraseSearch(s)
+                  .then((searchResults) =>
+                    dispatch({
+                      action: "search",
+                      search: s,
+                      searchResults,
+                    })
                   )
-                })}
-              </Box>
-              <Tooltip arrow title="Filter by language">
-                <IconButton
-                  color="primary"
-                  size="small"
-                  onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
-                >
-                  <LanguageIcon fontSize="inherit" />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                anchorEl={languageMenuAnchorEl}
-                open={languageMenuOpen}
-                onClose={() => setLanguageMenuAnchorEl(null)}
-              >
-                {languages?.map((l) => (
-                  <MenuItem
-                    key={l.id!}
-                    selected={
-                      search.languages &&
-                      some(search.languages, (lId) => lId === l.id)
-                    }
-                    onClick={() => {
-                      let languages = search.languages ?? []
-                      if (some(languages, (lId: number) => lId === l.id)) {
-                        languages = languages.filter((lId) => lId !== l.id)
-                      } else {
-                        languages = [...languages, l.id!]
-                      }
-                      const s = { ...search, languages }
-                      phraseSearch(s)
-                        .then((searchResults) => {
-                          dispatch({
-                            action: "search",
-                            search: { type: "free", params: s },
-                            searchResults,
-                          })
-                          setLanguageMenuAnchorEl(null)
-                        })
-                        .catch(errorHandler(dispatch))
-                    }}
-                  >
-                    {l.name}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Stack>
+                  .catch(errorHandler(dispatch))
+              }}
+              onAdd={(l) => () => {
+                let languages = search.languages ?? []
+                if (languages.some((lId: number) => lId === l.id)) {
+                  languages = languages.filter((lId) => lId !== l.id)
+                } else {
+                  languages = [...languages, l.id!]
+                }
+                const s = { ...search, languages }
+                phraseSearch(s)
+                  .then((searchResults) => {
+                    dispatch({
+                      action: "search",
+                      search: s,
+                      searchResults,
+                    })
+                    setLanguageMenuAnchorEl(null)
+                  })
+                  .catch(errorHandler(dispatch))
+              }}
+            />
           </LabelWithHelp>
         </Grid>
       </Grid>
+    </Stack>
+  )
+}
+
+type LanguagePickerProps = {
+  languages: Language[]
+  languageIds: number[]
+  onDelete: (Language) => VoidFunction
+  onAdd: (Language) => VoidFunction
+}
+const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
+  languages,
+  languageIds,
+  onDelete,
+  onAdd,
+}) => {
+  const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null)
+  const languageMenuOpen = Boolean(languageMenuAnchorEl)
+  return (
+    <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
+      <Box>
+        {!languageIds.length && <FauxPlaceholder>Languages</FauxPlaceholder>}
+        {languageIds.map((l) => {
+          const lang = languages?.find((lang) => lang.id === l)
+          if (!lang) return <></>
+          return (
+            <Chip
+              label={lang.locale}
+              key={lang.id}
+              size="small"
+              onDelete={onDelete(lang)}
+            />
+          )
+        })}
+      </Box>
+      <Tooltip arrow title="Filter by language">
+        <IconButton
+          color="primary"
+          size="small"
+          onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
+        >
+          <LanguageIcon fontSize="inherit" />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        anchorEl={languageMenuAnchorEl}
+        open={languageMenuOpen}
+        onClose={() => setLanguageMenuAnchorEl(null)}
+      >
+        {languages?.map((l) => (
+          <MenuItem
+            key={l.id!}
+            selected={languageIds.some((lId) => lId === l.id)}
+            onClick={onAdd(l)}
+          >
+            {l.name}
+          </MenuItem>
+        ))}
+      </Menu>
     </Stack>
   )
 }
@@ -359,13 +368,8 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
   state,
   dispatch,
 }) => {
-  const { phrase, language, limit } = state.search!
-    .params as any as SimilaritySearch
-  const hideHelp = !state.config?.showHelp
-  const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
-    React.useState<null | HTMLElement>(null)
-  const languageMenuOpen = Boolean(languageMenuAnchorEl)
-  const currentLanguage = languages?.find((l) => l.id === language)
+  const search = state.similaritySearch!
+  const { phrase, languages: langs, limit } = search
   return (
     <Grid container spacing={1} columns={5}>
       <Grid size={3}>
@@ -379,14 +383,14 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
             debounce((e: React.ChangeEvent<HTMLInputElement>) => {
               const params: SimilaritySearch = {
                 limit,
-                language,
+                languages: langs,
                 phrase: e.target.value,
               }
               similaritySearch(params)
                 .then((searchResults) =>
                   dispatch({
-                    action: "search",
-                    search: { type: "similar", params },
+                    action: "similaritySearch",
+                    search,
                     searchResults,
                   })
                 )
@@ -396,54 +400,36 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
         />
       </Grid>
       <Grid size={2}>
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ justifyContent: "space-between" }}
-        >
-          <Box>
-            {!currentLanguage && <FauxPlaceholder>Language</FauxPlaceholder>}
-            {!!currentLanguage && currentLanguage.name}
-          </Box>
-          <IconButton
-            color="primary"
-            size="small"
-            onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
-          >
-            <LanguageIcon fontSize="inherit" />
-          </IconButton>
-          <Menu
-            anchorEl={languageMenuAnchorEl}
-            open={languageMenuOpen}
-            onClose={() => setLanguageMenuAnchorEl(null)}
-          >
-            {languages?.map((l) => (
-              <MenuItem
-                key={l.id!}
-                selected={l.id === language}
-                onClick={() => {
-                  setLanguageMenuAnchorEl(null)
-                  const params: SimilaritySearch = {
-                    phrase,
-                    limit,
-                    language: l.id === language ? undefined : l.id,
-                  }
-                  similaritySearch(params)
-                    .then((searchResults) =>
-                      dispatch({
-                        action: "search",
-                        search: { type: "similar", params },
-                        searchResults,
-                      })
-                    )
-                    .catch(errorHandler(dispatch))
-                }}
-              >
-                {l.name}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Stack>
+        <LanguagePickerWidget
+          languageIds={langs ?? []}
+          languages={languages ?? []}
+          onDelete={(l) => () => {
+            const languageIds = langs!.filter((lId) => lId !== l.id)
+            const s = { ...search, languages: languageIds }
+            similaritySearch(s)
+              .then((searchResults) =>
+                dispatch({
+                  action: "similaritySearch",
+                  search: s,
+                  searchResults,
+                })
+              )
+              .then(errorHandler(dispatch))
+          }}
+          onAdd={(l) => () => {
+            const languageIds = [...(langs ?? []), l.id]
+            const s = { ...search, languages: languageIds }
+            similaritySearch(s)
+              .then((searchResults) =>
+                dispatch({
+                  action: "similaritySearch",
+                  search: s,
+                  searchResults,
+                })
+              )
+              .then(errorHandler(dispatch))
+          }}
+        />
       </Grid>
     </Grid>
   )
@@ -500,7 +486,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
                   .then((searchResults) =>
                     dispatch({
                       action: "search",
-                      search: { type: "free", params: search },
+                      search,
                       searchResults,
                     })
                   )
@@ -558,10 +544,9 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
                   ts.text = ""
                   if (textEl) textEl.value = ""
                   search = { ...search, [field]: ts }
-                  const s: Search = { type: "free", params: search }
                   phraseSearch(search)
                     .then((searchResults) =>
-                      dispatch({ action: "search", search: s, searchResults })
+                      dispatch({ action: "search", search, searchResults })
                     )
                     .catch(errorHandler(dispatch))
                 }}
@@ -635,15 +620,14 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
         onClick={() => {
           ts[subField] = !on
           search = { ...search, [field]: ts }
-          const s: Search = { type: "free", params: search }
           if (/\S/.test(ts.text)) {
             phraseSearch(search)
               .then((searchResults) =>
-                dispatch({ action: "search", search: s, searchResults })
+                dispatch({ action: "search", search, searchResults })
               )
               .catch(errorHandler(dispatch))
           } else {
-            dispatch({ action: "search", search: s, searchResults })
+            dispatch({ action: "search", search, searchResults })
           }
         }}
       >

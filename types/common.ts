@@ -52,6 +52,11 @@ export enum AppTabs {
   Configuration = "configuration",
 }
 
+export enum SearchTabs {
+  Free = "free",
+  Similar = "similar",
+}
+
 export type TextSearch = {
   text: string
   exact: boolean
@@ -73,14 +78,10 @@ export type FreeFormSearch = {
 export type SimilaritySearch = {
   phrase: string
   limit: number
-  language?: number
+  languages?: number[]
   pageSize?: number
   page?: number
 }
-
-export type Search =
-  | { type: "free"; params: FreeFormSearch }
-  | { type: "similar"; params: SimilaritySearch }
 
 export type SearchResults = {
   selected: number // which individual result is selected
@@ -99,6 +100,7 @@ export type MessageLevel = OverridableStringUnion<
 export type AppState = {
   tab: AppTabs
   phrase?: Phrase
+  maybeMeld?: Phrase[] // phrases in a compatible locale which an identical citation phrase (modulo case)
   citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
   languageId?: number // do we need this?
@@ -106,8 +108,12 @@ export type AppState = {
   message?: string // triggers the display of a toast
   messageLevel?: MessageLevel // colors the toast
   config?: Configuration
-  search?: Search
+  freeSearch?: FreeFormSearch
+  similaritySearch?: SimilaritySearch
   searchResults?: SearchResults
+  freeSearchResults?: SearchResults
+  similaritySearchResults?: SearchResults
+  searchTab?: SearchTabs
 }
 
 export type Configuration = {

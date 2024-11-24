@@ -16,7 +16,6 @@ import Grid from "@mui/material/Grid2"
 import EditIcon from "@mui/icons-material/Edit"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
-import some from "lodash/some"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import { deleteTag, knownTags, phraseSearch, saveTag } from "../util/database"
@@ -214,7 +213,7 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   const testSubmission = (s?: string) => {
     const l = s ?? editedTag?.name ?? ""
     return (
-      /\S/.test(l) && !some(tags, (t: Tag) => t.id !== tag?.id && t.name === l)
+      /\S/.test(l) && !tags.some((t: Tag) => t.id !== tag?.id && t.name === l)
     )
   }
   const [submissible, setSubmissible] = useState(testSubmission())
