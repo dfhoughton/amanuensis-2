@@ -14,6 +14,7 @@ import {
 } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import EditIcon from "@mui/icons-material/Edit"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
 import debounce from "lodash/debounce"
@@ -36,6 +37,8 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
       .then((tags) => setTags(tags))
       .catch(errorHandler(dispatch))
   }, [version])
+  const bumpVersion = () => setVersion(version + 1)
+  const [modalTag, setModalTag] = useState<Tag>({ name: "" })
   return (
     <Box sx={{ minHeight: "400px" }}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -46,7 +49,10 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
           <IconButton
             color="primary"
             size="small"
-            onClick={() => setOpenAddTagModal(true)}
+            onClick={() => {
+              setModalTag({ name: "" })
+              setOpenAddTagModal(true)
+            }}
           >
             <AddIcon fontSize="small" />
           </IconButton>
@@ -75,10 +81,9 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
             <TagCard
               key={t.id}
               tag={t}
-              tags={tags}
-              version={version}
-              setVersion={setVersion}
-              state={state}
+              setTag={setModalTag}
+              setOpen={setOpenAddTagModal}
+              bumpVersion={bumpVersion}
               dispatch={dispatch}
             />
           ))}
@@ -86,9 +91,9 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
       </Stack>
       <EditTagModal
         open={openAddTagModal}
-        version={version}
-        setVersion={setVersion}
-        tag={{ name: "", color: "#000000", bgcolor: "#ffffff" }}
+        bumpVersion={bumpVersion}
+        tag={modalTag}
+        setTag={setModalTag}
         setOpen={setOpenAddTagModal}
         tags={tags ?? []}
         dispatch={dispatch}
@@ -99,21 +104,18 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
 
 export type TagCardProps = {
   tag: Tag
-  tags: Tag[]
-  version: number
-  setVersion: (version: number) => void
-  state: AppState
+  setTag: (Tag) => void
+  setOpen: (Boolean) => void
+  bumpVersion: VoidFunction
   dispatch: React.Dispatch<Action>
 }
 export const TagCard: React.FC<TagCardProps> = ({
   tag,
-  tags,
-  version,
-  setVersion,
-  state,
+  setTag,
+  setOpen,
+  bumpVersion,
   dispatch,
 }) => {
-  const [open, setOpen] = useState(false)
   return (
     <>
       <Paper elevation={1}>
@@ -145,9 +147,24 @@ export const TagCard: React.FC<TagCardProps> = ({
               <IconButton
                 color="primary"
                 size="small"
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  setTag(tag)
+                  setOpen(true)
+                }}
               >
                 <EditIcon fontSize="inherit" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip arrow title="duplicate tag colors">
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={() => {
+                  setTag({ name: "", color: tag.color, bgcolor: tag.bgcolor })
+                  setOpen(true)
+                }}
+              >
+                <ContentCopyIcon fontSize="inherit" />
               </IconButton>
             </Tooltip>
             <Tooltip arrow title="delete tag">
@@ -163,7 +180,7 @@ export const TagCard: React.FC<TagCardProps> = ({
                           : count === 1
                           ? `One phrase was`
                           : `${count} phrases were`
-                      setVersion(version + 1)
+                      bumpVersion()
                       dispatch({
                         action: "message",
                         message: `${verb} affected by the deletion of tag "${tag.name}".`,
@@ -178,15 +195,6 @@ export const TagCard: React.FC<TagCardProps> = ({
           </Stack>
         </Stack>
       </Paper>
-      <EditTagModal
-        tag={tag}
-        open={open}
-        setOpen={setOpen}
-        version={version}
-        setVersion={setVersion}
-        tags={tags}
-        dispatch={dispatch}
-      />
     </>
   )
 }
@@ -194,33 +202,35 @@ export const TagCard: React.FC<TagCardProps> = ({
 type EditTagModalProps = {
   open: boolean
   setOpen: (open: boolean) => void
-  version: number
-  setVersion: (version: number) => void
+  bumpVersion: VoidFunction
   tag: Tag
+  setTag: (Tag) => void
   tags: Tag[]
   dispatch: React.Dispatch<Action>
 }
 const EditTagModal: React.FC<EditTagModalProps> = ({
   open,
   setOpen,
-  version,
-  setVersion,
+  bumpVersion,
   tag,
+  setTag,
   tags,
   dispatch,
 }) => {
-  const [editedTag, setEditedTag] = useState<Tag>(tag ?? { name: "" })
-  const testSubmission = (s?: string) => {
-    const l = s ?? editedTag?.name ?? ""
-    return (
-      /\S/.test(l) && !tags.some((t: Tag) => t.id !== tag?.id && t.name === l)
-    )
-  }
-  const [submissible, setSubmissible] = useState(testSubmission())
+  const unique = (tag: Tag) =>
+    !tags.some((t) => t.id !== tag.id && t.name === tag.name)
+  const error = !unique(tag)
+  const tagHasUniqueName = (tag: Tag) =>
+    !!(tag.name && /\S/.test(tag.name) && unique(tag))
+  const [submissible, setSubmissible] = useState(false)
+  // we have just the one modal, so we have to reset this each time we pop it open with a different tag
+  useEffect(() => {
+    setSubmissible(tagHasUniqueName(tag))
+  }, [tag.name, tag.id])
   const handleLabelChange: (e: React.ChangeEvent<HTMLInputElement>) => void =
     debounce((e) => {
-      setEditedTag({ ...editedTag, name: e.target.value })
-      setSubmissible(testSubmission(e.target.value))
+      setTag({ ...tag, name: e.target.value })
+      setSubmissible(tagHasUniqueName(e.target.value))
     }, 250)
   return (
     <Modal
@@ -239,21 +249,24 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
           sx={{ mt: 2, justifyContent: "space-evenly", alignContent: "center" }}
         >
           <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <TagChip tag={editedTag} />
+            <TagChip tag={tag} />
           </Box>
           <TextField
+            required
+            error={error}
             onChange={handleLabelChange}
             variant="standard"
-            hiddenLabel
+            label="tag"
             placeholder="tag"
+            helperText={error ? "tag must be unique" : undefined}
             defaultValue={tag?.name}
           />
           <TextField
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEditedTag({ ...editedTag, description: e.target.value })
+              setTag({ ...tag, description: e.target.value })
             }
             variant="standard"
-            hiddenLabel
+            label="description"
             placeholder="description"
             defaultValue={tag?.description}
           />
@@ -273,8 +286,8 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
             <Grid size={8}>
               <MuiColorInput
                 format="hex"
-                value={editedTag.color ?? "#000000"}
-                onChange={(v) => setEditedTag({ ...editedTag, color: v })}
+                value={tag.color ?? "#000000"}
+                onChange={(v) => setTag({ ...tag, color: v })}
               />
             </Grid>
             <Grid size={4}>
@@ -291,8 +304,8 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
             </Grid>
             <Grid size={8}>
               <MuiColorInput
-                value={editedTag.bgcolor ?? "#ffffff"}
-                onChange={(v) => setEditedTag({ ...editedTag, bgcolor: v })}
+                value={tag.bgcolor ?? "#ffffff"}
+                onChange={(v) => setTag({ ...tag, bgcolor: v })}
               />
             </Grid>
           </Grid>
@@ -304,10 +317,10 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
               variant="outlined"
               disabled={!submissible}
               onClick={() =>
-                saveTag(editedTag)
+                saveTag(tag)
                   .then(() => {
                     setOpen(false)
-                    setVersion(version + 1)
+                    bumpVersion()
                   })
                   .catch(errorHandler(dispatch))
               }
