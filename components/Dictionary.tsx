@@ -3,6 +3,7 @@ import {
   AppState,
   FreeFormSearch,
   Language,
+  Phrase,
   SearchResults,
   SearchTabs,
   SimilaritySearch,
@@ -12,12 +13,13 @@ import { Action, errorHandler } from "../util/reducer"
 import {
   Avatar,
   Box,
+  Button,
   Chip,
   Divider,
   IconButton,
-  makeStyles,
   Menu,
   MenuItem,
+  Modal,
   Paper,
   Skeleton,
   Stack,
@@ -29,6 +31,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Language as LanguageIcon } from "@mui/icons-material"
+import MergeIcon from "@mui/icons-material/Merge"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
@@ -43,6 +46,7 @@ import debounce from "lodash/debounce"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { alpha } from "@mui/material/styles"
+import { ConfirmationModal } from "./ConfirmationModal"
 
 const searchDefaults = {
   page: 1,
@@ -373,7 +377,11 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
   state,
   dispatch,
 }) => {
-  const search = state.similaritySearch!
+  const search = state.similaritySearch ?? {
+    phrase: "",
+    languages: [],
+    limit: 10,
+  }
   const { phrase, languages: langs, limit } = search
   return (
     <Grid container spacing={1} columns={5}>
@@ -646,7 +654,9 @@ const SearchResults: React.FC<SearchFormProps> = ({
   state,
   searchResults,
   dispatch,
+  languages,
 }) => {
+  const [mergePhrase, setMergePhrase] = useState<Phrase>()
   const unselectedStyle: SxProps<Theme> = {
     p: 0.5,
     justifyContent: "space-between",
@@ -656,35 +666,106 @@ const SearchResults: React.FC<SearchFormProps> = ({
     bgcolor: ({ palette }) => alpha(palette.primary.light, 0.2),
   }
   return (
-    <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
-      {searchResults.phrases.map((p, i) => {
-        const selected = p.id === state.phrase?.id
-        return (
-          <Box
-            key={i}
-            sx={{ width: "100%" }}
-            onClick={() => dispatch({ action: "selectResult", selected: i })}
-          >
-            <Divider sx={{ mb: 1 }} />
-            <Stack
-              direction="row"
-              sx={selected ? selectedStyle : unselectedStyle}
+    <>
+      {" "}
+      <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
+        {searchResults.phrases.map((p, i) => {
+          const selected = p.id === state.phrase?.id
+          const lang = languages?.find((l) => l.id === p.languageId)
+          return (
+            <Box
+              key={i}
+              sx={{ width: "100%", cursor: "pointer" }}
+              onClick={() => dispatch({ action: "selectResult", selected: i })}
             >
-              <Box>{p.lemma}</Box>
-              <Box
-                sx={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
+              <Divider sx={{ mb: 1 }} />
+              <Stack
+                direction="row"
+                sx={selected ? selectedStyle : unselectedStyle}
               >
-                {p.note}
-              </Box>
-              <Box>actions</Box>
-            </Stack>
-          </Box>
-        )
-      })}
-    </Stack>
+                <Box>{p.lemma}</Box>
+                <Box
+                  sx={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {p.note}
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  {!!lang && (
+                    <Chip label={lang.locale} key={lang.id} size="small" />
+                  )}
+                  <MergeIcon
+                    color={selected || !state.phrase ? "disabled" : "primary"}
+                    fontSize="inherit"
+                    onClick={
+                      selected || !state.phrase
+                        ? undefined
+                        : (e) => {
+                            e.stopPropagation()
+                            setMergePhrase(p)
+                          }
+                    }
+                  />
+                </Stack>
+              </Stack>
+            </Box>
+          )
+        })}
+      </Stack>
+      <MergeModal
+        from={mergePhrase}
+        to={state.phrase}
+        close={() => setMergePhrase(undefined)}
+      />
+    </>
+  )
+}
+
+type MergeModalProps = {
+  from?: Phrase
+  to?: Phrase
+  close: VoidFunction
+}
+const MergeModal: React.FC<MergeModalProps> = ({ from, to, close }) => {
+  return (
+    <Modal
+      open={!!(from && to)}
+      onClose={close}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box>
+        <Typography id="modal-modal-title" variant="h6" component="h2">
+          Merge <i>{from?.lemma}</i> into <i>{to?.lemma}</i>
+        </Typography>
+        <Typography id="modal-modal-description" sx={{ m: 2 }}>
+          La la la la la
+        </Typography>
+        <Stack
+          spacing={2}
+          direction="row"
+          sx={{
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={() => {
+              // okHandler()
+              close()
+            }}
+          >
+            Merge
+          </Button>
+          <Button variant="outlined" onClick={close}>
+            Cancel
+          </Button>
+        </Stack>
+      </Box>
+    </Modal>
   )
 }

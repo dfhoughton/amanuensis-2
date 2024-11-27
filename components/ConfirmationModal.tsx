@@ -1,9 +1,9 @@
 import { Box, Button, Modal, Stack, Typography } from "@mui/material"
-import React from "react"
+import React, { ReactNode } from "react"
 
 type ConfirmationModalProps = {
-  title: string
-  content: string
+  title: string | ReactNode
+  content: string | ReactNode
   okHandler: VoidFunction
   open: boolean
   setOpen: (open: boolean) => void

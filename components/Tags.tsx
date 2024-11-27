@@ -4,6 +4,7 @@ import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
   Button,
+  Divider,
   IconButton,
   Modal,
   Paper,
@@ -61,9 +62,9 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
       {!!config.showHelp && (
         <Paper
           sx={{
-            m: 0.5,
-            p: 0.5,
-            my: 1,
+            m: 1,
+            p: 1,
+            my: 2,
             fontSize: "smaller",
             fontStyle: "italic",
             border: "1px solid",
@@ -74,18 +75,20 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
           make them discoverable.
         </Paper>
       )}
-      <Stack spacing={2} sx={{ mt: 2 }}>
+      <Stack spacing={0.75} sx={{ mt: 2 }}>
         {tags
           ?.filter((t) => !!t)
-          .map((t) => (
-            <TagCard
-              key={t.id}
-              tag={t}
-              setTag={setModalTag}
-              setOpen={setOpenAddTagModal}
-              bumpVersion={bumpVersion}
-              dispatch={dispatch}
-            />
+          .map((t, i) => (
+            <Box key={t.id}>
+              {!!i && <Divider />}
+              <TagRow
+                tag={t}
+                setTag={setModalTag}
+                setOpen={setOpenAddTagModal}
+                bumpVersion={bumpVersion}
+                dispatch={dispatch}
+              />
+            </Box>
           ))}
         {!tags?.length && <i>no tags yet</i>}
       </Stack>
@@ -102,14 +105,14 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
   )
 }
 
-export type TagCardProps = {
+export type TagRowProps = {
   tag: Tag
   setTag: (Tag) => void
   setOpen: (Boolean) => void
   bumpVersion: VoidFunction
   dispatch: React.Dispatch<Action>
 }
-export const TagCard: React.FC<TagCardProps> = ({
+export const TagRow: React.FC<TagRowProps> = ({
   tag,
   setTag,
   setOpen,
@@ -118,83 +121,81 @@ export const TagCard: React.FC<TagCardProps> = ({
 }) => {
   return (
     <>
-      <Paper elevation={1}>
-        <Stack
-          direction="row"
-          spacing={2}
-          justifyContent={"space-between"}
-          sx={{ width: "100%", p: 2 }}
-        >
-          <TagChip
-            tag={tag}
-            onClick={() => {
-              const s = { tags: [tag.id!] }
-              phraseSearch(s)
-                .then((searchResults) => {
-                  dispatch({
-                    action: "search",
-                    search: s,
-                    searchResults,
-                    tab: AppTabs.Dictionary,
-                  })
+      <Stack
+        direction="row"
+        spacing={1}
+        justifyContent={"space-between"}
+        sx={{ width: "100%", p: 0.5 }}
+      >
+        <TagChip
+          tag={tag}
+          onClick={() => {
+            const s = { tags: [tag.id!] }
+            phraseSearch(s)
+              .then((searchResults) => {
+                dispatch({
+                  action: "search",
+                  search: s,
+                  searchResults,
+                  tab: AppTabs.Dictionary,
                 })
-                .catch(errorHandler(dispatch))
-            }}
-          />
-          <Box>{tag.description}</Box>
-          <Stack direction="row" spacing={1}>
-            <Tooltip arrow title="edit tag">
-              <IconButton
-                color="primary"
-                size="small"
-                onClick={() => {
-                  setTag(tag)
-                  setOpen(true)
-                }}
-              >
-                <EditIcon fontSize="inherit" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip arrow title="duplicate tag colors">
-              <IconButton
-                color="primary"
-                size="small"
-                onClick={() => {
-                  setTag({ name: "", color: tag.color, bgcolor: tag.bgcolor })
-                  setOpen(true)
-                }}
-              >
-                <ContentCopyIcon fontSize="inherit" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip arrow title="delete tag">
-              <IconButton
-                color="primary"
-                size="small"
-                onClick={() => {
-                  deleteTag(tag)
-                    .then((count) => {
-                      const verb =
-                        count === 0
-                          ? `No phrases were`
-                          : count === 1
-                          ? `One phrase was`
-                          : `${count} phrases were`
-                      bumpVersion()
-                      dispatch({
-                        action: "message",
-                        message: `${verb} affected by the deletion of tag "${tag.name}".`,
-                      })
+              })
+              .catch(errorHandler(dispatch))
+          }}
+        />
+        <Box>{tag.description}</Box>
+        <Stack direction="row" spacing={1}>
+          <Tooltip arrow title="edit tag">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => {
+                setTag(tag)
+                setOpen(true)
+              }}
+            >
+              <EditIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip arrow title="duplicate tag colors">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => {
+                setTag({ name: "", color: tag.color, bgcolor: tag.bgcolor })
+                setOpen(true)
+              }}
+            >
+              <ContentCopyIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip arrow title="delete tag">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => {
+                deleteTag(tag)
+                  .then((count) => {
+                    const verb =
+                      count === 0
+                        ? `No phrases were`
+                        : count === 1
+                        ? `One phrase was`
+                        : `${count} phrases were`
+                    bumpVersion()
+                    dispatch({
+                      action: "message",
+                      message: `${verb} affected by the deletion of tag "${tag.name}".`,
                     })
-                    .catch(errorHandler(dispatch))
-                }}
-              >
-                <DeleteIcon fontSize="inherit" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
+                  })
+                  .catch(errorHandler(dispatch))
+              }}
+            >
+              <DeleteIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
         </Stack>
-      </Paper>
+      </Stack>
     </>
   )
 }

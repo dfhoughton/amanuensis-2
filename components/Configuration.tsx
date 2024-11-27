@@ -229,13 +229,15 @@ export const Languages: React.FC<LanguagesProps> = ({
             ))}
         </Menu>
       </Stack>
-      <Table>
+      <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Expected Locale</TableCell>
-            <TableCell>Locales</TableCell>
-            <TableCell>Phrases</TableCell>
+            <TableCell sx={{ verticalAlign: "bottom" }}>Name</TableCell>
+            <TableCell sx={{ verticalAlign: "bottom" }}>
+              Expected Locale
+            </TableCell>
+            <TableCell sx={{ verticalAlign: "bottom" }}>Locales</TableCell>
+            <TableCell sx={{ verticalAlign: "bottom" }}>Phrases</TableCell>
             <TableCell />
           </TableRow>
         </TableHead>
@@ -244,6 +246,7 @@ export const Languages: React.FC<LanguagesProps> = ({
             <TableRow key={l.id}>
               <TableCell>
                 <Link
+                  sx={{ cursor: "pointer" }}
                   onClick={() => {
                     const langs = [l.id!]
                     phraseSearch({ languages: langs })
@@ -269,9 +272,7 @@ export const Languages: React.FC<LanguagesProps> = ({
                   </span>
                 ))}
               </TableCell>
-              <TableCell sx={{ textAlign: "right" }}>
-                {l.count.toLocaleString()}
-              </TableCell>
+              <TableCell align="right">{l.count.toLocaleString()}</TableCell>
               <TableCell>
                 {!!l.id && (
                   <IconButton
