@@ -61,9 +61,9 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
       {!!config.showHelp && (
         <Paper
           sx={{
-            m: 1,
-            p: 1,
-            my: 2,
+            m: 0.5,
+            p: 0.5,
+            my: 1,
             fontSize: "smaller",
             fontStyle: "italic",
             border: "1px solid",

@@ -13,14 +13,18 @@ import {
   Avatar,
   Box,
   Chip,
+  Divider,
   IconButton,
+  makeStyles,
   Menu,
   MenuItem,
   Paper,
   Skeleton,
   Stack,
+  SxProps,
   Tab,
   TextField,
+  Theme,
   Tooltip,
   Typography,
 } from "@mui/material"
@@ -38,6 +42,7 @@ import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
+import { alpha } from "@mui/material/styles"
 
 const searchDefaults = {
   page: 1,
@@ -642,19 +647,44 @@ const SearchResults: React.FC<SearchFormProps> = ({
   searchResults,
   dispatch,
 }) => {
-  const selectionHandler = (i: number) =>
-    dispatch({ action: "selectResult", selected: i })
+  const unselectedStyle: SxProps<Theme> = {
+    p: 0.5,
+    justifyContent: "space-between",
+  }
+  const selectedStyle: SxProps<Theme> = {
+    ...unselectedStyle,
+    bgcolor: ({ palette }) => alpha(palette.primary.light, 0.2),
+  }
   return (
-    <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-      {searchResults.phrases.map((p, i) => (
-        <Paper
-          key={i}
-          elevation={i === searchResults.selected ? 2 : 0}
-          onClick={() => selectionHandler(i)}
-        >
-          <Stack direction="row">{p.lemma}</Stack>
-        </Paper>
-      ))}
+    <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
+      {searchResults.phrases.map((p, i) => {
+        const selected = p.id === state.phrase?.id
+        return (
+          <Box
+            key={i}
+            sx={{ width: "100%" }}
+            onClick={() => dispatch({ action: "selectResult", selected: i })}
+          >
+            <Divider sx={{ mb: 1 }} />
+            <Stack
+              direction="row"
+              sx={selected ? selectedStyle : unselectedStyle}
+            >
+              <Box>{p.lemma}</Box>
+              <Box
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {p.note}
+              </Box>
+              <Box>actions</Box>
+            </Stack>
+          </Box>
+        )
+      })}
     </Stack>
   )
 }
