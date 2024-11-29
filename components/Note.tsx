@@ -20,7 +20,7 @@ import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import { knownTags, perhapsStaleLanguages, savePhrase } from "../util/database"
 import { TagWidget } from "./TagWidget"
-import { alpha } from "@mui/material/styles"
+import { bigRed } from "../util/theme"
 
 type NoteProps = {
   state: AppState
@@ -299,7 +299,10 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
       {divider}
       <Paper
         elevation={0}
-        sx={{ bgcolor: ({ palette }) => alpha(palette.primary.light, 0.1) }}
+        sx={{
+          cursor: "pointer",
+          bgcolor: bigRed,
+        }}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })
         }}

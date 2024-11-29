@@ -48,9 +48,9 @@ import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
-import { alpha } from "@mui/material/styles"
 import { ConfirmationModal } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
+import { bigRed } from "../util/theme"
 
 const searchDefaults = {
   page: 1,
@@ -662,18 +662,9 @@ const SearchResults: React.FC<SearchFormProps> = ({
 }) => {
   const [mergePhrase, setMergePhrase] = useState<Phrase>()
   const [deletedPhrase, setDeletedPhrase] = useState<Phrase>()
-  const unselectedStyle: SxProps<Theme> = {
-    p: 0.5,
-    justifyContent: "space-between",
-  }
-  const selectedStyle: SxProps<Theme> = {
-    ...unselectedStyle,
-    bgcolor: ({ palette }) => alpha(palette.primary.light, 0.2),
-  }
   const iconStyle: SxProps<Theme> = { position: "relative", top: "4px" }
   return (
     <>
-      {" "}
       <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
         {searchResults.phrases.map((p, i) => {
           const selected = p.id === state.phrase?.id
@@ -686,62 +677,67 @@ const SearchResults: React.FC<SearchFormProps> = ({
               onClick={() => dispatch({ action: "selectResult", selected: i })}
             >
               <Divider sx={{ mb: 1 }} />
-              <Stack
-                direction="row"
-                sx={selected ? selectedStyle : unselectedStyle}
+              <Paper
+                elevation={0}
+                sx={selected ? { bgcolor: bigRed } : undefined}
               >
-                <Box>{p.lemma}</Box>
-                <Box
-                  sx={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                <Stack
+                  direction="row"
+                  sx={{ p: 0.5, justifyContent: "space-between" }}
                 >
-                  {p.note}
-                </Box>
-                <Stack direction="row" spacing={1}>
-                  {!!lang && (
-                    <Chip label={lang.locale} key={lang.id} size="small" />
-                  )}
-                  <Tooltip
-                    arrow
-                    enterDelay={500}
-                    title={
-                      unmergeable ? (
-                        ""
-                      ) : (
-                        <>
-                          merge with <i>{state.phrase!.lemma}</i>
-                        </>
-                      )
-                    }
+                  <Box>{p.lemma}</Box>
+                  <Box
+                    sx={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
                   >
-                    <MergeIcon
-                      color={unmergeable ? "disabled" : "primary"}
+                    {p.note}
+                  </Box>
+                  <Stack direction="row" spacing={1}>
+                    {!!lang && (
+                      <Chip label={lang.locale} key={lang.id} size="small" />
+                    )}
+                    <Tooltip
+                      arrow
+                      enterDelay={500}
+                      title={
+                        unmergeable ? (
+                          ""
+                        ) : (
+                          <>
+                            merge with <i>{state.phrase!.lemma}</i>
+                          </>
+                        )
+                      }
+                    >
+                      <MergeIcon
+                        color={unmergeable ? "disabled" : "primary"}
+                        fontSize="inherit"
+                        sx={iconStyle}
+                        onClick={
+                          selected || !state.phrase
+                            ? undefined
+                            : (e) => {
+                                e.stopPropagation()
+                                setMergePhrase(p)
+                              }
+                        }
+                      />
+                    </Tooltip>
+                    <DeleteIcon
+                      color={"warning"}
                       fontSize="inherit"
                       sx={iconStyle}
-                      onClick={
-                        selected || !state.phrase
-                          ? undefined
-                          : (e) => {
-                              e.stopPropagation()
-                              setMergePhrase(p)
-                            }
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDeletedPhrase(p)
+                      }}
                     />
-                  </Tooltip>
-                  <DeleteIcon
-                    color={"warning"}
-                    fontSize="inherit"
-                    sx={iconStyle}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeletedPhrase(p)
-                    }}
-                  />
+                  </Stack>
                 </Stack>
-              </Stack>
+              </Paper>
             </Box>
           )
         })}

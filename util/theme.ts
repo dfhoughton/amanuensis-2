@@ -1,9 +1,14 @@
 import { createTheme } from "@mui/material"
+import { alpha } from "@mui/material/styles"
+
+const oxBlood = "#931f1d"
+// a muted version of the primary color that we use for highlighting in a few places
+export const bigRed = alpha(oxBlood, 0.1)
 
 export const theme = createTheme({
   palette: {
     primary: {
-      main: "#931f1d",
+      main: oxBlood,
     },
     secondary: {
       main: "#937b63",
