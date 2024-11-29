@@ -49,7 +49,12 @@ export const LabelWithHelp: React.FC<Props> = ({
           {!!explanation && (
             <HelpOutlineIcon
               fontSize="small"
-              sx={{ cursor: "pointer", ml: label ? 1 : 0, mr: 1 }}
+              sx={{
+                cursor: "pointer",
+                ml: label ? 1 : 0,
+                mr: 1,
+                color: (theme) => theme.palette.text.disabled,
+              }}
               onClick={() => setCollapse(!collapse)}
             />
           )}
