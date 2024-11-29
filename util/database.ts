@@ -146,7 +146,8 @@ export function deleteTag(tag: Tag): Promise<number> {
 
 export function mergePhrases(to: Phrase, from: Phrase): Promise<void> {
   return db.transaction('rw', db.phrases, async () => {
-    to.citations = [...to.citations, ...from.citations]
+    to.citations = [...to.citations, ...from.citations] // merge citations
+    if (from.updatedAt > to.updatedAt) to.updatedAt = from.updatedAt // the most recentl updatedAt wins
     if (from.id) await db.phrases.delete(from.id)
     await db.phrases.put(to, to.id!)
     knownLanguages()
