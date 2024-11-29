@@ -12,13 +12,7 @@ import {
   Typography,
 } from "@mui/material"
 import React, { useEffect, useState } from "react"
-import {
-  AppState,
-  Citation,
-  Language,
-  Phrase,
-  Tag,
-} from "../types/common"
+import { AppState, Citation, Language, Phrase, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
@@ -26,6 +20,7 @@ import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import { knownTags, perhapsStaleLanguages, savePhrase } from "../util/database"
 import { TagWidget } from "./TagWidget"
+import { alpha } from "@mui/material/styles"
 
 type NoteProps = {
   state: AppState
@@ -303,8 +298,8 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
     <>
       {divider}
       <Paper
-        elevation={chosen ? 2 : 1}
-        sx={{}}
+        elevation={0}
+        sx={{ bgcolor: ({ palette }) => alpha(palette.primary.light, 0.1)}}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })
         }}
@@ -312,9 +307,20 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         <Stack
           direction="row"
           spacing={1}
-          sx={{ justifyContent: "space-between", m: 1 }}
+          sx={{ justifyContent: "space-between", m: 1, }}
         >
           <Box>{citation.phrase}</Box>
+          <Box
+            sx={{
+              fontStyle: "italic",
+              fontSize: "small",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {citation.note}
+          </Box>
           <Box>{citation.when.toLocaleDateString()}</Box>
         </Stack>
       </Paper>
