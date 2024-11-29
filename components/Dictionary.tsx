@@ -685,7 +685,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
                   direction="row"
                   sx={{ p: 0.5, justifyContent: "space-between" }}
                 >
-                  <Box>{p.lemma}</Box>
+                  <Box sx={{ fontWeight: 600 }}>{p.lemma}</Box>
                   <Box
                     sx={{
                       whiteSpace: "nowrap",
