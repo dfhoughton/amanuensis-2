@@ -3,7 +3,7 @@ import React, { ReactNode } from "react"
 
 type ConfirmationModalProps = {
   title: string | ReactNode
-  content: string | ReactNode
+  children: ReactNode
   okHandler: VoidFunction
   open: boolean
   setOpen: (open: boolean) => void
@@ -11,7 +11,7 @@ type ConfirmationModalProps = {
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
-  content,
+  children,
   okHandler,
   open,
   setOpen,
@@ -28,7 +28,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {title}
         </Typography>
         <Typography id="modal-modal-description" sx={{ m: 2 }}>
-          {content}
+          {children}
         </Typography>
         <Stack
           spacing={2}

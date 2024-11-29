@@ -768,8 +768,9 @@ const SearchResults: React.FC<SearchFormProps> = ({
             })
             .catch(errorHandler(dispatch))
         }}
-        content="This action is irreversible!"
-      />
+      >
+        This action is irreversible!
+      </ConfirmationModal>
     </>
   )
 }
@@ -873,7 +874,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
               multiline
               setMerged={setMerged}
             />
-            {!!(f?.tags?.length && to.tags?.length) && (
+            {!!(f?.tags?.length && to?.tags?.length) && (
               <Grid
                 container
                 wrap="nowrap"

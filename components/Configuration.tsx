@@ -121,7 +121,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       <ConfirmationModal
         open={clearDbModalOpen}
         title="Remove All Records from Database"
-        content="This will permanently delete everything thing you have saved in the database."
         okHandler={() => {
           resetDatabase()
             .then(() => {
@@ -131,7 +130,10 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             .catch(errorHandler(dispatch))
         }}
         setOpen={setClearDbModalOpen}
-      />
+      >
+        This will permanently delete everything thing you have saved in the
+        database.
+      </ConfirmationModal>
     </>
   )
 }
@@ -275,7 +277,7 @@ export const Languages: React.FC<LanguagesProps> = ({
               <TableCell>
                 {!!l.id && (
                   <IconButton
-                    color="primary"
+                    color={l.count ? "warning" : "primary"}
                     size="small"
                     onClick={deleteLanguage(l)}
                   >
