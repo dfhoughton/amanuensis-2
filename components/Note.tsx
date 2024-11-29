@@ -312,7 +312,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           spacing={1}
           sx={{ justifyContent: "space-between", m: 1 }}
         >
-          <Box>{citation.phrase}</Box>
+          <Box sx={{ fontWeight: 600 }}>{citation.phrase}</Box>
           <Box
             sx={{
               fontStyle: "italic",
