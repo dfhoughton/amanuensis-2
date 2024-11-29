@@ -48,6 +48,7 @@ export type Action =
   | { action: "switchSearch" }
   | { action: "selectResult"; selected: number }
   | { action: "noSelection" } // when popup is opened with nothing highlighted
+  | { action: "merged", phrase: Phrase }
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -194,6 +195,17 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         phrase: { ...changeLanguagePhrase!, languageId: action.language.id },
+      }
+    case "merged":
+      // one phrase has been merged into another
+      return {
+        ...state,
+        // show the result of the merge
+        phrase: action.phrase,
+        tab: AppTabs.Note,
+        // we must redo searches to purge the phrase merged in
+        freeSearchResults: undefined,
+        similaritySearchResults: undefined,
       }
     default:
       console.error({ wut: action })

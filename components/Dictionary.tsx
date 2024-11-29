@@ -36,6 +36,7 @@ import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
   knownTags,
+  mergePhrases,
   perhapsStaleLanguages,
   phraseSearch,
   similaritySearch,
@@ -47,6 +48,7 @@ import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { alpha } from "@mui/material/styles"
 import { ConfirmationModal } from "./ConfirmationModal"
+import { TagChip } from "./TagChip"
 
 const searchDefaults = {
   page: 1,
@@ -671,6 +673,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
       <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
         {searchResults.phrases.map((p, i) => {
           const selected = p.id === state.phrase?.id
+          const unmergeable = selected || !state.phrase
           const lang = languages?.find((l) => l.id === p.languageId)
           return (
             <Box
@@ -697,18 +700,32 @@ const SearchResults: React.FC<SearchFormProps> = ({
                   {!!lang && (
                     <Chip label={lang.locale} key={lang.id} size="small" />
                   )}
-                  <MergeIcon
-                    color={selected || !state.phrase ? "disabled" : "primary"}
-                    fontSize="inherit"
-                    onClick={
-                      selected || !state.phrase
-                        ? undefined
-                        : (e) => {
-                            e.stopPropagation()
-                            setMergePhrase(p)
-                          }
+                  <Tooltip
+                    arrow
+                    enterDelay={500}
+                    title={
+                      unmergeable ? (
+                        ""
+                      ) : (
+                        <>
+                          merge with <i>{state.phrase!.lemma}</i>
+                        </>
+                      )
                     }
-                  />
+                  >
+                    <MergeIcon
+                      color={unmergeable ? "disabled" : "primary"}
+                      fontSize="inherit"
+                      onClick={
+                        selected || !state.phrase
+                          ? undefined
+                          : (e) => {
+                              e.stopPropagation()
+                              setMergePhrase(p)
+                            }
+                      }
+                    />
+                  </Tooltip>
                 </Stack>
               </Stack>
             </Box>
@@ -719,6 +736,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
         from={mergePhrase}
         to={state.phrase}
         close={() => setMergePhrase(undefined)}
+        dispatch={dispatch}
       />
     </>
   )
@@ -728,22 +746,160 @@ type MergeModalProps = {
   from?: Phrase
   to?: Phrase
   close: VoidFunction
+  dispatch: React.Dispatch<Action>
 }
-const MergeModal: React.FC<MergeModalProps> = ({ from, to, close }) => {
+const MergeModal: React.FC<MergeModalProps> = ({
+  from: f,
+  to,
+  close,
+  dispatch,
+}) => {
+  const emptyPhrase = {
+    lemma: "",
+    tags: [],
+    citations: [],
+    updatedAt: new Date(),
+  }
+  const [merged, setMerged] = useState<Phrase>({ ...(to ?? emptyPhrase) })
+  const [from, setFrom] = useState<Phrase>({ ...(f ?? emptyPhrase) })
+  const [tags, setTags] = useState<Tag[]>([])
+  useEffect(() => {
+    setFrom({ ...(f ?? emptyPhrase) })
+    setMerged({ ...(to ?? emptyPhrase) })
+    knownTags()
+      .then((tags) => setTags(tags))
+      .catch(errorHandler(dispatch))
+  }, [f, to])
+  const closeAll = () => {
+    close()
+    setMerged(emptyPhrase)
+    setFrom(emptyPhrase)
+  }
+  // do we need to merge anything other than citations?
+  const anyMerging =
+    f?.lemma &&
+    to?.lemma &&
+    (f.lemma !== to.lemma ||
+      f.note !== to.note ||
+      f.tags?.length !== to.tags?.length ||
+      (f.tags && !to.tags) ||
+      (to.tags && !f.tags) ||
+      f.tags!.some((ft) => !to.tags!.some((mt) => mt === ft)))
   return (
     <Modal
-      open={!!(from && to)}
+      open={!!(from.lemma && to?.lemma)}
       onClose={close}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box>
+      <Stack spacing={1}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          Merge <i>{from?.lemma}</i> into <i>{to?.lemma}</i>
+          Merge <i>{from?.lemma}</i> into <i>{merged?.lemma}</i>
         </Typography>
         <Typography id="modal-modal-description" sx={{ m: 2 }}>
-          La la la la la
+          Information from <i>{from?.lemma}</i> to merge into <i>{to?.lemma}</i>
+          . If only one entry has a particular field, that field will be used in
+          the merged result.
         </Typography>
+        {!anyMerging && (
+          <>
+            There are no conflicting fields between <i>{from?.lemma}</i> and{" "}
+            <i>{to?.lemma}</i>. All the citations in the former will be
+            transferred to the latter.
+          </>
+        )}
+        {anyMerging && (
+          <Box sx={{ mx: "-1.25rem !important" }}>
+            <Grid
+              container
+              wrap="nowrap"
+              columns={2}
+              spacing={0.5}
+              sx={{ width: "100%" }}
+            >
+              <Grid width={1} sx={{ textAlign: "center" }}>
+                <i>{from.lemma}</i>
+              </Grid>
+              <Grid width={1} sx={{ textAlign: "center" }}>
+                <i>{to?.lemma}</i>
+              </Grid>
+            </Grid>
+            <ComparisonWidget
+              from={from}
+              to={merged}
+              label="Lemma"
+              field="lemma"
+              setMerged={setMerged}
+            />
+            <ComparisonWidget
+              from={from}
+              to={merged}
+              label="Note"
+              field="note"
+              multiline
+              setMerged={setMerged}
+            />
+            {!!(f?.tags?.length && to.tags?.length) && (
+              <Grid
+                container
+                wrap="nowrap"
+                columns={2}
+                spacing={0.5}
+                sx={{ width: "100%" }}
+              >
+                <Grid width={1}>
+                  <Box>
+                    {from.tags?.map((t, i) => {
+                      const tag = tags.find((tag) => tag.id === t)!
+                      const common = merged.tags!.some((o) => o === t)
+                      return (
+                        <TagChip
+                          key={tag.id}
+                          tag={tag}
+                          onDelete={
+                            common
+                              ? undefined
+                              : () => {
+                                  const tags = from.tags!.filter(
+                                    (t2) => t2 !== t
+                                  )
+                                  setFrom({ ...from, tags })
+                                }
+                          }
+                          onClick={
+                            common
+                              ? undefined
+                              : () => {
+                                  const tags = [...merged.tags!, t]
+                                  setMerged({ ...merged, tags })
+                                }
+                          }
+                        />
+                      )
+                    })}
+                  </Box>
+                </Grid>
+                <Grid width={1}>
+                  <Box>
+                    {merged.tags!.map((t, i) => {
+                      const tag = tags.find((tag) => tag.id === t)!
+                      return (
+                        <TagChip
+                          key={tag.id}
+                          tag={tag}
+                          onDelete={() => {
+                            const tags = merged.tags!.filter((t2) => t2 !== t)
+                            setMerged({ ...merged, tags })
+                          }}
+                        />
+                      )
+                    })}
+                  </Box>
+                </Grid>
+              </Grid>
+            )}
+          </Box>
+        )}
         <Stack
           spacing={2}
           direction="row"
@@ -755,17 +911,83 @@ const MergeModal: React.FC<MergeModalProps> = ({ from, to, close }) => {
           <Button
             variant="contained"
             onClick={() => {
-              // okHandler()
-              close()
+              mergePhrases(merged, f!).then(() => {
+                dispatch({action: 'merged', phrase: merged})
+                closeAll()
+              }).catch(errorHandler(dispatch))
             }}
           >
             Merge
           </Button>
-          <Button variant="outlined" onClick={close}>
+          <Button variant="outlined" onClick={closeAll}>
             Cancel
           </Button>
         </Stack>
-      </Box>
+      </Stack>
     </Modal>
+  )
+}
+
+type ComparisonWidgetProps = {
+  label: string
+  from?: Phrase
+  to?: Phrase
+  field: keyof Phrase
+  multiline?: boolean
+  setMerged: (Phrase) => void
+}
+const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
+  label,
+  from,
+  to,
+  field,
+  multiline,
+  setMerged,
+}) => {
+  if (
+    !(
+      from &&
+      to &&
+      from[field] &&
+      to[field] &&
+      /\S/.test(from[field] as string) &&
+      /\S/.test(to[field] as string)
+    )
+  )
+    return <></>
+  const onChange = debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMerged({...to, [field]: e.target.value})
+  }, 250)
+  return (
+    <Grid
+      container
+      columns={2}
+      spacing={0.5}
+      wrap="nowrap"
+      sx={{ width: "100%" }}
+    >
+      <Grid width={1}>
+        <TextField
+          fullWidth
+          label={label}
+          margin="dense"
+          size="small"
+          multiline={multiline}
+          defaultValue={from[field]}
+          disabled
+        />
+      </Grid>
+      <Grid width={1}>
+        <TextField
+          fullWidth
+          label={label}
+          margin="dense"
+          size="small"
+          multiline={multiline}
+          defaultValue={to[field]}
+          onChange={onChange}
+        />
+      </Grid>
+    </Grid>
   )
 }

@@ -147,6 +147,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               sx={{ pb: 1 }}
             >
               <TextField
+                multiline
                 onChange={
                   debounce((e: React.ChangeEvent<HTMLInputElement>) => {
                     dispatch({
@@ -255,6 +256,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           explanation={"Any notes about this particular citation"}
         >
           <TextField
+            multiline
             onChange={
               debounce((e: React.ChangeEvent<HTMLInputElement>) => {
                 let { citations } = phrase

@@ -17,7 +17,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) =>
           theme.unstable_sx({
-            "> .MuiBox-root": {
+            "> .MuiBox-root, > .MuiStack-root": {
               position: "absolute",
               top: "50%",
               left: "50%",
