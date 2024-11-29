@@ -683,6 +683,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
               >
                 <Stack
                   direction="row"
+                  spacing={1}
                   sx={{ p: 0.5, justifyContent: "space-between" }}
                 >
                   <Box sx={{ fontWeight: 600 }}>{p.lemma}</Box>
