@@ -299,7 +299,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
       {divider}
       <Paper
         elevation={0}
-        sx={{ bgcolor: ({ palette }) => alpha(palette.primary.light, 0.1)}}
+        sx={{ bgcolor: ({ palette }) => alpha(palette.primary.light, 0.1) }}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })
         }}
@@ -307,7 +307,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         <Stack
           direction="row"
           spacing={1}
-          sx={{ justifyContent: "space-between", m: 1, }}
+          sx={{ justifyContent: "space-between", m: 1 }}
         >
           <Box>{citation.phrase}</Box>
           <Box
