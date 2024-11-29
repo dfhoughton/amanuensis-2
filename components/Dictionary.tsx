@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import {
   AppState,
   FreeFormSearch,
@@ -325,10 +325,15 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
 }) => {
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
+  const languageMenuAnchor = useRef<SVGSVGElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   return (
     <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
-      <Box>
+      <Box
+        onClick={() =>
+          setLanguageMenuAnchorEl(languageMenuAnchor.current as any)
+        }
+      >
         {!languageIds.length && <FauxPlaceholder>Languages</FauxPlaceholder>}
         {languageIds.map((l) => {
           const lang = languages?.find((lang) => lang.id === l)
@@ -349,7 +354,7 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
           size="small"
           onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
         >
-          <LanguageIcon fontSize="inherit" />
+          <LanguageIcon fontSize="inherit" ref={languageMenuAnchor} />
         </IconButton>
       </Tooltip>
       <Menu

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import { AppTabs, Tag } from "../types/common"
 import { Action } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
@@ -36,10 +36,11 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
 }) => {
   const [addTagMenuAnchorEl, setAddTagMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
-  const [removeTagMenuAnchorEl, setRemoveTagMenuAnchorEl] =
-    React.useState<null | HTMLElement>(null)
+  const [removeTagMenuAnchorEl, setRemoveTagMenuAnchorEl] = React.useState<
+    null | HTMLElement | SVGSVGElement
+  >(null)
   const addTagMenuOpen = Boolean(addTagMenuAnchorEl)
-  const removeTagMenuOpen = Boolean(removeTagMenuAnchorEl)
+  const menuAnchor = useRef<SVGSVGElement>(null)
   const usedTags = new Set<number>(presentTags)
   return (
     <LabelWithHelp
@@ -69,7 +70,15 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
           spacing={1}
           sx={{ justifyContent: "space-between" }}
         >
-          <Stack direction="row" spacing={1}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ width: "100%" }}
+            onClick={() => {
+              if (menuAnchor.current)
+                setAddTagMenuAnchorEl(menuAnchor.current as any)
+            }}
+          >
             {!presentTags?.length && <FauxPlaceholder>Tags</FauxPlaceholder>}
             {presentTags
               ?.map((i) => tags.find((t: Tag) => t.id === i)!)
@@ -85,7 +94,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                   size="small"
                   onClick={(e) => setAddTagMenuAnchorEl(e.currentTarget)}
                 >
-                  <AddIcon fontSize="inherit" />
+                  <AddIcon fontSize="inherit" ref={menuAnchor} />
                 </IconButton>
               </Tooltip>
               <Menu
