@@ -3,7 +3,6 @@ import {
   AppState,
   Language,
   Configuration as ConfigurationType,
-  MessageLevel,
   AppTabs,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
@@ -127,7 +126,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           resetDatabase()
             .then(() => {
               setVersion(version + 1)
-              dispatch({ action: "phraseDeleted" })
+              dispatch({ action: "phrasesDeleted" })
             })
             .catch(errorHandler(dispatch))
         }}

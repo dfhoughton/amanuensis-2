@@ -39,7 +39,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           }}
         >
           <Button
-            variant="outlined"
+            autoFocus
+            variant="contained"
             onClick={() => {
               okHandler()
               setOpen(false)

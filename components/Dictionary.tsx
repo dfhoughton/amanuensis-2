@@ -32,9 +32,11 @@ import {
 } from "@mui/material"
 import { Language as LanguageIcon } from "@mui/icons-material"
 import MergeIcon from "@mui/icons-material/Merge"
+import DeleteIcon from "@mui/icons-material/Delete"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
+  deletePhrase,
   knownTags,
   mergePhrases,
   perhapsStaleLanguages,
@@ -659,6 +661,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
   languages,
 }) => {
   const [mergePhrase, setMergePhrase] = useState<Phrase>()
+  const [deletedPhrase, setDeletedPhrase] = useState<Phrase>()
   const unselectedStyle: SxProps<Theme> = {
     p: 0.5,
     justifyContent: "space-between",
@@ -667,6 +670,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
     ...unselectedStyle,
     bgcolor: ({ palette }) => alpha(palette.primary.light, 0.2),
   }
+  const iconStyle: SxProps<Theme> = { position: "relative", top: "4px" }
   return (
     <>
       {" "}
@@ -677,7 +681,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
           const lang = languages?.find((l) => l.id === p.languageId)
           return (
             <Box
-              key={i}
+              key={p.id}
               sx={{ width: "100%", cursor: "pointer" }}
               onClick={() => dispatch({ action: "selectResult", selected: i })}
             >
@@ -716,6 +720,7 @@ const SearchResults: React.FC<SearchFormProps> = ({
                     <MergeIcon
                       color={unmergeable ? "disabled" : "primary"}
                       fontSize="inherit"
+                      sx={iconStyle}
                       onClick={
                         selected || !state.phrase
                           ? undefined
@@ -726,6 +731,15 @@ const SearchResults: React.FC<SearchFormProps> = ({
                       }
                     />
                   </Tooltip>
+                  <DeleteIcon
+                    color={"warning"}
+                    fontSize="inherit"
+                    sx={iconStyle}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeletedPhrase(p)
+                    }}
+                  />
                 </Stack>
               </Stack>
             </Box>
@@ -737,6 +751,24 @@ const SearchResults: React.FC<SearchFormProps> = ({
         to={state.phrase}
         close={() => setMergePhrase(undefined)}
         dispatch={dispatch}
+      />
+      <ConfirmationModal
+        title={
+          <>
+            Delete <i>{deletedPhrase?.lemma}</i>
+          </>
+        }
+        open={!!deletedPhrase}
+        setOpen={(b) => !b && setDeletedPhrase(undefined)}
+        okHandler={() => {
+          deletePhrase(deletedPhrase!)
+            .then(() => {
+              setDeletedPhrase(undefined)
+              dispatch({ action: "phraseDeleted", phrase: deletedPhrase! })
+            })
+            .catch(errorHandler(dispatch))
+        }}
+        content="This action is irreversible!"
       />
     </>
   )
@@ -754,6 +786,8 @@ const MergeModal: React.FC<MergeModalProps> = ({
   close,
   dispatch,
 }) => {
+  // in the case of an unsaved phrase, we want to switch which is from and which is to
+  if (to && to.id === undefined) [f, to] = [to, f]
   const emptyPhrase = {
     lemma: "",
     tags: [],
@@ -911,10 +945,12 @@ const MergeModal: React.FC<MergeModalProps> = ({
           <Button
             variant="contained"
             onClick={() => {
-              mergePhrases(merged, f!).then(() => {
-                dispatch({action: 'merged', phrase: merged})
-                closeAll()
-              }).catch(errorHandler(dispatch))
+              mergePhrases(merged, f!)
+                .then(() => {
+                  dispatch({ action: "merged", phrase: merged })
+                  closeAll()
+                })
+                .catch(errorHandler(dispatch))
             }}
           >
             Merge
@@ -956,7 +992,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
   )
     return <></>
   const onChange = debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-    setMerged({...to, [field]: e.target.value})
+    setMerged({ ...to, [field]: e.target.value })
   }, 250)
   return (
     <Grid

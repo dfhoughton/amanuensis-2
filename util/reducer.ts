@@ -29,7 +29,6 @@ export type Action =
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
-  | { action: "phraseDeleted" }
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
@@ -48,7 +47,9 @@ export type Action =
   | { action: "switchSearch" }
   | { action: "selectResult"; selected: number }
   | { action: "noSelection" } // when popup is opened with nothing highlighted
-  | { action: "merged", phrase: Phrase }
+  | { action: "merged"; phrase: Phrase }
+  | { action: "phrasesDeleted" } // *all* phrases deleted from database
+  | { action: "phraseDeleted"; phrase: Phrase }
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -175,10 +176,6 @@ export function reducer(state: AppState, action: Action): AppState {
         tab: AppTabs.Note,
         searchResults: { ...results, selected },
       }
-    case "phraseDeleted":
-      // TODO: this needs to force a refresh of search results, if nothing else
-      if (state.priorPhrase) return { ...state, priorPhrase: undefined } // this will enable the save button
-      return state
     case "goto":
       const { phrase: gotoPhrase, citationIndex } = action
       return {
@@ -202,8 +199,29 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         // show the result of the merge
         phrase: action.phrase,
+        priorPhrase: { ...action.phrase },
         tab: AppTabs.Note,
         // we must redo searches to purge the phrase merged in
+        freeSearchResults: undefined,
+        similaritySearchResults: undefined,
+      }
+    case "phrasesDeleted":
+      return {
+        ...state,
+        priorPhrase: undefined,
+        freeSearchResults: undefined,
+        similaritySearchResults: undefined,
+      }
+    case "phraseDeleted":
+      const deletedStatePhrase = action.phrase.id === state.phrase?.id
+      const newPhrase = deletedStatePhrase ? undefined : state.phrase
+      const newPriorPhrase = deletedStatePhrase ? undefined : state.priorPhrase
+      return {
+        ...state,
+        // we may have deleted the selected phrase
+        phrase: newPhrase,
+        priorPhrase: newPriorPhrase,
+        // we must redo searches to purge the deleted phrase merged in
         freeSearchResults: undefined,
         similaritySearchResults: undefined,
       }

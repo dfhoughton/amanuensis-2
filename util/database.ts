@@ -154,6 +154,10 @@ export function mergePhrases(to: Phrase, from: Phrase): Promise<void> {
   })
 }
 
+export function deletePhrase(phrase: Phrase): Promise<void> {
+  return db.phrases.delete(phrase.id)
+}
+
 // returns languages and frequencies for display in configuration
 export function knownLanguages(): Promise<Language[]> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
