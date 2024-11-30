@@ -235,12 +235,26 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
       setTag({ ...tag, name: e.target.value })
       setSubmissible(tagHasUniqueName(e.target.value))
     }, 250)
+  const save = () =>
+    saveTag(tag)
+      .then(() => {
+        setOpen(false)
+        bumpVersion()
+      })
+      .catch(errorHandler(dispatch))
   return (
     <Modal
       open={open}
       onClose={() => setOpen(false)}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
+      onKeyDown={(e) => {
+        if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault()
+          e.stopPropagation()
+          if (submissible) save()
+        }
+      }}
     >
       <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">
@@ -256,6 +270,7 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
           </Box>
           <TextField
             required
+            autoFocus
             error={error}
             onChange={handleLabelChange}
             variant="standard"
@@ -313,22 +328,11 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
             </Grid>
           </Grid>
           <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+            <Button variant="contained" disabled={!submissible} onClick={save}>
+              Save
+            </Button>
             <Button variant="outlined" onClick={() => setOpen(false)}>
               Cancel
-            </Button>
-            <Button
-              variant="outlined"
-              disabled={!submissible}
-              onClick={() =>
-                saveTag(tag)
-                  .then(() => {
-                    setOpen(false)
-                    bumpVersion()
-                  })
-                  .catch(errorHandler(dispatch))
-              }
-            >
-              Save
             </Button>
           </Stack>
         </Stack>
