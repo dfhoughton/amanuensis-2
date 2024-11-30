@@ -21,6 +21,7 @@ import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import { knownTags, perhapsStaleLanguages, savePhrase } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { bigRed } from "../util/theme"
+import { tagSearch } from "./Tags"
 
 type NoteProps = {
   state: AppState
@@ -81,9 +82,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     color="primary"
                     size="small"
                     disabled={clean}
-                    onClick={() => {
-                      save
-                    }}
+                    onClick={save}
                   >
                     <Save fontSize="inherit" />
                   </IconButton>
@@ -184,6 +183,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 const tags: number[] = phrase.tags!.filter((i) => i !== t.id)
                 dispatch({ action: "phrase", phrase: { ...phrase, tags } })
               }}
+              onClick={(tag: Tag) => tagSearch(tag, dispatch)}
             />
             {phrase?.citations.map((c, i) => (
               <CitationInBrief
@@ -302,6 +302,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
             citations[citationIndex] = c
             dispatch({ action: "phrase", phrase: { ...phrase, citations } })
           }}
+          onClick={(tag: Tag) => tagSearch(tag, dispatch)}
         />
       </Stack>
     )

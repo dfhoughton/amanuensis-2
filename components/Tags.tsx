@@ -105,6 +105,23 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
   )
 }
 
+// for creating a click handler for tags that runs a tag search
+export const tagSearch =
+  (tag: Tag, dispatch: React.Dispatch<Action>) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const s = { tags: [tag.id!] }
+    phraseSearch(s)
+      .then((searchResults) => {
+        dispatch({
+          action: "search",
+          search: s,
+          searchResults,
+          tab: AppTabs.Dictionary,
+        })
+      })
+      .catch(errorHandler(dispatch))
+  }
+
 export type TagRowProps = {
   tag: Tag
   setTag: (Tag) => void
@@ -127,22 +144,7 @@ export const TagRow: React.FC<TagRowProps> = ({
         justifyContent={"space-between"}
         sx={{ width: "100%", p: 0.5 }}
       >
-        <TagChip
-          tag={tag}
-          onClick={() => {
-            const s = { tags: [tag.id!] }
-            phraseSearch(s)
-              .then((searchResults) => {
-                dispatch({
-                  action: "search",
-                  search: s,
-                  searchResults,
-                  tab: AppTabs.Dictionary,
-                })
-              })
-              .catch(errorHandler(dispatch))
-          }}
-        />
+        <TagChip tag={tag} onClick={tagSearch(tag, dispatch)} />
         <Box>{tag.description}</Box>
         <Stack direction="row" spacing={1}>
           <Tooltip arrow title="edit tag">

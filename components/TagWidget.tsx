@@ -22,6 +22,7 @@ type TagWidgeProps = {
   presentTags: number[] | undefined
   addTag: (tag: Tag) => void
   removeTag: (tag: Tag) => void
+  onClick?: (tag: Tag) => (e: React.MouseEvent) => void
   dispatch: React.Dispatch<Action>
 }
 /** Displays tags and allows their addition or removal */
@@ -31,6 +32,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
   presentTags,
   addTag,
   removeTag,
+  onClick,
   dispatch,
 }) => {
   const [addTagMenuAnchorEl, setAddTagMenuAnchorEl] =
@@ -81,9 +83,17 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
             {!presentTags?.length && <FauxPlaceholder>Tags</FauxPlaceholder>}
             {presentTags
               ?.map((i) => tags.find((t: Tag) => t.id === i)!)
-              .map((t) => (
-                <TagChip key={t.id} tag={t} onDelete={() => removeTag(t)} />
-              ))}
+              .map((t) => {
+                const f = onClick ? onClick(t) : undefined
+                return (
+                  <TagChip
+                    key={t.id}
+                    tag={t}
+                    onDelete={() => removeTag(t)}
+                    onClick={f}
+                  />
+                )
+              })}
           </Stack>
           {(!presentTags || tags.length > presentTags.length) && (
             <>
