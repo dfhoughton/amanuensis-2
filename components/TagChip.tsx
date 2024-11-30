@@ -4,7 +4,7 @@ import { Tag } from "../types/common"
 
 type Props = {
   tag: Tag
-  onClick?: VoidFunction
+  onClick?: (e: React.MouseEvent) => void
   onDelete?: VoidFunction
 }
 

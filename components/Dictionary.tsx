@@ -20,6 +20,7 @@ import {
   Menu,
   MenuItem,
   Modal,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
@@ -165,7 +166,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
         </Stack>
       )}
       {!!searchResults && (
-        <SearchResults
+        <SearchResultsWidget
           languages={languages}
           searchResults={searchResults}
           state={state}
@@ -660,7 +661,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
   )
 }
 
-const SearchResults: React.FC<SearchFormProps> = ({
+const SearchResultsWidget: React.FC<SearchFormProps> = ({
   state,
   searchResults,
   dispatch,
@@ -668,11 +669,58 @@ const SearchResults: React.FC<SearchFormProps> = ({
 }) => {
   const [mergePhrase, setMergePhrase] = useState<Phrase>()
   const [deletedPhrase, setDeletedPhrase] = useState<Phrase>()
+  const { phrases, page, pages, total, pageSize } = searchResults
+  const firstResult = pageSize * (page - 1) + 1
+  const lastResult = firstResult + phrases.length - 1
   const iconStyle: SxProps<Theme> = { position: "relative", top: "4px" }
   return (
     <>
       <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
-        {searchResults.phrases.map((p, i) => {
+        <Stack
+          direction="row"
+          spacing={0.5}
+          flexWrap="nowrap"
+          sx={{ width: "100%", justifyContent: "space-between" }}
+        >
+          <Pagination
+            page={page}
+            count={pages}
+            size="small"
+            siblingCount={0}
+            onChange={(_e, p) => {
+              if (state.searchTab === SearchTabs.Free) {
+                const s: FreeFormSearch = { ...state.freeSearch, page: p }
+                phraseSearch(s)
+                  .then((results) =>
+                    dispatch({
+                      action: "search",
+                      search: s,
+                      searchResults: results,
+                    })
+                  )
+                  .catch(errorHandler(dispatch))
+              } else {
+                const s: SimilaritySearch = {
+                  ...state.similaritySearch,
+                  page: p,
+                } as any
+                similaritySearch(s)
+                  .then((results) =>
+                    dispatch({
+                      action: "similaritySearch",
+                      search: s,
+                      searchResults: results,
+                    })
+                  )
+                  .catch(errorHandler(dispatch))
+              }
+            }}
+          />
+          <Box sx={{ fontSize: "0.875rem" }}>
+            <b>{firstResult}</b> &ndash; <b>{lastResult}</b> of <b>{total}</b>
+          </Box>
+        </Stack>
+        {phrases.map((p, i) => {
           const selected = p.id === state.phrase?.id
           const unmergeable = selected || !state.phrase
           const lang = languages?.find((l) => l.id === p.languageId)
