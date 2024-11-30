@@ -383,9 +383,6 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   const { url } = citation
   const { citations } = phrase
   const i = citations!.indexOf(citation)
-  const samePhrase =
-    isEqual(phrase.languageId, state.phrase?.languageId) &&
-    isEqual(phrase.lemma, state.phrase?.lemma)
   const sx = {
     fontSize: "small",
     whiteSpace: "nowrap",
@@ -398,14 +395,6 @@ const CitationLink: React.FC<CitationLinkProps> = ({
         <i>no URL</i>
       </Typography>
     )
-  if (samePhrase && state.citationIndex === i) {
-    // we are already here; make this link inert
-    return (
-      <Tooltip arrow title={url}>
-        <Typography sx={sx}>{url}</Typography>
-      </Tooltip>
-    )
-  }
   return (
     <Tooltip arrow title={url}>
       <Link

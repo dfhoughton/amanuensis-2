@@ -13,7 +13,7 @@ export type MessageFromBackgroundToPopup =
       selection: Citation
       source: { title?: string; url?: string }
     }
-  | { action: 'phraseSelected', phrase: [Phrase, Phrase[]] }
+  | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | { action: "locale"; locale: string }
   | Extract<
       MessageFromContentToBackground,
@@ -32,6 +32,7 @@ export type MessageFromContentToBackground =
   | { action: "noSelection" }
   | { action: "error"; message: string }
   | { action: "highlight"; highlights: Highlights }
+  | { action: "preparingToHighlight"; citation: Citation }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }

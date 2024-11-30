@@ -26,6 +26,7 @@ export type Action =
       message?: string // undefined message hides notification
       messageLevel?: MessageLevel
     }
+  | { action: "error", message: string }
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
@@ -108,6 +109,12 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         message: action.message,
         messageLevel: action.messageLevel,
+      }
+    case "error":
+      return {
+        ...state,
+        message: action.message,
+        messageLevel: 'error' as any,
       }
     case "tab":
       return { ...state, tab: action.tab }

@@ -1,3 +1,4 @@
+import { Citation } from "./types/common"
 import { citationToPhrase } from "./util/database"
 import {
   MessageFromBackgroundToContent,
@@ -9,6 +10,7 @@ import {
 const state: {
   contentPort?: chrome.runtime.Port
   popupPort?: chrome.runtime.Port
+  pendingCitation?: Citation
 } = {}
 
 function sendToContent(msg: MessageFromBackgroundToContent) {
@@ -70,9 +72,17 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
         const tab = tabs[0]
         if (tab) {
           const { url } = tab
-          sendToPopup({ action: "reloaded", url })
+          if (url === state.pendingCitation?.url) {
+            sendToContent({action: 'goto', citation: state.pendingCitation!})
+            state.pendingCitation = undefined
+          } else {
+            sendToPopup({ action: "reloaded", url })
+          }
         }
       })
+      break
+    case "preparingToHighlight":
+      state.pendingCitation = msg.citation
       break
     case "noSelection":
     case "error":

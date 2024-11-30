@@ -21,7 +21,6 @@ export interface Citation {
   before: string
   after: string
   when: Date
-  where?: string // the URL of the tab
   note?: string
   tags?: number[] // foreign keys into the tags table
   title?: string

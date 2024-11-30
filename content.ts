@@ -106,12 +106,14 @@ function highlight(citation: Citation): Highlights {
     // maybe there has been some fiddling with case on the page?
     rv.preservedCase = false
     normalizingCase = true
-    rx = new RegExp(wsrx(phrase)!, 'i')
+    rx = new RegExp(wsrx(phrase)!, "i")
     candidates = gatherHighlights(phrase, body, rx)
   }
   if (candidates.length === 0) return rv
   // we need to match before and the phrase so we can calculate the context
-  let fullContext = `(${wsrx(citation.before)})(${wsrx(phrase)})${wsrx(citation.after)}`
+  let fullContext = `(${wsrx(citation.before)})(${wsrx(phrase)})${wsrx(
+    citation.after
+  )}`
   let fcrx = normalizingCase
     ? new RegExp(fullContext, "i")
     : new RegExp(fullContext)
@@ -180,16 +182,16 @@ function highlight(citation: Citation): Highlights {
 
 // an alternative to textContent that handles whitespace better
 function nodeToText(e: Node): string {
-  if (e.nodeType === 3) return e.textContent ?? '';
-  const pieces: string[] = [];
+  if (e.nodeType === 3) return e.textContent ?? ""
+  const pieces: string[] = []
   for (const n of e.childNodes) {
     if (n.nodeType === 1) {
       pieces.push(nodeToText(n as HTMLElement))
     } else {
-      pieces.push(n.textContent ?? '')
+      pieces.push(n.textContent ?? "")
     }
   }
-  return pieces.join('')
+  return pieces.join("")
 }
 
 // given a node, return the child node at a particular text offset and the offset within
@@ -200,7 +202,7 @@ function elementAndOffset(
 ): [ChildNode, number] | undefined {
   let n = 0
   for (const c of e.childNodes) {
-    const t = nodeToText(c);
+    const t = nodeToText(c)
     const l = t.length
     if (n + l < offset) {
       n += l
@@ -258,8 +260,8 @@ port.onMessage.addListener(function (msg: MessageFromBackgroundToContent) {
       break
     case "goto":
       const { citation } = msg
-      if (citation?.where) {
-        if (window.location.href === citation.where) {
+      if (citation?.url) {
+        if (window.location.href === citation.url) {
           const highlights = highlight(citation)
           if (highlights.matches === 0) {
             port.postMessage({
@@ -273,7 +275,9 @@ port.onMessage.addListener(function (msg: MessageFromBackgroundToContent) {
             })
           }
         } else {
-          window.location.assign(citation.where)
+          // background will resend the goto once the content script is reloaded on the new page
+          port.postMessage({ action: "preparingToHighlight", citation })
+          window.location.assign(citation.url)
         }
       } else {
         port.postMessage({ action: "error", message: "received no URL" })
