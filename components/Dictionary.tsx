@@ -235,7 +235,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             dispatch={dispatch}
             addTag={(t) => {
               const tags = [...(search.tags ?? []), t.id!]
-              const s = { ...search, tags }
+              const s = { ...search, tags, page: 1 }
               phraseSearch(s)
                 .then((searchResults) =>
                   dispatch({
@@ -248,7 +248,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             }}
             removeTag={(t) => {
               const tags = search.tags!.filter((tag) => tag !== t.id)
-              const s = { ...search, tags }
+              const s = { ...search, tags, page: 1 }
               phraseSearch(s)
                 .then((searchResults) =>
                   dispatch({
@@ -274,7 +274,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                 let languages = (search.languages ?? []).filter(
                   (la) => la !== lang.id
                 )
-                const s = { ...search, languages }
+                const s = { ...search, languages, page: 1 }
                 phraseSearch(s)
                   .then((searchResults) =>
                     dispatch({
@@ -414,7 +414,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                 .then((searchResults) =>
                   dispatch({
                     action: "similaritySearch",
-                    search,
+                    search: { ...search, page: 1 },
                     searchResults,
                   })
                 )
@@ -429,7 +429,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           languages={languages ?? []}
           onDelete={(l) => () => {
             const languageIds = langs!.filter((lId) => lId !== l.id)
-            const s = { ...search, languages: languageIds }
+            const s = { ...search, languages: languageIds, page: 1 }
             similaritySearch(s)
               .then((searchResults) =>
                 dispatch({
@@ -442,7 +442,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           }}
           onAdd={(l) => () => {
             const languageIds = [...(langs ?? []), l.id]
-            const s = { ...search, languages: languageIds }
+            const s = { ...search, languages: languageIds, page: 1 }
             similaritySearch(s)
               .then((searchResults) =>
                 dispatch({
@@ -505,7 +505,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
               debounce((e: React.ChangeEvent<HTMLInputElement>) => {
                 setTextEl(e.target)
                 ts.text = e.target.value
-                search = { ...search, [field]: ts }
+                search = { ...search, [field]: ts, page: 1 }
                 phraseSearch(search)
                   .then((searchResults) =>
                     dispatch({
@@ -567,7 +567,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
                 onClick={() => {
                   ts.text = ""
                   if (textEl) textEl.value = ""
-                  search = { ...search, [field]: ts }
+                  search = { ...search, [field]: ts, page: 1 }
                   phraseSearch(search)
                     .then((searchResults) =>
                       dispatch({ action: "search", search, searchResults })
@@ -643,7 +643,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
         sx={sx}
         onClick={() => {
           ts[subField] = !on
-          search = { ...search, [field]: ts }
+          search = { ...search, [field]: ts, page: 1 }
           if (/\S/.test(ts.text)) {
             phraseSearch(search)
               .then((searchResults) =>
