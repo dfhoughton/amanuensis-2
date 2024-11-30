@@ -358,6 +358,7 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
         </IconButton>
       </Tooltip>
       <Menu
+        MenuListProps={{ dense: true }}
         anchorEl={languageMenuAnchorEl}
         open={languageMenuOpen}
         onClose={() => setLanguageMenuAnchorEl(null)}

@@ -215,6 +215,7 @@ export const Languages: React.FC<LanguagesProps> = ({
           <AddIcon fontSize="small" />
         </IconButton>
         <Menu
+          MenuListProps={{ dense: true }}
           anchorEl={languageMenuAnchorEl}
           open={languageMenuOpen}
           onClose={() => setLanguageMenuAnchorEl(null)}

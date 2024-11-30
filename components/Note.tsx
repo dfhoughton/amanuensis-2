@@ -52,19 +52,20 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     if (phrase?.languageId !== language.id)
       dispatch({ action: "changeLanguage", language })
   }
-  const save = () => savePhrase(phrase!).then((p) =>
-    dispatch({ action: "phraseSaved" })
-  )
+  const save = () =>
+    savePhrase(phrase!).then((p) => dispatch({ action: "phraseSaved" }))
   return (
     <>
-      <Box onKeyDown={(e) => {
-        console.log('down', e.code, e.ctrlKey, e.metaKey)
-        if (e.code === 'KeyS' && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault()
-          e.stopPropagation()
-          if (!clean) save()
-        }
-      }}>
+      <Box
+        onKeyDown={(e) => {
+          console.log("down", e.code, e.ctrlKey, e.metaKey)
+          if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault()
+            e.stopPropagation()
+            if (!clean) save()
+          }
+        }}
+      >
         {!citation && <i>no word yet</i>}
         {!!citation && (
           <>
@@ -80,7 +81,9 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     color="primary"
                     size="small"
                     disabled={clean}
-                    onClick={() => {save}}
+                    onClick={() => {
+                      save
+                    }}
                   >
                     <Save fontSize="inherit" />
                   </IconButton>
@@ -98,6 +101,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     </IconButton>
                   </Tooltip>
                   <Menu
+                    MenuListProps={{ dense: true }}
                     anchorEl={languageMenuAnchorEl}
                     open={languageMenuOpen}
                     onClose={() => setLanguageMenuAnchorEl(null)}

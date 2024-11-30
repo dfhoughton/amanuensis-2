@@ -1,4 +1,4 @@
-import { Chip, Tooltip } from "@mui/material"
+import { alpha, Chip, Tooltip } from "@mui/material"
 import React from "react"
 import { Tag } from "../types/common"
 
@@ -25,6 +25,9 @@ export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
       sx={{
         color,
         backgroundColor: bgcolor,
+        '& .MuiChip-deleteIcon': {
+          color: alpha(color, 0.6)
+        }
       }}
       clickable={!!onClick}
       onClick={onClick}
