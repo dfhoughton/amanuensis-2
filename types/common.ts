@@ -29,12 +29,21 @@ export interface Citation {
   canonical?: boolean
 }
 
+// a link between two phrases
+export type Relation = {
+  id?: number,
+  p1: number, // a phrase id
+  p2: number, // another phrase id
+}
+
 export interface Phrase {
   id?: number
   lemma: string
   note?: string
   tags?: number[] // foreign keys into the tags table
+  relations?: number[] // a collection of relation ids
   languageId?: number
+  relatedPhrases?: Map<number, [number, Phrase]> // a cache of phrases pulled down from relations
   citations: Citation[]
   updatedAt: Date
 }

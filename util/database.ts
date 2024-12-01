@@ -5,6 +5,7 @@ import {
   FreeFormSearch,
   Language,
   Phrase,
+  Relation,
   SearchResults,
   SimilaritySearch,
   Tag,
@@ -31,6 +32,12 @@ type TagTable = {
 const tagsSchema = {
   tags: "++id, &name",
 }
+type RelationTable = {
+  relations: Table<Relation>
+}
+const relationsSchema = {
+  relations: "++id, p1, p2",
+}
 // just putting this here so the extension only manages stored data in the one way
 type ConfigurationTable = {
   configuration: Table<Configuration>
@@ -38,7 +45,11 @@ type ConfigurationTable = {
 const configurationSchema = {
   configuration: "id",
 }
-type DexieTable = PhraseTable & LanguageTable & ConfigurationTable & TagTable
+type DexieTable = PhraseTable &
+  LanguageTable &
+  ConfigurationTable &
+  TagTable &
+  RelationTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T
 const db = new BaseDexie("amanuensis") as Dexie
 const schema = Object.assign(
@@ -46,6 +57,7 @@ const schema = Object.assign(
   phrasesSchema,
   languagesSchema,
   tagsSchema,
+  relationsSchema,
   configurationSchema
 )
 db.version(1).stores(schema)
@@ -76,8 +88,12 @@ export function resetDatabase() {
     db.phrases,
     db.languages,
     db.configuration,
+    db.tags,
     () => {
-      Promise.all(db.tables.map((table) => table.clear())).then(init)
+      Promise.all(db.tables.map((table) => table.clear())).then(() => {
+        db.relations.clear() // transaction couldn't take all the tables
+        init()
+      })
     }
   )
 }
@@ -90,6 +106,67 @@ export function setConfiguration(
   configuration: Configuration
 ): Promise<Configuration> {
   return db.configuration.put(configuration, 0)
+}
+
+// creates a relation between the two phrases (if one does not exist), returning the relation id
+export function createRelation(p1: Phrase, p2: Phrase): Promise<number> {
+  const [i1, i2] = [p1.id!, p2.id!].sort()
+  return db.transaction("rw", db.phrases, db.relations, async () => {
+    let id = (
+      await db.relations
+        .where("p1")
+        .equals(i1)
+        .and((r) => r.p2 === i2)
+        .first()
+    )?.id
+    if (id === undefined)
+      id = (await db.relations.put({ p1: i1, p2: i2 })) as number
+    // save *just this relation* into the record of both phrases
+    const phrases = await db.phrases.where("id").anyOf([i1, i2]).toArray()
+    phrases.forEach((p) => {
+      p.relations = [...(p.relations ?? []), id]
+    })
+    await db.phrases.bulkPut(phrases)
+    return id!
+  })
+}
+
+// this basically does a join and fetches down the related phrases
+export function phrasesForRelations(
+  ids: number[]
+): Promise<Map<number, [number, Phrase]>> {
+  return db.transaction("r", db.phrases, db.relations, async () => {
+    const relations = await db.relations.where("id").anyOf(ids).toArray()
+    const phraseIds: number[] = []
+    for (const r of relations) {
+      phraseIds.push(r.p1)
+      phraseIds.push(r.p2)
+    }
+    const phrases = await db.phrases.where("id").anyOf(phraseIds).toArray()
+    const map = new Map<number, [number, Phrase]>()
+    for (const p of phrases) {
+      const r = relations.find((r) => r.p1 === p.id || r.p2 === p.id)!
+      map.set(p.id!, [r.id!, p])
+    }
+    return map
+  })
+}
+
+export function deleteRelation(id: number): Promise<void> {
+  return db.transaction("rw", db.relations, db.phrases, async () => {
+    const relation = await db.relations.get(id)
+    if (relation) {
+      const phrases = await db.phrases
+        .where("id")
+        .anyOf([relation.p1, relation.p2])
+        .toArray()
+      for (const p of phrases) {
+        p.relations = (p.relations ?? []).filter((r) => r !== id)
+      }
+      await db.phrases.bulkPut(phrases)
+    }
+    return await db.relations.delete(id)
+  })
 }
 
 export function knownTags(): Promise<Tag[]> {
@@ -145,17 +222,71 @@ export function deleteTag(tag: Tag): Promise<number> {
 }
 
 export function mergePhrases(to: Phrase, from: Phrase): Promise<void> {
-  return db.transaction('rw', db.phrases, async () => {
+  return db.transaction("rw", db.phrases, db.relations, async () => {
     to.citations = [...to.citations, ...from.citations] // merge citations
+    // fix relations
+    const allRelations = [...(to.relations ?? []), ...(from.relations ?? [])]
+    if (allRelations.length) {
+      // we just delete these all and create replacements
+      const relations = await db.relations
+        .where("id")
+        .anyOf(allRelations)
+        .toArray()
+      const allPhraseIds = new Set<number>()
+      for (const r of relations) {
+        for (const i of [r.p1, r.p2])
+          if (!(i === from.id || i === to.id)) allPhraseIds.add(i)
+      }
+      // phrases other than from or to for which we need to recreate relations
+      const phrases = await db.phrases
+        .where("id")
+        .anyOf(Array.from(allPhraseIds))
+        .toArray()
+      const delenda = new Set(relations.map((r) => r.id))
+      const newRelations: number[] = []
+      for (const p of phrases) {
+        const [i1, i2] = [to.id!, p.id!].sort()
+        const r: number = await db.relations.put({ p1: i1, p2: i2 })
+        newRelations.push(r)
+        const rs = p.relations!.filter((i) => !delenda.has(i))
+        const modifiedPhrase = {
+          ...p,
+          relations: [...rs, r],
+        }
+        await db.phrases.put(modifiedPhrase)
+      }
+      await db.relations.bulkDelete(Array.from(delenda))
+      to.relations = newRelations
+    }
     if (from.updatedAt > to.updatedAt) to.updatedAt = from.updatedAt // the most recentl updatedAt wins
     if (from.id) await db.phrases.delete(from.id)
     await db.phrases.put(to, to.id!)
-    knownLanguages()
+    knownLanguages() // recalculate cached information
   })
 }
 
 export function deletePhrase(phrase: Phrase): Promise<void> {
-  return db.phrases.delete(phrase.id)
+  return db.transaction("rw", db.phrases, db.relations, async () => {
+    if (phrase.relations?.length) {
+      // safely delete all relations
+      const relations = await db.relations
+        .where("id")
+        .anyOf(phrase.relations)
+        .toArray()
+      const phraseIds: number[] = []
+      for (const r of relations)
+        for (const i of [r.p1, r.p2]) if (i !== phrase.id) phraseIds.push(i)
+      const phrases = await db.phrases.where("id").anyOf(phraseIds).toArray()
+      for (const p of phrases) {
+        p.relations = p.relations!.filter(
+          (i) => !relations.some((r) => r.id === i)
+        )
+      }
+      await db.phrases.bulkPut(phrases)
+      await db.relations.bulkDelete(relations.map((r) => r.id))
+    }
+    await db.phrases.delete(phrase.id)
+  })
 }
 
 // returns languages and frequencies for display in configuration
@@ -245,7 +376,9 @@ export function citationToPhrase(
   locale: string
 ): Promise<[Phrase, Phrase[]]> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
-    const languages = (await db.languages.toArray()).filter((l) => l.locale === locale || l.locales[locale])
+    const languages = (await db.languages.toArray()).filter(
+      (l) => l.locale === locale || l.locales[locale]
+    )
     let languageId = 0
     if (languages.length > 1) {
       languageId = languages.sort((a, b) => {
@@ -254,9 +387,13 @@ export function citationToPhrase(
         return (a.locales[locale] ?? 0) - (b.locales[locale] ?? 0)
       })[0].id!
     } else if (languages.length === 1) languageId = languages[0].id!
-    const languageIds = languages.length ? languages.map(l => l.id!) : [0]
+    const languageIds = languages.length ? languages.map((l) => l.id!) : [0]
     const key = c.phrase.toLowerCase()
-    const others = await db.phrases.where('languageId').anyOf(languageIds).filter(p => p.citations.some(o => o.phrase.toLowerCase() === key)).toArray()
+    const others = await db.phrases
+      .where("languageId")
+      .anyOf(languageIds)
+      .filter((p) => p.citations.some((o) => o.phrase.toLowerCase() === key))
+      .toArray()
     c.locale = locale
     const phrase: Phrase = {
       lemma: c.phrase,
@@ -270,19 +407,24 @@ export function citationToPhrase(
 
 // basically an upsert; returns the phrase with its database id
 export async function savePhrase(phrase: Phrase): Promise<Phrase> {
-  const id = await db.phrases.put(phrase, phrase.id)
+  const p = { ...phrase, relatedPhrases: undefined } // we don't cache these in the database
+  const id = await db.phrases.put(p, phrase.id)
   if (id) phrase.id = id
   return phrase
 }
 
 /** search for phrases that might be merged with a phrase/citation */
-export async function similaritySearch(search: SimilaritySearch): Promise<SearchResults> {
+export async function similaritySearch(
+  search: SimilaritySearch
+): Promise<SearchResults> {
   const { phrase, limit, languages = [], page = 1, pageSize = 10 } = search
-  const phrases = await db.transaction('r', db.phrases, async () => {
+  const phrases = await db.transaction("r", db.phrases, async () => {
     if (!search.phrase) return []
-    const scope = languages.length ? db.phrases.where('languageId').anyOf(languages) : db.phrases.toCollection()
+    const scope = languages.length
+      ? db.phrases.where("languageId").anyOf(languages)
+      : db.phrases.toCollection()
     const sims = new SimilaritySorter(phrase, limit)
-    void await scope.each((p) => sims.add(p))
+    void (await scope.each((p) => sims.add(p)))
     return sims.toArray()
   })
   const total = phrases.length
@@ -291,7 +433,9 @@ export async function similaritySearch(search: SimilaritySearch): Promise<Search
 }
 
 /** general search */
-export async function phraseSearch(search: FreeFormSearch): Promise<SearchResults> {
+export async function phraseSearch(
+  search: FreeFormSearch
+): Promise<SearchResults> {
   const {
     lemma,
     text,

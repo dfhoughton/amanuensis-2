@@ -26,7 +26,7 @@ export type Action =
       message?: string // undefined message hides notification
       messageLevel?: MessageLevel
     }
-  | { action: "error", message: string }
+  | { action: "error"; message: string }
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase }
   | { action: "phraseSaved" }
@@ -52,6 +52,9 @@ export type Action =
   | { action: "phrasesDeleted" } // *all* phrases deleted from database
   | { action: "phraseDeleted"; phrase: Phrase }
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
+  | { action: "relationsChanged"; relations: number[]; message?: string }
+  | { action: "relatedPhrasesChanged"; relatedPhrases: Map<number, [number, Phrase]> }
+  | { action: "relationClicked"; phrase: Phrase }
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.action) {
@@ -114,7 +117,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         message: action.message,
-        messageLevel: 'error' as any,
+        messageLevel: "error" as any,
       }
     case "tab":
       return { ...state, tab: action.tab }
@@ -231,6 +234,26 @@ export function reducer(state: AppState, action: Action): AppState {
         // we must redo searches to purge the deleted phrase merged in
         freeSearchResults: undefined,
         similaritySearchResults: undefined,
+      }
+    case "relationsChanged": // we save relation ids in the database
+      return {
+        ...state,
+        phrase: { ...state.phrase!, relations: action.relations, relatedPhrases: undefined },
+        message: action.message,
+        searchResults: undefined
+      }
+    case "relatedPhrasesChanged": // we join in the related phrases for rendering
+      return {
+        ...state,
+        phrase: { ...state.phrase!, relatedPhrases: action.relatedPhrases },
+      }
+    case "relationClicked": // display the entity clicked, erasing any unsaved state
+      const ap = {...action.phrase}
+      return {
+        ...state,
+        phrase: ap,
+        citationIndex: selectCitation(ap.citations),
+        priorPhrase: ap,
       }
     default:
       console.error({ wut: action })

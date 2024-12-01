@@ -34,14 +34,17 @@ import {
 import { Language as LanguageIcon } from "@mui/icons-material"
 import MergeIcon from "@mui/icons-material/Merge"
 import DeleteIcon from "@mui/icons-material/Delete"
+import LinkIcon from "@mui/icons-material/Link"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
+  createRelation,
   deletePhrase,
   knownTags,
   mergePhrases,
   perhapsStaleLanguages,
   phraseSearch,
+  phrasesForRelations,
   similaritySearch,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
@@ -71,6 +74,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     searchTab = SearchTabs.Free,
     freeSearchResults,
     similaritySearchResults,
+    phrase,
   } = state
   const [fs, setFs] = useState<FreeFormSearch>(freeSearch)
   const [ss, setSs] = useState<SimilaritySearch>(sSearch)
@@ -125,6 +129,20 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
       .then((languages) => setLanguages(languages))
       .catch(errorHandler(dispatch))
   }, [])
+  // we need related phrases for the link widgets
+  useEffect(() => {
+    if (!phrase) return
+    if (phrase.relations) {
+      phrasesForRelations(phrase.relations)
+        .then((relatedPhrases) => {
+          relatedPhrases.delete(phrase.id!)
+          dispatch({ action: "relatedPhrasesChanged", relatedPhrases })
+        })
+        .catch(errorHandler(dispatch))
+    } else {
+      dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
+    }
+  }, [phrase?.relations])
   return (
     <>
       <TabContext value={searchTab}>
@@ -336,18 +354,19 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
         }
       >
         {!languageIds.length && <FauxPlaceholder>Languages</FauxPlaceholder>}
-        {languageIds.map((l) => {
-          const lang = languages?.find((lang) => lang.id === l)
-          if (!lang) return <></>
-          return (
-            <Chip
-              label={lang.locale}
-              key={lang.id}
-              size="small"
-              onDelete={onDelete(lang)}
-            />
-          )
-        })}
+        {!!languages &&
+          languageIds
+            .map((l) => languages.find((lang) => lang.id === l)!)
+            .sort((a, b) => (a.name < b.name ? -1 : 1))
+            .filter((l) => l)
+            .map((lang) => (
+              <Chip
+                label={lang.locale}
+                key={lang.id}
+                size="small"
+                onDelete={onDelete(lang)}
+              />
+            ))}
       </Box>
       <Tooltip arrow title="Filter by language">
         <IconButton
@@ -364,15 +383,18 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
         open={languageMenuOpen}
         onClose={() => setLanguageMenuAnchorEl(null)}
       >
-        {languages?.map((l) => (
-          <MenuItem
-            key={l.id!}
-            selected={languageIds.some((lId) => lId === l.id)}
-            onClick={onAdd(l)}
-          >
-            {l.name}
-          </MenuItem>
-        ))}
+        {!!languages &&
+          languages
+            .sort((a, b) => (a.name < b.name ? -1 : 1))
+            .map((l) => (
+              <MenuItem
+                key={l.id!}
+                selected={languageIds.some((lId) => lId === l.id)}
+                onClick={onAdd(l)}
+              >
+                {l.name}
+              </MenuItem>
+            ))}
       </Menu>
     </Stack>
   )
@@ -669,6 +691,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
 }) => {
   const [mergePhrase, setMergePhrase] = useState<Phrase>()
   const [deletedPhrase, setDeletedPhrase] = useState<Phrase>()
+  const { phrase } = state
   const { phrases, page, pages, total, pageSize } = searchResults
   const firstResult = pageSize * (page - 1) + 1
   const lastResult = firstResult + phrases.length - 1
@@ -721,8 +744,10 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
           </Box>
         </Stack>
         {phrases.map((p, i) => {
-          const selected = p.id === state.phrase?.id
-          const unmergeable = selected || !state.phrase
+          const selected = p.id === phrase?.id
+          const unmergeable = selected || !phrase
+          const linked = !!phrase?.relatedPhrases?.has(p.id!)
+          const unlinkable = unmergeable || linked
           const lang = languages?.find((l) => l.id === p.languageId)
           return (
             <Box
@@ -750,7 +775,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                   >
                     {p.note}
                   </Box>
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={0.5}>
                     {!!lang && (
                       <Chip label={lang.locale} key={lang.id} size="small" />
                     )}
@@ -777,6 +802,57 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                             : (e) => {
                                 e.stopPropagation()
                                 setMergePhrase(p)
+                              }
+                        }
+                      />
+                    </Tooltip>
+                    <Tooltip
+                      arrow
+                      enterDelay={500}
+                      title={
+                        linked ? (
+                          <>
+                            related to <i>{phrase!.lemma}</i>
+                          </>
+                        ) : unlinkable ? (
+                          ""
+                        ) : (
+                          <>
+                            mark as related to <i>{phrase!.lemma}</i>
+                          </>
+                        )
+                      }
+                    >
+                      <LinkIcon
+                        color={
+                          linked
+                            ? "success"
+                            : unmergeable
+                            ? "disabled"
+                            : "primary"
+                        }
+                        fontSize="inherit"
+                        sx={iconStyle}
+                        onClick={
+                          selected || !phrase
+                            ? undefined
+                            : (e) => {
+                                e.stopPropagation()
+                                createRelation(p, phrase!)
+                                  .then((id) => {
+                                    const relations = [
+                                      ...(phrase!.relations ?? []),
+                                      id,
+                                    ]
+                                    dispatch({
+                                      action: "relationsChanged",
+                                      relations,
+                                      message: `${
+                                        phrase!.lemma
+                                      } is now linked to ${p.lemma}`,
+                                    })
+                                  })
+                                  .catch(errorHandler(dispatch))
                               }
                         }
                       />

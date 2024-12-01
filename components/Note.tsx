@@ -1,5 +1,6 @@
 import {
   Box,
+  Chip,
   Divider,
   IconButton,
   Link,
@@ -11,17 +12,24 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { AppState, Citation, Language, Phrase, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
-import { knownTags, perhapsStaleLanguages, savePhrase } from "../util/database"
+import {
+  deleteRelation,
+  knownTags,
+  perhapsStaleLanguages,
+  phrasesForRelations,
+  savePhrase,
+} from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { bigRed } from "../util/theme"
 import { tagSearch } from "./Tags"
+import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type NoteProps = {
   state: AppState
@@ -29,6 +37,7 @@ type NoteProps = {
 }
 
 export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
+  const { phrase, priorPhrase, citationIndex = 0 } = state
   const [languages, setLanguages] = useState<Language[]>([])
   useEffect(() => {
     perhapsStaleLanguages()
@@ -41,10 +50,24 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       .then((tags) => setTags(tags))
       .catch(errorHandler(dispatch))
   }, [])
+  useEffect(() => {
+    if (!phrase) return
+    if (phrase.relations) {
+      phrasesForRelations(phrase.relations)
+        .then((relatedPhrases) => {
+          relatedPhrases.delete(phrase.id!)
+          dispatch({ action: "relatedPhrasesChanged", relatedPhrases })
+        })
+        .catch(errorHandler(dispatch))
+    } else {
+      dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
+    }
+  }, [phrase?.relations])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
+  const lemmaRef = useRef<HTMLInputElement>()
+  const noteRef = useRef<HTMLInputElement>()
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
-  const { phrase, priorPhrase, citationIndex = 0 } = state
   const citation = phrase?.citations[citationIndex]
   const clean = isEqual(phrase, priorPhrase)
   const helpHidden = !state.config?.showHelp
@@ -59,7 +82,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     <>
       <Box
         onKeyDown={(e) => {
-          console.log("down", e.code, e.ctrlKey, e.metaKey)
           if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
             e.preventDefault()
             e.stopPropagation()
@@ -105,15 +127,17 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     open={languageMenuOpen}
                     onClose={() => setLanguageMenuAnchorEl(null)}
                   >
-                    {languages.map((l) => (
-                      <MenuItem
-                        key={l.id!}
-                        selected={l.id === phrase.languageId}
-                        onClick={changeLanguage(l)}
-                      >
-                        {l.name}
-                      </MenuItem>
-                    ))}
+                    {languages
+                      .sort((a, b) => (a.name < b.name ? -1 : 1))
+                      .map((l) => (
+                        <MenuItem
+                          key={l.id!}
+                          selected={l.id === phrase.languageId}
+                          onClick={changeLanguage(l)}
+                        >
+                          {l.name}
+                        </MenuItem>
+                      ))}
                   </Menu>
                 </>
               )}
@@ -142,6 +166,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 placeholder="Lemma"
                 defaultValue={phrase?.lemma}
                 sx={{ width: "85%" }}
+                inputRef={lemmaRef}
               />
             </LabelWithHelp>
             <LabelWithHelp
@@ -168,6 +193,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 placeholder="Lemma Note"
                 defaultValue={phrase?.note}
                 sx={{ width: "85%" }}
+                inputRef={noteRef}
               />
             </LabelWithHelp>
             <TagWidget
@@ -185,6 +211,56 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               }}
               onClick={(tag: Tag) => tagSearch(tag, dispatch)}
             />
+            <Divider sx={{ my: 0.5 }} />
+            <LabelWithHelp
+              hidden={helpHidden}
+              label="Related Phrases"
+              explanation={
+                <>
+                  Phrases that have some notable relation to{" "}
+                  <i>{phrase.lemma}</i>.
+                </>
+              }
+              sx={{ pb: 1 }}
+            >
+              <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+                {!phrase.relatedPhrases?.size && (
+                  <FauxPlaceholder>Relations</FauxPlaceholder>
+                )}
+                {!!phrase.relatedPhrases?.size &&
+                  Array.from(phrase.relatedPhrases!.entries())
+                    .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
+                    .map(([pid, [rid, p]]) => {
+                      return (
+                        <Chip
+                          key={pid}
+                          label={p.lemma}
+                          size="small"
+                          variant="outlined"
+                          onClick={() => {
+                            // todo: add confirmation modal to protect unsaved state
+                            dispatch({ action: "relationClicked", phrase: p })
+                            lemmaRef.current!.value = p.lemma
+                            noteRef.current!.value = p.note ?? ""
+                          }}
+                          onDelete={() => {
+                            deleteRelation(rid)
+                              .then(() => {
+                                const relations = phrase.relations!.filter(
+                                  (n) => n !== rid
+                                )
+                                dispatch({
+                                  action: "relationsChanged",
+                                  relations,
+                                })
+                              })
+                              .catch(errorHandler(dispatch))
+                          }}
+                        />
+                      )
+                    })}
+              </Stack>
+            </LabelWithHelp>
             {phrase?.citations.map((c, i) => (
               <CitationInBrief
                 phrase={phrase}
