@@ -13,7 +13,7 @@ export const useConnectionToBackground = (dispatch: Dispatch<Action>) => {
       }
       dispatch(message)
     })
-    // we open the port by using to to send a message
+    // we open the port by using it to send a message
     closedPort.postMessage({ action: "open" })
     return () => {
       dispatch({action: 'closePort'})

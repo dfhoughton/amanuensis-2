@@ -1,6 +1,5 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
 import { OverridableStringUnion } from "@material-ui/types"
-import { Action } from "../util/reducer"
 
 // a representation of a selection
 export type Selection = {
@@ -127,13 +126,6 @@ export type AppState = {
 export type Configuration = {
   id?: number // here to make configuration compatible with indexeddb
   showHelp?: boolean
-}
-
-// describes success of highlighting a citation on a page
-export type Highlights = {
-  matches: number
-  preservedContext: boolean
-  preservedCase: boolean
 }
 
 export type Language = {

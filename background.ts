@@ -1,4 +1,3 @@
-import { Citation } from "./types/common"
 import { citationToPhrase } from "./util/database"
 import {
   MessageFromBackgroundToContent,
@@ -10,7 +9,6 @@ import {
 const state: {
   contentPort?: chrome.runtime.Port
   popupPort?: chrome.runtime.Port
-  pendingCitation?: Citation
 } = {}
 
 function sendToContent(msg: MessageFromBackgroundToContent) {
@@ -30,13 +28,11 @@ function handlePopupMessage(msg: MessageFromPopupToBackground) {
         }
       })
       break
-    case "load":
     case "goto":
-    case "select":
       sendToContent(msg)
       break
     default:
-      console.warn('could not handle action', msg)
+      console.warn("could not handle action", msg)
   }
 }
 
@@ -47,22 +43,29 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
         const tab = tabs[0]
         if (tab) {
           const { title, url } = tab
-          const { selection } = msg;
+          const { selection } = msg
           selection.title = title
           selection.url = url
           const text = `${selection.before}${selection.phrase}${selection.after}`
-          chrome.i18n.detectLanguage(text).then((rv) => {
-            const locale = rv.languages.sort((a, b) =>  b.percentage - a.percentage)[0].language
-            citationToPhrase(selection, locale).then((phrase) => {
-              sendToPopup({action: 'phraseSelected', phrase})
-            }).catch((e) => {
-              console.error('trouble getting citations for phrase', e);
-              sendToPopup({action: 'error', message: e.message})
+          chrome.i18n
+            .detectLanguage(text)
+            .then((rv) => {
+              const locale = rv.languages.sort(
+                (a, b) => b.percentage - a.percentage
+              )[0].language
+              citationToPhrase(selection, locale)
+                .then((phrase) => {
+                  sendToPopup({ action: "phraseSelected", phrase })
+                })
+                .catch((e) => {
+                  console.error("trouble getting citations for phrase", e)
+                  sendToPopup({ action: "error", message: e.message })
+                })
             })
-          }).catch((e) => {
-            console.error(e);
-            sendToPopup({action: 'error', message: e.message})
-          })
+            .catch((e) => {
+              console.error(e)
+              sendToPopup({ action: "error", message: e.message })
+            })
         }
       })
       break
@@ -72,17 +75,9 @@ function handleContentMessage(msg: MessageFromContentToBackground) {
         const tab = tabs[0]
         if (tab) {
           const { url } = tab
-          if (url === state.pendingCitation?.url) {
-            sendToContent({action: 'goto', citation: state.pendingCitation!})
-            state.pendingCitation = undefined
-          } else {
-            sendToPopup({ action: "reloaded", url })
-          }
+          sendToPopup({ action: "reloaded", url })
         }
       })
-      break
-    case "preparingToHighlight":
-      state.pendingCitation = msg.citation
       break
     case "noSelection":
     case "error":

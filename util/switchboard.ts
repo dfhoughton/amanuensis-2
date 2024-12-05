@@ -3,7 +3,7 @@
  *
  */
 
-import { Citation, Highlights, Phrase } from "../types/common"
+import { Citation, Phrase } from "../types/common"
 
 export type MessageFromBackgroundToPopup =
   | { action: "url"; url?: string }
@@ -31,15 +31,10 @@ export type MessageFromContentToBackground =
   | { action: "selection"; selection: Citation }
   | { action: "noSelection" }
   | { action: "error"; message: string }
-  | { action: "highlight"; highlights: Highlights }
-  | { action: "preparingToHighlight"; citation: Citation }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }
-  | Extract<
-      MessageFromBackgroundToContent,
-      { action: "goto" } | { action: "load" } | { action: "select" }
-    >
+  | Extract<MessageFromBackgroundToContent, { action: "goto" }>
 
 export const handleMessageFromBackgroundToPopup = (
   msg: MessageFromBackgroundToPopup
