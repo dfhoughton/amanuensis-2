@@ -45,6 +45,7 @@ export interface Phrase {
   relatedPhrases?: Map<number, [number, Phrase]> // a cache of phrases pulled down from relations
   citations: Citation[]
   updatedAt: Date
+  createdAt: Date
 }
 
 export interface dictionary {

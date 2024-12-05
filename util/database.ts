@@ -18,7 +18,7 @@ type PhraseTable = {
   phrases: Table<Phrase>
 }
 const phrasesSchema = {
-  phrases: "++id, lemma, languageId",
+  phrases: "++id, lemma, languageId, updatedAt, createdAt",
 }
 type LanguageTable = {
   languages: Table<Language>
@@ -400,6 +400,7 @@ export function citationToPhrase(
       languageId,
       citations: [c],
       updatedAt: new Date(),
+      createdAt: new Date(),
     }
     return [phrase, others]
   })
@@ -408,6 +409,7 @@ export function citationToPhrase(
 // basically an upsert; returns the phrase with its database id
 export async function savePhrase(phrase: Phrase): Promise<Phrase> {
   const p = { ...phrase, relatedPhrases: undefined } // we don't cache these in the database
+  p.createdAt ??= new Date()
   const id = await db.phrases.put(p, phrase.id)
   if (id) phrase.id = id
   return phrase
