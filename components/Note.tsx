@@ -27,7 +27,6 @@ import {
   savePhrase,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
-import { bigRed } from "../util/theme"
 import { tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 
@@ -389,7 +388,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         elevation={0}
         sx={{
           cursor: "pointer",
-          bgcolor: bigRed,
+          bgcolor: 'primary.light',
         }}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })

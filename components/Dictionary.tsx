@@ -54,7 +54,6 @@ import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { ConfirmationModal } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
-import { bigRed } from "../util/theme"
 
 const searchDefaults = {
   page: 1,
@@ -758,7 +757,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
               <Divider sx={{ mb: 1 }} />
               <Paper
                 elevation={0}
-                sx={selected ? { bgcolor: bigRed } : undefined}
+                sx={selected ? { bgcolor: 'primary.light' } : undefined}
               >
                 <Stack
                   direction="row"
@@ -921,6 +920,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
     tags: [],
     citations: [],
     updatedAt: new Date(),
+    createdAt: new Date(),
   }
   const [merged, setMerged] = useState<Phrase>({ ...(to ?? emptyPhrase) })
   const [from, setFrom] = useState<Phrase>({ ...(f ?? emptyPhrase) })
