@@ -17,7 +17,6 @@ import { deepClone } from "./general"
 export type Action =
   | { action: "selection"; selection: Citation }
   | { action: "select"; selection: Citation }
-  | { action: "openPort"; port: chrome.runtime.Port }
   | { action: "closePort" }
   | { action: "language"; language: Language }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
@@ -53,7 +52,10 @@ export type Action =
   | { action: "phraseDeleted"; phrase: Phrase }
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
   | { action: "relationsChanged"; relations: number[]; message?: string }
-  | { action: "relatedPhrasesChanged"; relatedPhrases: Map<number, [number, Phrase]> }
+  | {
+      action: "relatedPhrasesChanged"
+      relatedPhrases: Map<number, [number, Phrase]>
+    }
   | { action: "relationClicked"; phrase: Phrase }
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -100,12 +102,19 @@ export function reducer(state: AppState, action: Action): AppState {
         }, // TODO: make limit a configuration parameter
         searchTab,
       }
-    case "openPort":
-      return { ...state, port: action.port }
-    case "closePort":
-      return { ...state, port: undefined }
     case "select":
-      state.port?.postMessage(action)
+      ;(async () => {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
+        })
+        if (tab.id) {
+          const response = await chrome.tabs.sendMessage(tab.id, action)
+          console.log(response)
+        } else {
+          console.error("could not sind tab to handle action", action)
+        }
+      })()
       return state
     case "message":
       return {
@@ -238,9 +247,13 @@ export function reducer(state: AppState, action: Action): AppState {
     case "relationsChanged": // we save relation ids in the database
       return {
         ...state,
-        phrase: { ...state.phrase!, relations: action.relations, relatedPhrases: undefined },
+        phrase: {
+          ...state.phrase!,
+          relations: action.relations,
+          relatedPhrases: undefined,
+        },
         message: action.message,
-        searchResults: undefined
+        searchResults: undefined,
       }
     case "relatedPhrasesChanged": // we join in the related phrases for rendering
       return {
@@ -248,7 +261,7 @@ export function reducer(state: AppState, action: Action): AppState {
         phrase: { ...state.phrase!, relatedPhrases: action.relatedPhrases },
       }
     case "relationClicked": // display the entity clicked, erasing any unsaved state
-      const ap = {...action.phrase}
+      const ap = { ...action.phrase }
       return {
         ...state,
         phrase: ap,

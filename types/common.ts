@@ -30,9 +30,9 @@ export interface Citation {
 
 // a link between two phrases
 export type Relation = {
-  id?: number,
-  p1: number, // a phrase id
-  p2: number, // another phrase id
+  id?: number
+  p1: number // a phrase id
+  p2: number // another phrase id
 }
 
 export interface Phrase {
@@ -112,7 +112,6 @@ export type AppState = {
   citationIndex?: number // which citation is currently displayed
   priorPhrase?: Phrase // so we can see when phrase is dirty and should be saved
   languageId?: number // do we need this?
-  port?: chrome.runtime.Port // so the reducer can send stuff on to the background
   message?: string // triggers the display of a toast
   messageLevel?: MessageLevel // colors the toast
   config?: Configuration

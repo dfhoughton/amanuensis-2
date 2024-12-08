@@ -1,7 +1,11 @@
 import { Citation } from "./types/common"
+import { citationToPhrase } from "./util/database"
 import { magicUrl } from "./util/magic_url"
 import { squish } from "./util/string"
-import { MessageFromBackgroundToContent } from "./util/switchboard"
+import {
+  MessageFromBackgroundToContent,
+  MessageFromContentToBackground,
+} from "./util/switchboard"
 
 /*
 Send non-trivial selections to the background process to prepare for annotation.
@@ -85,28 +89,74 @@ function wrapSelection(): Citation | undefined {
   }
 }
 
-// our communication channel to the background and, via the background, to the popup
-const port = chrome.runtime.connect({ name: "content" })
-// knock on the port to open up the pipe
-port.postMessage({ action: "open" })
-port.onMessage.addListener(function (msg: MessageFromBackgroundToContent) {
-  switch (msg.action) {
-    case "getSelection":
-      const selection = wrapSelection()
-      if (selection) {
-        port.postMessage({ action: "selection", selection })
-      } else {
-        port.postMessage({ action: "noSelection" })
-      }
-      break
+function getTitle(): string {
+  const titleElement = document.head.getElementsByTagName("title")[0]
+  if (titleElement) return titleElement.innerText
+  const ogMetaTitle = Array.from(document.head.getElementsByTagName("meta"))
+    .find(
+      (e) =>
+        e.getAttribute("data-rh") === "true" &&
+        e.getAttribute("property") === "og:title"
+    )
+    ?.getAttribute("content")
+  if (ogMetaTitle) return ogMetaTitle
+  const twitterTitle = Array.from(document.head.getElementsByTagName("meta"))
+    .find(
+      (e) =>
+        e.getAttribute("data-rh") === "true" &&
+        e.getAttribute("name") === "twitter:title"
+    )
+    ?.getAttribute("content")
+  if (twitterTitle) return twitterTitle
+  return document.head.title
+}
+
+chrome.runtime.onMessage.addListener(function (
+  request: MessageFromBackgroundToContent,
+  _sender,
+  sendResponse: (response: MessageFromContentToBackground) => void
+) {
+  switch (request.action) {
     case "goto":
-      const { citation } = msg
+      const { citation } = request
       const magic = magicUrl(citation)
       if (magic) {
         window.location.assign(magic)
       } else {
-        port.postMessage({ action: "error", message: "received no URL" })
+        sendResponse({ action: "error", message: "received no URL" })
       }
       break
+    case "getSelection":
+      const selection = wrapSelection()
+      if (selection) {
+        selection.title = getTitle()
+        selection.url = document.URL
+        const text = `${selection.before}${selection.phrase}${selection.after}`
+        chrome.i18n
+          .detectLanguage(text)
+          .then((rv) => {
+            const locale = rv.languages.sort(
+              (a, b) => b.percentage - a.percentage
+            )[0].language
+            citationToPhrase(selection, locale)
+              .then((phrase) => {
+                sendResponse({ action: "phraseSelected", phrase })
+              })
+              .catch((e) => {
+                console.error("trouble getting citations for phrase", e)
+                sendResponse({ action: "error", message: e.message })
+              })
+          })
+          .catch((e) => {
+            console.error(e)
+            sendResponse({ action: "error", message: e.message })
+          })
+      } else {
+        sendResponse({ action: "noSelection" })
+      }
+      break
+    default:
+      throw { message: "unexpected request", request }
   }
+  return true
 })

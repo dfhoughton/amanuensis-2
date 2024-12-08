@@ -12,7 +12,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { AppState, Citation, Language, Phrase, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
@@ -29,6 +29,7 @@ import {
 import { TagWidget } from "./TagWidget"
 import { tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
+import { MessageFromPopupToBackground } from "../util/switchboard"
 
 type NoteProps = {
   state: AppState
@@ -269,7 +270,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 tags={tags}
                 chosen={state.citationIndex === i}
                 helpHidden={helpHidden}
-                clean={clean}
                 state={state}
                 dispatch={dispatch}
               />
@@ -288,7 +288,6 @@ type CitationInBriefProps = {
   chosen: boolean
   tags: Tag[] | undefined
   helpHidden: boolean
-  clean: boolean
   state: AppState
   dispatch: React.Dispatch<Action>
 }
@@ -299,7 +298,6 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   tags,
   chosen,
   helpHidden: hidden,
-  clean,
   state,
   dispatch,
 }) => {
@@ -315,7 +313,6 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
             state={state}
             dispatch={dispatch}
             phrase={phrase}
-            clean={clean}
           />
         </LabelWithHelp>
         <LabelWithHelp
@@ -388,7 +385,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         elevation={0}
         sx={{
           cursor: "pointer",
-          bgcolor: 'primary.light',
+          bgcolor: "primary.light",
         }}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })
@@ -442,18 +439,14 @@ const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
 type CitationLinkProps = {
   phrase: Phrase
   citation: Citation
-  clean: boolean
-  state: AppState
   dispatch: React.Dispatch<Action>
 }
 
 // a link that will highlight
 const CitationLink: React.FC<CitationLinkProps> = ({
-  state,
   dispatch,
   phrase,
   citation,
-  clean,
 }) => {
   const { url } = citation
   const { citations } = phrase
@@ -464,6 +457,24 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     overflow: "hidden",
     textOverflow: "ellipsis",
   }
+  const linkHandler = useCallback(() => {
+    (async () => {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      })
+      if (tab?.id) {
+        const response = await chrome.tabs.sendMessage(tab.id, {
+          action: "goto",
+          citation: citation,
+        })
+        console.log(response) // todo: response should indicate whether there is any selection
+      } else {
+        console.error("could not find tab for citation", citation)
+      }
+    })()
+    dispatch({ action: "goto", phrase, citationIndex: i })
+  }, [phrase, i])
   if (!url)
     return (
       <Typography sx={sx}>
@@ -472,12 +483,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     )
   return (
     <Tooltip arrow title={url}>
-      <Link
-        onClick={() => {
-          state.port?.postMessage({ action: "goto", citation: citation })
-          dispatch({ action: "goto", phrase, citationIndex: i })
-        }}
-      >
+      <Link sx={{ cursor: "pointer" }} onClick={linkHandler}>
         <Typography sx={sx}>{url}</Typography>
       </Link>
     </Tooltip>
@@ -487,17 +493,14 @@ const CitationLink: React.FC<CitationLinkProps> = ({
 type TitleDateAndUrlProps = {
   citation: Citation
   phrase?: Phrase
-  clean: boolean
   state: AppState
   dispatch: React.Dispatch<Action>
 }
 
 const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
   citation,
-  state,
   dispatch,
   phrase,
-  clean,
 }) => {
   return (
     <Stack
@@ -511,13 +514,7 @@ const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
           {citation.when.toLocaleDateString()}
         </Box>
       </Tooltip>
-      <CitationLink
-        state={state}
-        dispatch={dispatch}
-        phrase={phrase!}
-        citation={citation}
-        clean={clean}
-      />
+      <CitationLink dispatch={dispatch} phrase={phrase!} citation={citation} />
     </Stack>
   )
 }

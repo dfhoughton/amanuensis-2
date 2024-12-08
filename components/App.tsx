@@ -7,7 +7,6 @@ import {
   ThemeProvider,
 } from "@mui/material"
 import React, { useEffect, useReducer } from "react"
-import { useConnectionToBackground } from "../lib/hooks"
 import { Action, errorHandler, reducer } from "../util/reducer"
 import { AppState, AppTabs } from "../types/common"
 import { theme } from "../util/theme"
@@ -24,6 +23,7 @@ import { Configuration } from "./Configuration"
 import { configuration } from "../util/database"
 import { Tags } from "./Tags"
 import { ErrorBoundary } from "react-error-boundary"
+import { useCommunicationCenter } from "../hooks/communication_center"
 
 /** the footprint Amanuensis requires */
 const width = "500px"
@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const [state, dispatch] = useReducer<
     (state: AppState, action: Action) => AppState
   >(reducer, { tab: AppTabs.Note })
-  useConnectionToBackground(dispatch)
+  useCommunicationCenter(dispatch)
   useEffect(() => {
     configuration()
       .then((c) => {

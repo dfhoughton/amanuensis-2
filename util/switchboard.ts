@@ -31,10 +31,11 @@ export type MessageFromContentToBackground =
   | { action: "selection"; selection: Citation }
   | { action: "noSelection" }
   | { action: "error"; message: string }
+  | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }
-  | Extract<MessageFromBackgroundToContent, { action: "goto" }>
+  | { action: "goto"; citation: Citation }
 
 export const handleMessageFromBackgroundToPopup = (
   msg: MessageFromBackgroundToPopup
