@@ -18,6 +18,7 @@ function sendToContent(
         msg,
         (m: MessageFromContentToBackground) => {
           switch (m.action) {
+            case "noSelection":
             case "phraseSelected":
               sendResponse(m)
               break
