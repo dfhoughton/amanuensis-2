@@ -10,7 +10,8 @@ export const theme = createTheme({
       light: alpha(oxBlood, 0.1),
     },
     secondary: {
-      main: "#937b63",
+      main: "rgb(80 116 235)",
+      contrastText: "#fff",
     },
   },
   typography: {

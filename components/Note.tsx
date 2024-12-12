@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Chip,
   Divider,
@@ -46,9 +47,13 @@ type NoteProps = {
 export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const { phrase, priorPhrase, citationIndex = 0 } = state
   const [languages, setLanguages] = useState<Language[]>([])
+  const [currentLanguage, setCurrentLanguage] = useState<Language>()
   useEffect(() => {
     perhapsStaleLanguages()
-      .then((languages) => setLanguages(languages))
+      .then((languages) => {
+        setLanguages(languages)
+        setCurrentLanguage(languages.find((l) => l.id === phrase?.languageId))
+      })
       .catch(errorHandler(dispatch))
   }, [])
   const [tags, setTags] = useState<Tag[] | undefined>()
@@ -80,8 +85,10 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const helpHidden = !state.config?.showHelp
   const changeLanguage = (language: Language) => () => {
     setLanguageMenuAnchorEl(null)
-    if (phrase?.languageId !== language.id)
+    if (phrase?.languageId !== language.id) {
+      setCurrentLanguage(language)
       dispatch({ action: "changeLanguage", language })
+    }
   }
   const save = () =>
     savePhrase(phrase!).then((p) => dispatch({ action: "phraseSaved" }))
@@ -120,13 +127,25 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               {languages.length > 1 && (
                 <>
                   <Tooltip arrow title="Change language assignment for note">
-                    <IconButton
-                      color="primary"
-                      size="small"
-                      onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
+                    <Badge
+                      badgeContent={
+                        currentLanguage?.locale === "und"
+                          ? undefined
+                          : currentLanguage?.locale
+                      }
+                      overlap="circular"
+                      color="secondary"
                     >
-                      <LanguageIcon fontSize="inherit" />
-                    </IconButton>
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={(e) =>
+                          setLanguageMenuAnchorEl(e.currentTarget)
+                        }
+                      >
+                        <LanguageIcon fontSize="inherit" />
+                      </IconButton>
+                    </Badge>
                   </Tooltip>
                   <Menu
                     MenuListProps={{ dense: true }}

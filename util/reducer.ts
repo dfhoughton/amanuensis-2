@@ -82,7 +82,7 @@ export function reducer(state: AppState, action: Action): AppState {
       let maybeMeld,
         message,
         messageLevel,
-        searchTab = SearchTabs.Free
+        searchTab = SearchTabs.Similar
       if (others.length) {
         maybeMeld = others
         message = `There ${
@@ -93,6 +93,7 @@ export function reducer(state: AppState, action: Action): AppState {
         messageLevel = "info"
         searchTab = SearchTabs.Similar
       }
+      const cidx = selectCitation(citations)
       return {
         ...state,
         languageId,
@@ -101,12 +102,15 @@ export function reducer(state: AppState, action: Action): AppState {
         message,
         messageLevel,
         priorPhrase: undefined,
-        citationIndex: selectCitation(citations),
+        citationIndex: cidx,
         similaritySearch: {
           phrase: phrase.lemma,
           languages,
           limit: 10,
         }, // TODO: make limit a configuration parameter
+        urlSearch: {
+          url: citations[cidx].url ?? "",
+        },
         searchTab,
       }
     case "select":
