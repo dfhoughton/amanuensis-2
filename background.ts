@@ -39,7 +39,7 @@ function sendToPopup(
   msg: MessageFromBackgroundToPopup,
   sendResponse: (m: MessageFromBackgroundToContent) => void
 ) {
-  chrome.runtime.sendMessage(msg).then(sendResponse)
+  chrome.runtime.sendMessage(msg, sendResponse)
 }
 
 function handlePopupMessage(

@@ -8,6 +8,7 @@ import {
   SearchTabs,
   SimilaritySearch,
   Tag,
+  UrlSearch,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
@@ -45,6 +46,7 @@ import {
   perhapsStaleLanguages,
   phraseSearch,
   phrasesForRelations,
+  phrasesOnPage,
   similaritySearch,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
@@ -73,10 +75,13 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     searchTab = SearchTabs.Free,
     freeSearchResults,
     similaritySearchResults,
+    urlSearch: uSearch = { url: "", limit: 10 }, // TODO: don't just type in these constants willy-nilly
+    urlSearchResults,
     phrase,
   } = state
   const [fs, setFs] = useState<FreeFormSearch>(freeSearch)
   const [ss, setSs] = useState<SimilaritySearch>(sSearch)
+  const [us, setUs] = useState<UrlSearch>(uSearch)
   // get initial search results
   useEffect(() => {
     if (searchTab === SearchTabs.Free) {
@@ -94,7 +99,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
           })
           .catch(errorHandler(dispatch))
       }
-    } else {
+    } else if (searchTab == SearchTabs.Similar) {
       if (
         !(
           searchResults &&
@@ -113,13 +118,34 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
           })
           .catch(errorHandler(dispatch))
       }
+    } else {
+      if (
+        !(
+          searchResults &&
+          isEqual(searchResults, urlSearchResults) &&
+          isEqual(uSearch, us)
+        )
+      ) {
+        phrasesOnPage(uSearch)
+          .then((searchResults) => {
+            setUs(uSearch)
+            dispatch({
+              action: "urlSearch",
+              searchResults,
+              search: uSearch,
+            })
+          })
+          .catch(errorHandler(dispatch))
+      }
     }
   }, [
     freeSearch,
     sSearch,
+    uSearch,
     searchResults,
     freeSearchResults,
     similaritySearchResults,
+    urlSearchResults,
     searchTab,
   ])
   const [languages, setLanguages] = useState<Language[]>([])
@@ -146,12 +172,17 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     <>
       <TabContext value={searchTab}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <TabList onChange={() => dispatch({ action: "switchSearch" })}>
-            <Tab label="Search" value="free" />
-            <Tab label="Similar Phrases" value="similar" />
+          <TabList
+            onChange={(_e, val) =>
+              dispatch({ action: "switchSearch", tab: val })
+            }
+          >
+            <Tab label="Search" value={SearchTabs.Free} />
+            <Tab label="Similar Phrases" value={SearchTabs.Similar} />
+            <Tab label="Citations on Page" value={SearchTabs.Page} />
           </TabList>
         </Box>
-        <TabPanel value="free">
+        <TabPanel value={SearchTabs.Free}>
           <SearchForm
             languages={languages}
             searchResults={
@@ -167,12 +198,15 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
             dispatch={dispatch}
           />
         </TabPanel>
-        <TabPanel value="similar">
+        <TabPanel value={SearchTabs.Similar}>
           <SimilaritySearchForm
             languages={languages}
             state={state}
             dispatch={dispatch}
           />
+        </TabPanel>
+        <TabPanel value={SearchTabs.Page}>
+          <UrlSearchForm state={state} dispatch={dispatch} />
         </TabPanel>
       </TabContext>
       {!searchResults && (
@@ -396,6 +430,43 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
             ))}
       </Menu>
     </Stack>
+  )
+}
+
+type UrlSearchFormProps = {
+  state: AppState
+  dispatch: React.Dispatch<Action>
+}
+const UrlSearchForm: React.FC<UrlSearchFormProps> = ({ state, dispatch }) => {
+  const search = state.urlSearch ?? {
+    url: "",
+    limit: 10,
+  }
+  const { url } = search
+  return (
+    <TextField
+      hiddenLabel
+      sx={{ width: "100%" }}
+      placeholder="URL"
+      defaultValue={url}
+      variant="standard"
+      onChange={
+        debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+          const params: UrlSearch = {
+            url: e.target.value,
+          }
+          phrasesOnPage(params)
+            .then((searchResults) =>
+              dispatch({
+                action: "urlSearch",
+                search: { ...search, page: 1 },
+                searchResults,
+              })
+            )
+            .catch(errorHandler(dispatch))
+        }, 500) as React.ChangeEventHandler<HTMLInputElement>
+      }
+    />
   )
 }
 
@@ -757,7 +828,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
               <Divider sx={{ mb: 1 }} />
               <Paper
                 elevation={0}
-                sx={selected ? { bgcolor: 'primary.light' } : undefined}
+                sx={selected ? { bgcolor: "primary.light" } : undefined}
               >
                 <Stack
                   direction="row"

@@ -8,9 +8,9 @@ import {
 // send initial request for selected text and start listening
 export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
   useEffect(() => {
-    chrome.runtime
-      .sendMessage({ action: "open" } as MessageFromPopupToBackground)
-      .then((response: MessageFromBackgroundToPopup) => {
+    chrome.runtime.sendMessage(
+      { action: "open" } as MessageFromPopupToBackground,
+      (response: MessageFromBackgroundToPopup) => {
         switch (response.action) {
           case "error":
           case "phraseSelected":
@@ -29,7 +29,8 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
               message: `Unhandled message from background; type: ${response.action}`,
             })
         }
-      })
+      }
+    )
     // for messages from background not triggered by the initial send message
     chrome.runtime.onMessage.addListener(
       (

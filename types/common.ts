@@ -63,6 +63,7 @@ export enum AppTabs {
 export enum SearchTabs {
   Free = "free",
   Similar = "similar",
+  Page = "page",
 }
 
 export type TextSearch = {
@@ -87,6 +88,13 @@ export type SimilaritySearch = {
   phrase: string
   limit: number
   languages?: number[]
+  pageSize?: number
+  page?: number
+}
+
+// used to search for all citations at a particular URL
+export type UrlSearch = {
+  url: string
   pageSize?: number
   page?: number
 }
@@ -120,6 +128,8 @@ export type AppState = {
   searchResults?: SearchResults
   freeSearchResults?: SearchResults
   similaritySearchResults?: SearchResults
+  urlSearch?: UrlSearch
+  urlSearchResults?: SearchResults
   searchTab?: SearchTabs
 }
 

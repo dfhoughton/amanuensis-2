@@ -10,6 +10,7 @@ import {
   SearchResults,
   SearchTabs,
   SimilaritySearch,
+  UrlSearch,
 } from "../types/common"
 import { setConfiguration } from "./database"
 import { deepClone } from "./general"
@@ -44,8 +45,14 @@ export type Action =
       searchResults: SearchResults
       tab?: AppTabs
     }
-  | { action: "switchSearch" }
-  | { action: "selectResult"; selected: number }
+  | {
+      action: "urlSearch"
+      search: UrlSearch
+      searchResults: SearchResults
+      tab?: AppTabs
+    }
+  | { action: "switchSearch"; tab: SearchTabs }
+  | { action: "selectResult"; selected: number } // when a result is clicked in search
   | { action: "noSelection" } // when popup is opened with nothing highlighted
   | { action: "merged"; phrase: Phrase }
   | { action: "phrasesDeleted" } // *all* phrases deleted from database
@@ -109,8 +116,12 @@ export function reducer(state: AppState, action: Action): AppState {
           lastFocusedWindow: true,
         })
         if (tab.id) {
-          const response = await chrome.tabs.sendMessage(tab.id, action)
-          console.log(response)
+          chrome.tabs.sendMessage(tab.id, action, (response) =>
+            console.log(
+              "response from content script to select action",
+              response
+            )
+          )
         } else {
           console.error("could not sind tab to handle action", action)
         }
@@ -166,14 +177,48 @@ export function reducer(state: AppState, action: Action): AppState {
         tab: appTabb,
         searchTab: SearchTabs.Similar,
       }
-    case "switchSearch":
-      const nowFree = state.searchTab === SearchTabs.Similar
+    case "urlSearch":
+      let {
+        search: urlSearch,
+        searchResults: urlSearchResults,
+        tab: appTabbb,
+      } = action
+      appTabbb ??= state.tab
       return {
         ...state,
-        searchTab: nowFree ? SearchTabs.Free : SearchTabs.Similar,
-        searchResults: nowFree
-          ? state.similaritySearchResults
-          : state.freeSearchResults,
+        urlSearch,
+        urlSearchResults,
+        searchResults: urlSearchResults,
+        tab: appTabbb,
+        searchTab: SearchTabs.Page,
+      }
+    case "switchSearch":
+      const nowFree = state.searchTab === SearchTabs.Similar
+      let sr: SearchResults | undefined
+      switch (action.tab) {
+        case SearchTabs.Free:
+          sr = state.freeSearchResults
+          break
+        case SearchTabs.Similar:
+          sr = state.similaritySearchResults
+          break
+        case SearchTabs.Page:
+          sr = state.urlSearchResults
+          break
+        default:
+          throw `we never get here`
+      }
+      return {
+        ...state,
+        searchTab: action.tab,
+        searchResults: sr ?? {
+          page: 1,
+          pageSize: 10,
+          phrases: [],
+          selected: -1,
+          pages: 0,
+          total: 0,
+        },
       }
     case "selectResult":
       let { searchResults: results } = state
@@ -187,12 +232,21 @@ export function reducer(state: AppState, action: Action): AppState {
       }
       const { selected } = action
       const selectedPhrase = results!.phrases[selected]
+      const ci = selectCitation(selectedPhrase.citations)
       return {
         ...state,
         phrase: selectedPhrase,
         priorPhrase: selectedPhrase,
-        citationIndex: selectCitation(selectedPhrase.citations),
+        citationIndex: ci,
         tab: AppTabs.Note,
+        urlSearch: { url: selectedPhrase.citations[ci].url! },
+        urlSearchResults: undefined,
+        similaritySearch: {
+          phrase: selectedPhrase.lemma,
+          languages: [selectedPhrase.languageId!],
+          limit: 10, // todo: get this from configuration
+        },
+        similaritySearchResults: undefined,
         searchResults: { ...results, selected },
       }
     case "goto":

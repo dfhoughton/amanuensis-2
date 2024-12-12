@@ -9,6 +9,7 @@ import {
   SearchResults,
   SimilaritySearch,
   Tag,
+  UrlSearch,
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
@@ -406,6 +407,20 @@ export function citationToPhrase(
   })
 }
 
+/** really it's citations associated with a particular URL */
+export async function phrasesOnPage(search: UrlSearch): Promise<SearchResults> {
+  const { url, page = 1, pageSize = 10 } = search
+  const rs = await db.phrases
+    .toCollection()
+    .filter((p) => p.citations.some((c) => c.url === url))
+    .toArray()
+  const offset = (page - 1) * pageSize
+  const phrases = rs.slice(offset, offset + pageSize)
+  const total = rs.length
+  const pages = Math.ceil(total / pageSize)
+  return { selected: -1, phrases, page, pages, pageSize, total }
+}
+
 // basically an upsert; returns the phrase with its database id
 export async function savePhrase(phrase: Phrase): Promise<Phrase> {
   const p = { ...phrase, relatedPhrases: undefined } // we don't cache these in the database
@@ -420,7 +435,7 @@ export async function similaritySearch(
   search: SimilaritySearch
 ): Promise<SearchResults> {
   const { phrase, limit, languages = [], page = 1, pageSize = 10 } = search
-  const phrases = await db.transaction("r", db.phrases, async () => {
+  const rs = await db.transaction("r", db.phrases, async () => {
     if (!search.phrase) return []
     const scope = languages.length
       ? db.phrases.where("languageId").anyOf(languages)
@@ -429,7 +444,9 @@ export async function similaritySearch(
     void (await scope.each((p) => sims.add(p)))
     return sims.toArray()
   })
-  const total = phrases.length
+  const offset = (page - 1) * pageSize
+  const phrases = rs.slice(offset, offset + pageSize)
+  const total = rs.length
   const pages = Math.ceil(total / pageSize)
   return { selected: -1, phrases, page, pages, pageSize, total }
 }

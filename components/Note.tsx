@@ -13,7 +13,14 @@ import {
   Typography,
 } from "@mui/material"
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { AppState, Citation, Language, Phrase, Tag } from "../types/common"
+import {
+  AppState,
+  Citation,
+  Language,
+  Phrase,
+  Tag,
+  UrlSearch,
+} from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
@@ -24,12 +31,12 @@ import {
   knownTags,
   perhapsStaleLanguages,
   phrasesForRelations,
+  phrasesOnPage,
   savePhrase,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
-import { MessageFromPopupToBackground } from "../util/switchboard"
 
 type NoteProps = {
   state: AppState
@@ -439,6 +446,7 @@ const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
 type CitationLinkProps = {
   phrase: Phrase
   citation: Citation
+  urlSearch: UrlSearch | undefined
   dispatch: React.Dispatch<Action>
 }
 
@@ -447,6 +455,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   dispatch,
   phrase,
   citation,
+  urlSearch,
 }) => {
   const { url } = citation
   const { citations } = phrase
@@ -457,23 +466,55 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     overflow: "hidden",
     textOverflow: "ellipsis",
   }
+  const dontRepeatSearch = urlSearch && url === urlSearch.url
   const linkHandler = useCallback(() => {
-    (async () => {
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true,
-      })
-      if (tab?.id) {
-        const response = await chrome.tabs.sendMessage(tab.id, {
-          action: "goto",
-          citation: citation,
+    if (url) {
+      ;(async () => {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
         })
-        console.log(response) // todo: response should indicate whether there is any selection
-      } else {
-        console.error("could not find tab for citation", citation)
-      }
-    })()
-    dispatch({ action: "goto", phrase, citationIndex: i })
+        console.log("tab received from query", tab)
+        if (tab?.id) {
+          if (citation.url) {
+            const url = citation.url
+            chrome.tabs.sendMessage(
+              tab.id,
+              {
+                action: "goto",
+                citation: citation,
+              },
+              (response) => {
+                console.log(
+                  "sent goto message to active tab and got this response",
+                  response
+                )
+                if (!dontRepeatSearch) {
+                  phrasesOnPage({ url })
+                    .then((searchResults) => {
+                      dispatch({
+                        action: "urlSearch",
+                        search: { url },
+                        searchResults,
+                      })
+                    })
+                    .catch(errorHandler(dispatch))
+                }
+              }
+            )
+          }
+        } else {
+          console.error("could not find tab for citation", citation)
+        }
+      })()
+      dispatch({ action: "goto", phrase, citationIndex: i })
+    } else {
+      dispatch({
+        action: "message",
+        messageLevel: "warning" as any,
+        message: "This citation has no recorded URL.",
+      })
+    }
   }, [phrase, i])
   if (!url)
     return (
@@ -500,6 +541,7 @@ type TitleDateAndUrlProps = {
 const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
   citation,
   dispatch,
+  state,
   phrase,
 }) => {
   return (
@@ -514,7 +556,12 @@ const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
           {citation.when.toLocaleDateString()}
         </Box>
       </Tooltip>
-      <CitationLink dispatch={dispatch} phrase={phrase!} citation={citation} />
+      <CitationLink
+        dispatch={dispatch}
+        phrase={phrase!}
+        citation={citation}
+        urlSearch={state.urlSearch}
+      />
     </Stack>
   )
 }
