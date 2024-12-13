@@ -15,9 +15,9 @@ export type MessageFromBackgroundToPopup =
     }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | { action: "locale"; locale: string }
-  | Extract<
+  | { action: "goingTo", url: string }  | Extract<
       MessageFromContentToBackground,
-      { action: "error" } | { action: "noSelection" } | { action: "highlight" }
+      { action: "error" } | { action: "noSelection" } | { action: "highlight" } | { action: "goingTo"}
     >
 
 export type MessageFromBackgroundToContent =
@@ -25,13 +25,15 @@ export type MessageFromBackgroundToContent =
   | { action: "goto"; citation: Citation }
   | { action: "load"; url: string }
   | { action: "select"; selection: Citation }
+  | { action: 'welcome' }
 
 export type MessageFromContentToBackground =
   | { action: "open" }
   | { action: "selection"; selection: Citation }
-  | { action: "noSelection" }
+  | { action: "noSelection", url: string }
   | { action: "error"; message: string }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
+  | { action: "goingTo", url: string }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }

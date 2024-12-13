@@ -105,15 +105,11 @@ function handleContentMessage(
       break
     case "open":
       // this should be a reload, but send back the active URL to confirm it's what the popup expects
-      chrome.tabs.query({ active: true }, (tabs) => {
-        const tab = tabs[0]
-        if (tab) {
-          const { url } = tab
-          sendToPopup({ action: "reloaded", url }, contentResponseSender)
-        }
-      })
+      console.log('a tab just checked in!')
+      contentResponseSender({action: 'welcome'})
       break
     case "noSelection":
+    case "goingTo":
     case "error":
       sendToPopup(msg, contentResponseSender)
       break

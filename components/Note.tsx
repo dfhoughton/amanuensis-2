@@ -9,11 +9,12 @@ import {
   MenuItem,
   Paper,
   Stack,
+  SxProps,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
   Citation,
@@ -479,21 +480,31 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   const { url } = citation
   const { citations } = phrase
   const i = citations!.indexOf(citation)
-  const sx = {
-    fontSize: "small",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  }
+  const sx = useMemo<SxProps>(
+    () => ({
+      fontSize: "small",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    }),
+    []
+  )
   const dontRepeatSearch = urlSearch && url === urlSearch.url
   const linkHandler = useCallback(() => {
     if (url) {
       ;(async () => {
-        const [tab] = await chrome.tabs.query({
+        let [tab] = await chrome.tabs.query({
           active: true,
           lastFocusedWindow: true,
         })
-        console.log("tab received from query", tab)
+        if (tab === undefined) {
+          // try a different query
+          const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          })
+          if (tabs.length === 1) tab = tabs[0]
+        }
         if (tab?.id) {
           if (citation.url) {
             const url = citation.url
@@ -504,10 +515,6 @@ const CitationLink: React.FC<CitationLinkProps> = ({
                 citation: citation,
               },
               (response) => {
-                console.log(
-                  "sent goto message to active tab and got this response",
-                  response
-                )
                 if (!dontRepeatSearch) {
                   phrasesOnPage({ url })
                     .then((searchResults) => {

@@ -89,9 +89,12 @@ function wrapSelection(): Citation | undefined {
   }
 }
 
+/** Look for anything the page intends to be understood as a title */
 function getTitle(): string {
+  // title element
   const titleElement = document.head.getElementsByTagName("title")[0]
   if (titleElement) return titleElement.innerText
+  // open graph title
   const ogMetaTitle = Array.from(document.head.getElementsByTagName("meta"))
     .find(
       (e) =>
@@ -100,6 +103,7 @@ function getTitle(): string {
     )
     ?.getAttribute("content")
   if (ogMetaTitle) return ogMetaTitle
+  // Xitter title
   const twitterTitle = Array.from(document.head.getElementsByTagName("meta"))
     .find(
       (e) =>
@@ -108,7 +112,11 @@ function getTitle(): string {
     )
     ?.getAttribute("content")
   if (twitterTitle) return twitterTitle
-  return document.head.title
+  // first h1
+  const firstH1 = document.body.getElementsByTagName("h1")[0]
+  if (firstH1) return firstH1.innerText
+  // give up
+  return ''
 }
 
 chrome.runtime.onMessage.addListener(function (
@@ -121,6 +129,7 @@ chrome.runtime.onMessage.addListener(function (
       const { citation } = request
       const magic = magicUrl(citation)
       if (magic) {
+        sendResponse({ action: 'goingTo', url: magic})
         window.location.assign(magic)
       } else {
         sendResponse({ action: "error", message: "received no URL" })
@@ -152,7 +161,7 @@ chrome.runtime.onMessage.addListener(function (
             sendResponse({ action: "error", message: e.message })
           })
       } else {
-        sendResponse({ action: "noSelection" })
+        sendResponse({ action: "noSelection", url: window.location.href })
       }
       break
     default:
@@ -160,3 +169,6 @@ chrome.runtime.onMessage.addListener(function (
   }
   return true
 })
+
+// tell background we're ready
+chrome.runtime.sendMessage({action: 'open'}, (response) => console.log('Amanuensis received this confirmation', response))

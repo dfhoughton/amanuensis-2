@@ -13,11 +13,9 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
       (response: MessageFromBackgroundToPopup) => {
         switch (response.action) {
           case "error":
+          case "noSelection":
           case "phraseSelected":
             dispatch(response)
-            break
-          case "noSelection":
-            // perhaps we notify the user that there was no selection? but they should know this
             break
           default:
             console.error(

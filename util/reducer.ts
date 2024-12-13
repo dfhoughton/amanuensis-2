@@ -53,7 +53,7 @@ export type Action =
     }
   | { action: "switchSearch"; tab: SearchTabs }
   | { action: "selectResult"; selected: number } // when a result is clicked in search
-  | { action: "noSelection" } // when popup is opened with nothing highlighted
+  | { action: "noSelection"; url: string } // when popup is opened with nothing highlighted
   | { action: "merged"; phrase: Phrase }
   | { action: "phrasesDeleted" } // *all* phrases deleted from database
   | { action: "phraseDeleted"; phrase: Phrase }
@@ -263,7 +263,13 @@ export function reducer(state: AppState, action: Action): AppState {
         tab: AppTabs.Note,
       }
     case "noSelection":
-      return state
+      return {
+        ...state,
+        urlSearch: { url: action.url },
+        urlSearchResults: undefined,
+        tab: AppTabs.Dictionary,
+        searchTab: SearchTabs.Page,
+      }
     case "changeLanguage":
       const { phrase: changeLanguagePhrase } = state
       return {
