@@ -3,7 +3,7 @@
 This is a reboot of an earlier project, a chrome extension I wrote also called Amanuensis. Manifest v2 died, so that
 extension died. I'm rewriting it now in more idiomatic React and using more modern technologies, like indexeddb.
 
-An amanuensis is a literary or artistic assistant. You amanuensis copies down your art. The amanuensis extension
+An amanuensis is a literary or artistic assistant. Your amanuensis copies down your art. The amanuensis extension
 copies down your thoughts as you browse the web. In particular, it notes phrases you found interesting.
 
 The intended purpose of Amanuensis is to facilitate language acquisition by keeping track of words you needed to
