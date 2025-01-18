@@ -22,6 +22,40 @@ function sendToContent(
             case "phraseSelected":
               sendResponse(m)
               break
+            case "selection":
+              chrome.tabs.query({ active: true }, (tabs) => {
+                const tab = tabs[0]
+                if (tab) {
+                  const { title, url } = tab
+                  const { selection } = m
+                  selection.title = title
+                  selection.url = url
+                  const text = `${selection.before}${selection.phrase}${selection.after}`
+                  chrome.i18n
+                    .detectLanguage(text)
+                    .then((rv) => {
+                      const locale = rv.languages.sort(
+                        (a, b) => b.percentage - a.percentage
+                      )[0].language
+                      citationToPhrase(selection, locale)
+                        .then((phrase) => {
+                          sendResponse({ action: "phraseSelected", phrase })
+                        })
+                        .catch((e) => {
+                          console.error(
+                            "trouble getting citations for phrase",
+                            e
+                          )
+                          sendResponse({ action: "error", message: e.message })
+                        })
+                    })
+                    .catch((e) => {
+                      console.error(e)
+                      sendResponse({ action: "error", message: e.message })
+                    })
+                }
+              })
+              break
             default:
               sendResponse({
                 action: "error",
@@ -63,50 +97,10 @@ function handleContentMessage(
   contentResponseSender: (m: MessageFromBackgroundToContent) => void
 ) {
   switch (msg.action) {
-    case "selection":
-      chrome.tabs.query({ active: true }, (tabs) => {
-        const tab = tabs[0]
-        if (tab) {
-          const { title, url } = tab
-          const { selection } = msg
-          selection.title = title
-          selection.url = url
-          const text = `${selection.before}${selection.phrase}${selection.after}`
-          chrome.i18n
-            .detectLanguage(text)
-            .then((rv) => {
-              const locale = rv.languages.sort(
-                (a, b) => b.percentage - a.percentage
-              )[0].language
-              citationToPhrase(selection, locale)
-                .then((phrase) => {
-                  sendToPopup(
-                    { action: "phraseSelected", phrase },
-                    contentResponseSender
-                  )
-                })
-                .catch((e) => {
-                  console.error("trouble getting citations for phrase", e)
-                  sendToPopup(
-                    { action: "error", message: e.message },
-                    contentResponseSender
-                  )
-                })
-            })
-            .catch((e) => {
-              console.error(e)
-              sendToPopup(
-                { action: "error", message: e.message },
-                contentResponseSender
-              )
-            })
-        }
-      })
-      break
     case "open":
       // this should be a reload, but send back the active URL to confirm it's what the popup expects
-      console.log('a tab just checked in!')
-      contentResponseSender({action: 'welcome'})
+      console.log("a tab just checked in!")
+      contentResponseSender({ action: "welcome" })
       break
     case "noSelection":
     case "goingTo":

@@ -56,7 +56,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
         setCurrentLanguage(languages.find((l) => l.id === phrase?.languageId))
       })
       .catch(errorHandler(dispatch))
-  }, [])
+  }, [state.languageId])
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()

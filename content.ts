@@ -1,5 +1,4 @@
 import { Citation } from "./types/common"
-import { citationToPhrase } from "./util/database"
 import { magicUrl } from "./util/magic_url"
 import { squish } from "./util/string"
 import {
@@ -140,26 +139,7 @@ chrome.runtime.onMessage.addListener(function (
       if (selection) {
         selection.title = getTitle()
         selection.url = document.URL
-        const text = `${selection.before}${selection.phrase}${selection.after}`
-        chrome.i18n
-          .detectLanguage(text)
-          .then((rv) => {
-            const locale = rv.languages.sort(
-              (a, b) => b.percentage - a.percentage
-            )[0].language
-            citationToPhrase(selection, locale)
-              .then((phrase) => {
-                sendResponse({ action: "phraseSelected", phrase })
-              })
-              .catch((e) => {
-                console.error("trouble getting citations for phrase", e)
-                sendResponse({ action: "error", message: e.message })
-              })
-          })
-          .catch((e) => {
-            console.error(e)
-            sendResponse({ action: "error", message: e.message })
-          })
+        sendResponse({action: 'selection', selection})
       } else {
         sendResponse({ action: "noSelection", url: window.location.href })
       }
