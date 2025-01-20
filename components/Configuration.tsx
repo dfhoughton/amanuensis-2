@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
   AppState,
   Language,
@@ -10,18 +10,23 @@ import {
   Box,
   Button,
   Checkbox,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
   Link,
   Menu,
   MenuItem,
   Modal,
+  Select,
+  SelectChangeEvent,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material"
@@ -41,7 +46,15 @@ import AddIcon from "@mui/icons-material/Add"
 import LanguageIcon from "@mui/icons-material/Language"
 import DeleteIcon from "@mui/icons-material/Delete"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import AutoStories from "@mui/icons-material/AutoStories"
+import MergeIcon from "@mui/icons-material/Merge"
 import { languageList } from "../util/languages"
+import {
+  defaultDistanceMetric,
+  defaultMaxSimilarPhrases,
+  DistanceMetric,
+} from "../util/similarity_sorter"
+import { Mention } from "./Mention"
 
 type ConfigurationProps = {
   state: AppState
@@ -59,6 +72,39 @@ export const Configuration: React.FC<ConfigurationProps> = ({
     configuration()
       .then((c) => {
         dispatch({ action: "config", config: c ?? {} })
+      })
+      .catch(errorHandler(dispatch))
+  }, [])
+  const showHelpHandler = useCallback((e) => {
+    const c: ConfigurationType = {
+      ...config,
+    }
+    c.showHelp = e.target.checked
+    setConfiguration(c)
+      .then(() => {
+        dispatch({ action: "config", config: c })
+      })
+      .catch(errorHandler(dispatch))
+  }, [])
+  const maxSimilarPhrasesHandler = useCallback((e) => {
+    const c: ConfigurationType = {
+      ...config,
+    }
+    c.maxSimilarPhrases = Number.parseInt(e.target.value)
+    setConfiguration(c)
+      .then(() => {
+        dispatch({ action: "config", config: c })
+      })
+      .catch(errorHandler(dispatch))
+  }, [])
+  const distanceMetricHandler = useCallback((e: SelectChangeEvent) => {
+    const c: ConfigurationType = {
+      ...config,
+    }
+    c.distanceMetric = e.target.value as DistanceMetric
+    setConfiguration(c)
+      .then(() => {
+        dispatch({ action: "config", config: c })
       })
       .catch(errorHandler(dispatch))
   }, [])
@@ -84,22 +130,105 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         >
           <FormControlLabel
             control={
-              <Checkbox
-                checked={showingHelp}
-                onChange={(e) => {
-                  const c: ConfigurationType = {
-                    ...config,
-                  }
-                  c.showHelp = e.target.checked
-                  setConfiguration(c)
-                    .then(() => {
-                      dispatch({ action: "config", config: c })
-                    })
-                    .catch(errorHandler(dispatch))
-                }}
-              />
+              <Checkbox checked={showingHelp} onChange={showHelpHandler} />
             }
             label="Show Help Text"
+          />
+        </LabelWithHelp>
+        <LabelWithHelp
+          hidden={!showingHelp}
+          sx={{ width: "100%" }}
+          label="Mechanism for Identifying Similar Phrases"
+          explanation={
+            <Stack spacing={1}>
+              <Typography>
+                If you capture a citation of <Mention phrase="cars" />, you
+                probably don't want it to live in a separate note from a note on{" "}
+                <Mention phrase="car" />, if any. You can add the citation to
+                the existing <Mention phrase="car" /> by finding the note via
+                search{" "}
+                <Link
+                  sx={{ cursor: "pointer" }}
+                  onClick={() =>
+                    dispatch({ action: "tab", tab: AppTabs.Dictionary })
+                  }
+                >
+                  <AutoStories fontSize="inherit" />
+                </Link>{" "}
+                and then clicking the merge button{" "}
+                <MergeIcon fontSize="inherit" />.
+              </Typography>
+              <Typography>
+                But how do you find the <Mention phrase="car" /> note?
+                Amanuensis provides a special variety of search for this
+                purpose: the similarity search. Similarity searches look for
+                notes whose lemma or citations are particularly similar to a
+                given phrase. For this they need a definition of similarity.
+                These are the string distance metrics.
+              </Typography>
+              <Typography>
+                The default string distance metric is called{" "}
+                {defaultDistanceMetric}. It is fast and considers changes to the
+                beginning of words to be more important than changes to the end,
+                so <Mention phrase="cars" /> will be found to be more similar
+                than <Mention phrase="scar" /> to <Mention phrase="car" />. This
+                is just what you want for suffixing languages like English,
+                where grammatical markers tend to go on the end of words. If you
+                are with with a prefixing language like Swahili, where{" "}
+                <Mention phrase="watu" /> is a form of the word{" "}
+                <Mention phrase="mtu" />, this is not so good.
+              </Typography>
+              <Typography>
+                If you find the similar words found by similarity search are not
+                all that similar, and in particular if you know that there's a
+                similar note but it's not finding it, you could try a different
+                string distance metric. Perhaps another will work better.
+              </Typography>
+            </Stack>
+          }
+        >
+          <FormControl fullWidth>
+            <InputLabel id="metric-select-label">
+              String Distance Metric
+            </InputLabel>
+            <Select
+              labelId="metric-select-label"
+              id="thing-select"
+              value={config?.distanceMetric ?? defaultDistanceMetric}
+              label="String Distance Metric"
+              onChange={distanceMetricHandler}
+            >
+              {Object.values(DistanceMetric).map((metric) => (
+                <MenuItem key={metric} value={metric}>
+                  {metric}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </LabelWithHelp>
+        <LabelWithHelp
+          sx={{ width: "100%" }}
+          hidden={!showingHelp}
+          label="Maximum Phrases Found in Similarity Search"
+          explanation={
+            <Stack spacing={1}>
+              <Typography>
+                In a similarity search you are unlikely to find any interesting
+                similar phrases after the first few notes, so rather than
+                display all the notes in the dictionary for the given language
+                sorted by similarity Amanuensis just shows the few most similar
+                ones. This parameter controls how many are shown.
+              </Typography>
+            </Stack>
+          }
+        >
+          <TextField
+            label="Max Similar Phrases"
+            type="number"
+            fullWidth
+            slotProps={{ htmlInput: { min: 5, step: 1 } }}
+            value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
+            onChange={maxSimilarPhrasesHandler}
           />
         </LabelWithHelp>
         <LabelWithHelp

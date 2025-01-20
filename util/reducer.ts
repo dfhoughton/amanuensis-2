@@ -14,6 +14,7 @@ import {
 } from "../types/common"
 import { setConfiguration } from "./database"
 import { deepClone } from "./general"
+import { defaultDistanceMetric, defaultMaxSimilarPhrases } from "./similarity_sorter";
 
 export type Action =
   | { action: "selection"; selection: Citation }
@@ -105,9 +106,10 @@ export function reducer(state: AppState, action: Action): AppState {
         citationIndex: cidx,
         similaritySearch: {
           phrase: phrase.lemma,
+          metric: state.config?.distanceMetric ?? defaultDistanceMetric,
           languages,
-          limit: 10,
-        }, // TODO: make limit a configuration parameter
+          limit: state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases,
+        },
         urlSearch: {
           url: citations[cidx].url ?? "",
         },
@@ -247,8 +249,9 @@ export function reducer(state: AppState, action: Action): AppState {
         urlSearchResults: undefined,
         similaritySearch: {
           phrase: selectedPhrase.lemma,
+          metric: state.config?.distanceMetric ?? defaultDistanceMetric,
           languages: [selectedPhrase.languageId!],
-          limit: 10, // todo: get this from configuration
+          limit: state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases,
         },
         similaritySearchResults: undefined,
         searchResults: { ...results, selected },

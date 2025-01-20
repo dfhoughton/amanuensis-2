@@ -13,7 +13,7 @@ import {
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
-import { SimilaritySorter } from "./similarity_sorter"
+import { defaultDistanceMetric, defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -434,13 +434,21 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
 export async function similaritySearch(
   search: SimilaritySearch
 ): Promise<SearchResults> {
-  const { phrase, limit, languages = [], page = 1, pageSize = 10 } = search
+  const {
+    phrase,
+    limit,
+    metric,
+    languages = [],
+    page = 1,
+    pageSize = defaultMaxSimilarPhrases,
+  } = search
+  console.log("doing similarity search")
   const rs = await db.transaction("r", db.phrases, async () => {
     if (!search.phrase) return []
     const scope = languages.length
       ? db.phrases.where("languageId").anyOf(languages)
       : db.phrases.toCollection()
-    const sims = new SimilaritySorter(phrase, limit)
+    const sims = new SimilaritySorter(metric, phrase, limit)
     void (await scope.each((p) => sims.add(p)))
     return sims.toArray()
   })

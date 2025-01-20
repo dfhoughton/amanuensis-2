@@ -1,14 +1,44 @@
 import { Phrase } from "../types/common"
-import { distance } from "fastest-levenshtein"
+import levenshtein from "talisman/metrics/levenshtein"
+import { distance as jwDistance } from "talisman/metrics/jaro-winkler"
+import { distance as jaroDistance } from "talisman/metrics/jaro"
+import { distance as lcsDistance } from "talisman/metrics/lcs"
+
+export enum DistanceMetric {
+  Lev = "Levenshtein",
+  Jaro = "Jaro",
+  JaroWinkler = "Jaro-Winkler",
+  LCS = "longest common substring",
+}
+
+export const defaultDistanceMetric: DistanceMetric = DistanceMetric.JaroWinkler
+export const defaultMaxSimilarPhrases = 10;
+
+const metric = (name: DistanceMetric): ((a: string, b: string) => number) => {
+  switch (name) {
+    case "Levenshtein":
+      return levenshtein
+    case "Jaro":
+      return jaroDistance
+    case "Jaro-Winkler":
+      return jwDistance
+    case "longest common substring":
+      return lcsDistance
+    default:
+      throw `unfamiliar metric name: ${name}`
+  }
+}
 
 /** encapsulates the mechanism by which we find a limited number of similar phrases */
 export class SimilaritySorter {
   private key: string
   private store: [Phrase, number][]
   private limit: number
-  constructor(key: string, limit: number = 10) {
+  private metric: (a: string, b: string) => number
+  constructor(metricName: DistanceMetric, key: string, limit: number = defaultMaxSimilarPhrases) {
     if (limit < 1) throw new Error("limit must be a positive integer")
 
+    this.metric = metric(metricName)
     this.key = key.replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ")
     this.limit = limit
     this.store = []
@@ -16,9 +46,9 @@ export class SimilaritySorter {
 
   // inserts phrase via binary search; maybe a min-max heap would be better?
   add(p: Phrase): void {
-    let d = distance(this.key, p.lemma)
+    let d = this.metric(this.key, p.lemma)
     for (const c of p.citations) {
-      const d2 = distance(this.key, c.phrase)
+      const d2 = this.metric(this.key, c.phrase)
       if (d2 < d) d == d2
     }
     const item: [Phrase, number] = [p, d]

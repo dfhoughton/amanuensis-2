@@ -56,6 +56,7 @@ import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { ConfirmationModal } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
+import { defaultDistanceMetric, defaultMaxSimilarPhrases } from "../util/similarity_sorter"
 
 const searchDefaults = {
   page: 1,
@@ -70,7 +71,11 @@ type DictionaryProps = {
 export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   const {
     freeSearch = searchDefaults,
-    similaritySearch: sSearch = { phrase: "", limit: 10 }, // TODO: don't just type in these constants willy-nilly
+    similaritySearch: sSearch = {
+      phrase: "",
+      metric: state.config?.distanceMetric ?? defaultDistanceMetric,
+      limit: defaultMaxSimilarPhrases,
+    }, // TODO: don't just type in these constants willy-nilly
     searchResults,
     searchTab = SearchTabs.Free,
     freeSearchResults,
@@ -480,10 +485,12 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
   state,
   dispatch,
 }) => {
+  const metric = state.config?.distanceMetric ?? defaultDistanceMetric
   const search = state.similaritySearch ?? {
     phrase: "",
+    metric,
     languages: [],
-    limit: 10,
+    limit: defaultMaxSimilarPhrases,
   }
   const { phrase, languages: langs, limit } = search
   return (
@@ -499,6 +506,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
             debounce((e: React.ChangeEvent<HTMLInputElement>) => {
               const params: SimilaritySearch = {
                 limit,
+                metric,
                 languages: langs,
                 phrase: e.target.value,
               }

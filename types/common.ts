@@ -1,5 +1,6 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
 import { OverridableStringUnion } from "@material-ui/types"
+import { DistanceMetric } from "../util/similarity_sorter"
 
 // a representation of a selection
 export type Selection = {
@@ -87,6 +88,7 @@ export type FreeFormSearch = {
 export type SimilaritySearch = {
   phrase: string
   limit: number
+  metric: DistanceMetric
   languages?: number[]
   pageSize?: number
   page?: number
@@ -136,6 +138,8 @@ export type AppState = {
 export type Configuration = {
   id?: number // here to make configuration compatible with indexeddb
   showHelp?: boolean
+  distanceMetric?: DistanceMetric
+  maxSimilarPhrases?: number
 }
 
 export type Language = {
