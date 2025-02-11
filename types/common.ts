@@ -74,6 +74,22 @@ export type TextSearch = {
   caseSensitive: boolean
 }
 
+export enum SortType {
+  Lemma,
+  Creation,
+  Update
+}
+
+export enum SortDirection {
+  Ascending,
+  Descending
+}
+
+export type Sort = {
+  type: SortType
+  direction: SortDirection
+}
+
 // used to find phrases in the dictionary
 export type FreeFormSearch = {
   lemma?: TextSearch
@@ -82,6 +98,7 @@ export type FreeFormSearch = {
   languages?: number[]
   pageSize?: number
   page?: number
+  sort?: Sort
 }
 
 // used to find phrases a citation/phrase might be merged with

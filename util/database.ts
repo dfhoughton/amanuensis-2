@@ -8,13 +8,19 @@ import {
   Relation,
   SearchResults,
   SimilaritySearch,
+  SortDirection,
+  SortType,
   Tag,
   UrlSearch,
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
 import {importDB, exportDB, importInto, peakImportFile} from "dexie-export-import";
-import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
+import {
+  defaultDistanceMetric,
+  defaultMaxSimilarPhrases,
+  SimilaritySorter,
+} from "./similarity_sorter"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -469,6 +475,7 @@ export async function phraseSearch(
     text,
     tags = [],
     languages = [],
+    sort = { type: SortType.Lemma, direction: SortDirection.Ascending },
     // these defaults should be redundant
     page = 1,
     pageSize = 10,
@@ -522,8 +529,20 @@ export async function phraseSearch(
           return false
         })
       }
+      const sortKey =
+        sort.type === SortType.Lemma
+          ? "lemma"
+          : sort.type === SortType.Creation
+          ? "created_at"
+          : "updated_at"
       const offset = (page - 1) * pageSize
-      const rs: Phrase[] = await scope.sortBy("lemma")
+      const rs: Phrase[] = await scope
+        .sortBy(sortKey)
+        .then((phrases) =>
+          sort.direction === SortDirection.Descending
+            ? phrases.reverse()
+            : phrases
+        )
       const phrases = rs.slice(offset, offset + pageSize)
       const total = rs.length
       return { phrases, total }

@@ -7,12 +7,16 @@ import {
   SearchResults,
   SearchTabs,
   SimilaritySearch,
+  Sort,
+  SortDirection,
+  SortType,
   Tag,
   UrlSearch,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Chip,
@@ -36,6 +40,9 @@ import { Language as LanguageIcon } from "@mui/icons-material"
 import MergeIcon from "@mui/icons-material/Merge"
 import DeleteIcon from "@mui/icons-material/Delete"
 import LinkIcon from "@mui/icons-material/Link"
+import SortIcon from "@mui/icons-material/Sort"
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import Grid from "@mui/material/Grid2"
 import isEqual from "lodash/isEqual"
 import {
@@ -56,7 +63,10 @@ import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { ConfirmationModal } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
-import { defaultDistanceMetric, defaultMaxSimilarPhrases } from "../util/similarity_sorter"
+import {
+  defaultDistanceMetric,
+  defaultMaxSimilarPhrases,
+} from "../util/similarity_sorter"
 
 const searchDefaults = {
   page: 1,
@@ -282,7 +292,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         searchResults={searchResults}
         dispatch={dispatch}
       />
-      <Grid container columns={12} spacing={1} sx={{ width: "100%" }}>
+      <Grid container columns={13} spacing={1} sx={{ width: "100%" }}>
         <Grid size={6}>
           <TagWidget
             hideHelp={hideHelp}
@@ -363,10 +373,132 @@ const SearchForm: React.FC<SearchFormProps> = ({
             />
           </LabelWithHelp>
         </Grid>
+        <Grid size={1}>
+          <SortWidget state={state} search={search} dispatch={dispatch} />
+        </Grid>
       </Grid>
     </Stack>
   )
 }
+
+type SortWidgetProps = {
+  state: AppState
+  search: FreeFormSearch
+  dispatch: React.Dispatch<Action>
+}
+const SortWidget: React.FC<SortWidgetProps> = ({ state, search, dispatch }) => {
+  const [sortMenuAnchorEl, setSortMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null)
+  const sortMenuAnchor = useRef<SVGSVGElement>(null)
+  const sortMenuOpen = Boolean(sortMenuAnchorEl)
+  const sort = state.freeSearch?.sort ?? {
+    type: SortType.Lemma,
+    direction: SortDirection.Ascending,
+  }
+  return (
+    <>
+      <Tooltip
+        arrow
+        title={
+          <>
+            Sort by lemma (L), creation date (C), time of last edit (E),
+            ascending (<ArrowUpwardIcon fontSize="inherit" />) or descending (
+            <ArrowDownwardIcon fontSize="inherit" />)
+          </>
+        }
+      >
+        <IconButton
+          color="primary"
+          size="small"
+          onClick={(e) => setSortMenuAnchorEl(e.currentTarget)}
+        >
+          <Badge
+            badgeContent={<SortBadgeDescription sort={sort} />}
+            color="secondary"
+            invisible={
+              sort.direction === SortDirection.Ascending &&
+              sort.type === SortType.Lemma
+            }
+          >
+            <SortIcon fontSize="inherit" ref={sortMenuAnchor} />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+      <Menu
+        MenuListProps={{ dense: true }}
+        anchorEl={sortMenuAnchorEl}
+        open={sortMenuOpen}
+        onClose={() => setSortMenuAnchorEl(null)}
+      >
+        {sorts.map(({ description, sort: s }, i) => (
+          <MenuItem
+            key={i}
+            selected={s.type === sort.type && s.direction === sort.direction}
+            onClick={() => {
+              setSortMenuAnchorEl(null)
+              search = { ...search, sort: s, page: 1 }
+              phraseSearch(search)
+                .then((searchResults) =>
+                  dispatch({
+                    action: "search",
+                    search,
+                    searchResults,
+                  })
+                )
+                .catch(errorHandler(dispatch))
+            }}
+          >
+            {description}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  )
+}
+
+const SortBadgeDescription: React.FC<{ sort: Sort }> = ({ sort: s }) => {
+  const t =
+    s.type === SortType.Lemma ? "L" : s.type === SortType.Creation ? "C" : "U"
+  const d =
+    s.direction == SortDirection.Ascending ? (
+      <ArrowUpwardIcon fontSize="inherit" />
+    ) : (
+      <ArrowDownwardIcon fontSize="inherit" />
+    )
+  return (
+    <Box sx={{ textWrap: "nowrap" }}>
+      {t}
+      {d}
+    </Box>
+  )
+}
+
+const sorts: Array<{ description: string; sort: Sort }> = [
+  {
+    description: "by lemma ascending",
+    sort: { type: SortType.Lemma, direction: SortDirection.Ascending },
+  },
+  {
+    description: "by lemma descending",
+    sort: { type: SortType.Lemma, direction: SortDirection.Descending },
+  },
+  {
+    description: "by creation date ascending",
+    sort: { type: SortType.Creation, direction: SortDirection.Ascending },
+  },
+  {
+    description: "by creation date descending",
+    sort: { type: SortType.Creation, direction: SortDirection.Descending },
+  },
+  {
+    description: "by time of last update ascending",
+    sort: { type: SortType.Update, direction: SortDirection.Ascending },
+  },
+  {
+    description: "by time of last update descending",
+    sort: { type: SortType.Update, direction: SortDirection.Descending },
+  },
+]
 
 type LanguagePickerProps = {
   languages: Language[]
