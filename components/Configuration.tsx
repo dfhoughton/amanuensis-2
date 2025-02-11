@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { LegacyRef, useCallback, useEffect, useState } from "react"
 import {
   AppState,
   Language,
@@ -30,10 +30,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
+import Grid from "@mui/material/Grid2"
 import {
   addLanguage,
   configuration,
   countPhrasesWithLocale,
+  exportDb,
+  importDb,
   knownLanguages,
   phraseSearch,
   removeLanguage,
@@ -48,6 +51,9 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
 import AutoStories from "@mui/icons-material/AutoStories"
 import MergeIcon from "@mui/icons-material/Merge"
+import ClearAll from "@mui/icons-material/ClearAll"
+import FileDownload from "@mui/icons-material/FileDownload"
+import FileUpload from "@mui/icons-material/FileUpload"
 import { languageList } from "../util/languages"
 import {
   defaultDistanceMetric,
@@ -65,7 +71,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   state,
   dispatch,
 }) => {
-  const [clearDbModalOpen, setClearDbModalOpen] = useState(false)
   const [version, setVersion] = useState(0)
   const { config } = state
   useEffect(() => {
@@ -231,15 +236,13 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             onChange={maxSimilarPhrasesHandler}
           />
         </LabelWithHelp>
-        <LabelWithHelp
-          hidden={!showingHelp}
-          label=""
-          explanation="Clicking this will remove all notes, tags, languages, and configuration."
-        >
-          <Button onClick={() => setClearDbModalOpen(true)}>
-            Clear Database
-          </Button>
-        </LabelWithHelp>
+        <DbActions
+          showingHelp
+          dispatch={dispatch}
+          version={version}
+          setVersion={setVersion}
+        />
+        {/** HERE */}
         <Languages
           state={state}
           dispatch={dispatch}
@@ -247,22 +250,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           setVersion={setVersion}
         />
       </Stack>
-      <ConfirmationModal
-        open={clearDbModalOpen}
-        title="Remove All Records from Database"
-        okHandler={() => {
-          resetDatabase()
-            .then(() => {
-              setVersion(version + 1)
-              dispatch({ action: "phrasesDeleted" })
-            })
-            .catch(errorHandler(dispatch))
-        }}
-        setOpen={setClearDbModalOpen}
-      >
-        This will permanently delete everything thing you have saved in the
-        database.
-      </ConfirmationModal>
     </>
   )
 }
@@ -581,6 +568,230 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
             variant="outlined"
             color="secondary"
             onClick={() => setLanguage(undefined)}
+          >
+            Cancel
+          </Button>
+        </Stack>
+      </Box>
+    </Modal>
+  )
+}
+
+type DbActionProps = {
+  showingHelp: boolean
+  version: number
+  setVersion: (version: number) => void
+  dispatch: React.Dispatch<Action>
+}
+
+export const DbActions: React.FC<DbActionProps> = ({
+  showingHelp,
+  version,
+  setVersion,
+  dispatch,
+}) => {
+  const [clearDbModalOpen, setClearDbModalOpen] = useState(false)
+  const [openImportDbModal, setOpenImportDbModal] = React.useState(false)
+  return (
+    <>
+      <LabelWithHelp
+        hidden={!showingHelp}
+        sx={{ width: "100%" }}
+        label="Database Actions"
+        explanation={
+          <Stack spacing={1}>
+            <Typography>
+              Clear will remove all notes, tags, languages, and configuration.
+            </Typography>
+            <Typography>
+              Export downloads a JSON file containing all database structure and
+              content.
+            </Typography>
+            <Typography>
+              Import merges such a file into the current database. You may find
+              this gives you duplicate notes.
+            </Typography>
+          </Stack>
+        }
+      >
+        <Grid container spacing={1} columns={3}>
+          <Grid size={1}>
+            <Button
+              onClick={() => setClearDbModalOpen(true)}
+              endIcon={<ClearAll />}
+            >
+              Clear
+            </Button>
+          </Grid>
+          <Grid size={1}>
+            <Button
+              endIcon={<FileDownload />}
+              onClick={async () => {
+                const data = await exportDb()
+                const a = document.createElement("a")
+                a.href = URL.createObjectURL(
+                  new Blob([data], {
+                    type: "application/json",
+                  })
+                )
+                a.download = `amanuensis-${new Date()
+                  .toLocaleDateString()
+                  .replaceAll("/", "-")}.json`
+                a.click()
+              }}
+            >
+              Export
+            </Button>
+          </Grid>
+          <Grid size={1}>
+            <Button
+              endIcon={<FileUpload />}
+              onClick={() => setOpenImportDbModal(true)}
+            >
+              Import
+            </Button>
+          </Grid>
+        </Grid>
+      </LabelWithHelp>
+      <ConfirmationModal
+        open={clearDbModalOpen}
+        title="Remove All Records from Database"
+        okHandler={() => {
+          resetDatabase()
+            .then(() => {
+              setVersion(version + 1)
+              dispatch({ action: "phrasesDeleted" })
+            })
+            .catch(errorHandler(dispatch))
+        }}
+        setOpen={setClearDbModalOpen}
+      >
+        This will permanently delete everything thing you have saved in the
+        database.
+      </ConfirmationModal>
+      <ImportDbModal
+        open={openImportDbModal}
+        setOpen={setOpenImportDbModal}
+        version={version}
+        setVersion={setVersion}
+        dispatch={dispatch}
+      />
+    </>
+  )
+}
+
+type ImportDbModalProps = {
+  open: boolean
+  setOpen: (open: boolean) => void
+  version: number
+  setVersion: (version: number) => void
+  dispatch: React.Dispatch<Action>
+}
+const ImportDbModal: React.FC<ImportDbModalProps> = ({
+  open,
+  setOpen,
+  version,
+  setVersion,
+  dispatch,
+}) => {
+  const [file, setFile] = React.useState<File>()
+  const [dropText, setDropText] = React.useState("Click or drop file here")
+  const hiddenFilePicker = React.useRef<HTMLInputElement>(null)
+  return (
+    <Modal
+      open={open}
+      onClose={() => setOpen(false)}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box>
+        <Typography id="modal-modal-title" variant="h6" component="h2">
+          {`Import an exported database`}
+        </Typography>
+        <Typography id="modal-modal-description" sx={{ m: 2 }}>
+          {`This will import everything from the chosen database file into the working database. You may find that this results in duplicate notes and tags. You will have to merge or delete these manually.`}
+        </Typography>
+        <Stack
+          alignContent="center"
+          alignItems="center"
+          sx={{
+            width: "100%",
+            margin: 1,
+            marginBottom: 2,
+            border: "2px dotted #bbb",
+            borderRadius: "10px",
+            padding: 1,
+            color: "#bbb",
+            cursor: "pointer",
+          }}
+          onDragOver={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            e.dataTransfer.dropEffect = "copy"
+          }}
+          onDrop={async (e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            const file = e.dataTransfer.files[0]
+            try {
+              if (!file) throw new Error(`Only files can be dropped here`)
+              setDropText(`${file.name}`)
+              setFile(file)
+            } catch (error) {
+              console.error("" + error)
+            }
+          }}
+          onClick={(e) => {
+            hiddenFilePicker.current?.click()
+          }}
+        >
+          {dropText}
+          <input
+            type="file"
+            style={{ display: "none" }}
+            ref={hiddenFilePicker}
+            accept="application/json"
+            onChange={(e) => {
+              const file = e.target.files![0]
+              setDropText(file.name)
+              setFile(file)
+            }}
+          />
+        </Stack>
+        <Stack
+          spacing={2}
+          direction="row"
+          sx={{
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            endIcon={<FileUpload />}
+            variant="outlined"
+            color="primary"
+            disabled={file == null}
+            onClick={() => {
+              importDb(file!, (total, completed) =>
+                console.log(`completed ${completed} of ${total}`)
+              )
+                .then(() => {
+                  dispatch({
+                    action: "message",
+                    message: `imported all data from ${file?.name}`,
+                  })
+                  setVersion(version + 1)
+                  setOpen(false)
+                })
+                .catch(errorHandler(dispatch))
+            }}
+          >
+            Import
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => setOpen(false)}
           >
             Cancel
           </Button>

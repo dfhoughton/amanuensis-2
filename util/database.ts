@@ -13,7 +13,8 @@ import {
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
-import { defaultDistanceMetric, defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
+import {importDB, exportDB, importInto, peakImportFile} from "dexie-export-import";
+import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -531,4 +532,13 @@ export async function phraseSearch(
   const { phrases, total } = rv
   const pages = Math.ceil(total / pageSize)
   return { selected: -1, phrases, page, pages, pageSize, total }
+}
+
+/** import export functionality */
+export async function exportDb() {
+  return exportDB(db)
+}
+
+export async function importDb(file: File, progressCallback?: (total: number, completed: number) => void) {
+  return
 }
