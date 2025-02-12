@@ -114,6 +114,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
               >
                 {tags
                   .filter((t) => !usedTags.has(t.id!))
+                  .sort((a, b) => a.name < b.name ? -1 : b.name < a.name ? 1 : 0)
                   .map((t) => (
                     <MenuItem
                       key={t.id!}
