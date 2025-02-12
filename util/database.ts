@@ -15,12 +15,10 @@ import {
 } from "../types/common"
 import { matcher } from "./general"
 import every from "lodash/every"
-import {importDB, exportDB, importInto, peakImportFile} from "dexie-export-import";
-import {
-  defaultDistanceMetric,
-  defaultMaxSimilarPhrases,
-  SimilaritySorter,
-} from "./similarity_sorter"
+import uniq from "lodash/uniq"
+import groupBy from "lodash/groupBy"
+import { exportDB, importInto } from "dexie-export-import"
+import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -97,6 +95,7 @@ export function resetDatabase() {
     db.languages,
     db.configuration,
     db.tags,
+    // db.relations isn't in here; is this okay? -- the method doesn't accept more than 4 tables
     () => {
       Promise.all(db.tables.map((table) => table.clear())).then(() => {
         db.relations.clear() // transaction couldn't take all the tables
@@ -132,7 +131,7 @@ export function createRelation(p1: Phrase, p2: Phrase): Promise<number> {
     // save *just this relation* into the record of both phrases
     const phrases = await db.phrases.where("id").anyOf([i1, i2]).toArray()
     phrases.forEach((p) => {
-      p.relations = [...(p.relations ?? []), id]
+      p.relations = uniq([...(p.relations ?? []), id])
     })
     await db.phrases.bulkPut(phrases)
     return id!
@@ -558,6 +557,48 @@ export async function exportDb() {
   return exportDB(db)
 }
 
-export async function importDb(file: File, progressCallback?: (total: number, completed: number) => void) {
+export async function importDb(
+  file: File,
+  progressCallback?: (total: number, completed: number) => void
+) {
+  const tmp = new BaseDexie("tmp") as Dexie
+  await importInto(tmp, file)
+  // skip configuration
+  const languageMap = await mergeLanguages(tmp)
+  // import tags, creating tag map
+  // import phrases, fixing languages and tags; collect relations
+  // import relations
+  tmp.delete()
   return
+}
+
+// merge an imported set of languages into the existing languages table
+async function mergeLanguages(tmp: Dexie<DexieTable>) {
+  const newLanguages: Map<string, Language> = new Map()
+  const oldLanguages: Map<string, Language> = new Map()
+  ;(await tmp.languages.toArray()).forEach((l) =>
+    newLanguages.set(l.locale!, l)
+  )
+  ;(await db.languages.toArray()).forEach((l) => oldLanguages.set(l.locale!, l))
+  const languageMap: Map<number, number> = new Map() // map new language ids to old language ids
+  db.transaction("rw", db.languages, async () => {
+    for (const [locale, newLang] of newLanguages) {
+      const oldLang = oldLanguages.get(locale)
+      if (oldLang) {
+        oldLang.count += newLang.count
+        for (const [locale, count] of Object.entries(newLang.locales!)) {
+          oldLang.locales![locale] ??= 0
+          oldLang.locales![locale] += count
+        }
+        await db.languages.put(oldLang)
+        languageMap.set(newLang.id!, oldLang.id!)
+      } else {
+        const oldId = newLang.id!
+        delete newLang.id
+        const newId: number = await db.languages.put(newLang)
+        languageMap.set(oldId, newId)
+      }
+    }
+  })
+  return languageMap
 }

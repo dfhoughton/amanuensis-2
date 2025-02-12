@@ -67,6 +67,7 @@ import {
   defaultDistanceMetric,
   defaultMaxSimilarPhrases,
 } from "../util/similarity_sorter"
+import { sortTags } from "./Tags"
 
 const searchDefaults = {
   page: 1,
@@ -261,7 +262,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
-      .then((tags) => setTags(tags))
+      .then((tags) => setTags(sortTags(tags)))
       .catch(errorHandler(dispatch))
   }, [])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
@@ -950,7 +951,13 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
             }}
           />
           <Box sx={{ fontSize: "0.875rem" }}>
-            <b>{firstResult}</b> &ndash; <b>{lastResult}</b> of <b>{total}</b>
+            {total === 0 && <b>none found</b>}
+            {total > 0 && (
+              <>
+                <b>{firstResult}</b> &ndash; <b>{lastResult}</b> of{" "}
+                <b>{total}</b>
+              </>
+            )}
           </Box>
         </Stack>
         {phrases.map((p, i) => {

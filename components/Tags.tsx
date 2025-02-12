@@ -22,7 +22,6 @@ import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import { deleteTag, knownTags, phraseSearch, saveTag } from "../util/database"
 import { TagChip } from "./TagChip"
-import { sumBy } from "lodash"
 
 type TagsProps = {
   state: AppState
@@ -39,29 +38,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
       .then((tags) => {
         // sort the tags initially by creation order, then re-group by
         // style, within each style group, sort by name
-        tags = tags.sort((a, b) => a.id! - b.id!) // creation order
-        // group by style
-        let i = 0
-        type StyleGroup = { id: number; tags: Tag[] }
-        const styleMap: Map<string, StyleGroup> = new Map()
-        const styleGroups: StyleGroup[] = []
-        for (const t of tags) {
-          const style = `${t.bgcolor}:${t.color}`
-          const sg = styleMap.get(style) ?? {
-            id: i++,
-            tags: [],
-          }
-          sg.tags.push(t)
-          styleMap.set(style, sg)
-          if (i > styleGroups.length) styleGroups.push(sg)
-        }
-        tags.length = 0
-        for (const sg of styleGroups) {
-          tags = [
-            ...tags,
-            ...sg.tags.sort((a, b) => a.name.localeCompare(b.name)), // within group by name
-          ]
-        }
+        tags = sortTags(tags)
         setTags(tags)
       })
       .catch(errorHandler(dispatch))
@@ -367,4 +344,32 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
       </Box>
     </Modal>
   )
+}
+// put tags into their canonical display order
+export function sortTags(tags: Tag[]) {
+  tags = tags.sort((a, b) => a.id! - b.id!) // creation order
+
+  // group by style
+  let i = 0
+  type StyleGroup = { id: number; tags: Tag[] }
+  const styleMap: Map<string, StyleGroup> = new Map()
+  const styleGroups: StyleGroup[] = []
+  for (const t of tags) {
+    const style = `${t.bgcolor}:${t.color}`
+    const sg = styleMap.get(style) ?? {
+      id: i++,
+      tags: [],
+    }
+    sg.tags.push(t)
+    styleMap.set(style, sg)
+    if (i > styleGroups.length) styleGroups.push(sg)
+  }
+  tags.length = 0
+  for (const sg of styleGroups) {
+    tags = [
+      ...tags,
+      ...sg.tags.sort((a, b) => a.name.localeCompare(b.name)), // within group by name
+    ]
+  }
+  return tags
 }

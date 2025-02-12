@@ -37,7 +37,7 @@ import {
   savePhrase,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
-import { tagSearch } from "./Tags"
+import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type NoteProps = {
@@ -60,7 +60,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
-      .then((tags) => setTags(tags))
+      .then((tags) => setTags(sortTags(tags)))
       .catch(errorHandler(dispatch))
   }, [])
   useEffect(() => {

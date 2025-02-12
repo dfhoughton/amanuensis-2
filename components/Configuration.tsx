@@ -179,7 +179,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 than <Mention phrase="scar" /> to <Mention phrase="car" />. This
                 is just what you want for suffixing languages like English,
                 where grammatical markers tend to go on the end of words. If you
-                are with with a prefixing language like Swahili, where{" "}
+                are working with a prefixing language like Swahili, where{" "}
                 <Mention phrase="watu" /> is a form of the word{" "}
                 <Mention phrase="mtu" />, this is not so good.
               </Typography>
