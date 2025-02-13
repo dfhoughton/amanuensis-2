@@ -16,8 +16,7 @@ import {
 import { matcher } from "./general"
 import every from "lodash/every"
 import uniq from "lodash/uniq"
-import groupBy from "lodash/groupBy"
-import { exportDB, importInto } from "dexie-export-import"
+import { exportDB } from "dexie-export-import"
 import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
 
 type PhraseTable = {
@@ -91,16 +90,9 @@ init()
 export function resetDatabase() {
   return db.transaction(
     "rw",
-    db.phrases,
-    db.languages,
-    db.configuration,
-    db.tags,
-    // db.relations isn't in here; is this okay? -- the method doesn't accept more than 4 tables
+    [db.phrases, db.languages, db.configuration, db.tags, db.relations],
     () => {
-      Promise.all(db.tables.map((table) => table.clear())).then(() => {
-        db.relations.clear() // transaction couldn't take all the tables
-        init()
-      })
+      Promise.all(db.tables.map((table) => table.clear())).then(() => init())
     }
   )
 }
@@ -553,6 +545,7 @@ export async function phraseSearch(
 }
 
 /** import export functionality */
+
 export async function exportDb() {
   return exportDB(db)
 }
@@ -561,15 +554,87 @@ export async function importDb(
   file: File,
   progressCallback?: (total: number, completed: number) => void
 ) {
-  const tmp = new BaseDexie("tmp") as Dexie
-  await importInto(tmp, file)
-  // skip configuration
+  const blob = await renameDb(file)
+  const tmp = (await BaseDexie.import(blob)) as Dexie
   const languageMap = await mergeLanguages(tmp)
-  // import tags, creating tag map
-  // import phrases, fixing languages and tags; collect relations
-  // import relations
+  const tagMap = await importTags(tmp)
+  await importPhrases(tmp, languageMap, tagMap)
   tmp.delete()
   return
+}
+
+// we export the db under the name amanuensis but want to import it under the name "tmp", so we need
+// to munge the import file
+function renameDb(file: File): Promise<Blob> {
+  return new Promise((resolve, _reject) => {
+    const reader = new FileReader()
+    reader.addEventListener(
+      "load",
+      () => {
+        const data = JSON.parse(reader.result as string)
+        data.data.databaseName = "tmp"
+        resolve(new Blob([JSON.stringify(data)], { type: "application/json" }))
+      },
+      false
+    )
+    reader.readAsText(file)
+  })
+}
+
+// import phrases and relations, converting all foreign keys to those appropriate after import
+async function importPhrases(
+  tmp: Dexie<DexieTable>,
+  languageMap: Map<number, number>,
+  tagMap: Map<number, number>
+) {
+  const phraseNumberMap = new Map() as Map<number, number>
+  const phraseMap = new Map() as Map<number, Phrase>
+  // add the phrases minus relations
+  const phrases = await tmp.phrases.toArray()
+  for (let p of phrases) {
+    const oldId = p.id
+    delete p.id
+    p.languageId = languageMap.get(p.languageId!)
+    const newTags: number[] = []
+    for (const t of p.tags ?? []) {
+      newTags.push(tagMap.get(t)!)
+    }
+    p = { ...p, tags: newTags, relations: [] }
+    const id = await db.phrases.put(p)
+    phraseNumberMap.set(oldId!, id)
+    phraseMap.set(id, { ...p, id })
+  }
+  // now restore the relations
+  const relations = await tmp.relations.toArray()
+  for (let { p1: p1id, p2: p2id } of relations) {
+    if (!phraseNumberMap.has(p1id)) continue
+    if (!phraseNumberMap.has(p2id)) continue
+    const p1 = phraseMap.get(phraseNumberMap.get(p1id)!)!
+    const p2 = phraseMap.get(phraseNumberMap.get(p2id)!)!
+    await createRelation(p1, p2)
+  }
+}
+
+// import the tags from tmp, dealing with name collisions and returning a map from old tag ids to new
+async function importTags(tmp: Dexie<DexieTable>) {
+  const tagMap = new Map() as Map<number, number>
+  ;(await tmp.tags.toArray()).forEach(async (t) => {
+    let name = t.name
+    let disambiguator = 1
+    while (true) {
+      const nameInUse = await db.tags.get({ name })
+      if (nameInUse) {
+        name = `${t.name} (${disambiguator++})`
+      } else {
+        const oldId = t.id!
+        delete t.id
+        const id = (await db.tags.put({ ...t, name })) as number
+        tagMap.set(oldId, id)
+        break
+      }
+    }
+  })
+  return tagMap
 }
 
 // merge an imported set of languages into the existing languages table
