@@ -557,15 +557,19 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
         {!!languages &&
           languages
             .sort((a, b) => (a.name < b.name ? -1 : 1))
-            .map((l) => (
-              <MenuItem
-                key={l.id!}
-                selected={languageIds.some((lId) => lId === l.id)}
-                onClick={onAdd(l)}
-              >
-                {l.name}
-              </MenuItem>
-            ))}
+            .map((l) => {
+              const selected = languageIds.some((lId) => lId === l.id)
+              return (
+                <MenuItem
+                  key={l.id!}
+                  selected={selected}
+                  disabled={selected}
+                  onClick={onAdd(l)}
+                >
+                  {l.name}
+                </MenuItem>
+              )
+            })}
       </Menu>
     </Stack>
   )

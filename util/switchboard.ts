@@ -8,6 +8,7 @@ import { Citation, Phrase } from "../types/common"
 export type MessageFromBackgroundToPopup =
   | { action: "url"; url?: string }
   | { action: "reloaded"; url?: string }
+  | { action: "open" }
   | {
       action: "selection"
       selection: Citation

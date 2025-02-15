@@ -24,7 +24,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
             )
             dispatch({
               action: "error",
-              message: `Unhandled message from background; type: ${response.action}`,
+              message: `Unhandled message from background to popup; type: ${response.action}`,
             })
         }
       }
@@ -37,6 +37,9 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
         _sendResponse: (m: MessageFromPopupToBackground) => void
       ) => {
         switch (message.action) {
+          case "open":
+            console.log('content script has loaded after navigation change')
+            break
           case "error":
             dispatch(message)
             break
@@ -54,7 +57,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
             )
             dispatch({
               action: "error",
-              message: `Unhandled message from background; type: ${message.action}`,
+              message: `Unhandled message from background to popup; type: ${message.action}`,
             })
         }
         return true

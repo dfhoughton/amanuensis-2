@@ -17,6 +17,7 @@ function sendToContent(
         tab.id!,
         msg,
         (m: MessageFromContentToBackground) => {
+          if (m == null) return // we get a null message in the extensions manager; we may other places as well
           switch (m.action) {
             case "noSelection":
             case "phraseSelected":
