@@ -1,4 +1,4 @@
-import React, { LegacyRef, useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import {
   AppState,
   Language,

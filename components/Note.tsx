@@ -1,6 +1,7 @@
 import {
   Badge,
   Box,
+  Button,
   Chip,
   Divider,
   IconButton,
@@ -14,6 +15,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
+import Grid from "@mui/material/Grid2"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
@@ -28,6 +30,9 @@ import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
+import MoreVertIcon from "@mui/icons-material/MoreVert"
+import StarRateIcon from "@mui/icons-material/StarRate"
+import DeleteIcon from "@mui/icons-material/Delete"
 import {
   deleteRelation,
   knownTags,
@@ -107,95 +112,109 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
         {!citation && <i>no word yet</i>}
         {!!citation && (
           <>
-            <Stack sx={{ display: "inline-table", float: "right" }}>
-              <Tooltip
-                arrow
-                title={`When this is enabled, some part of this phrase is unsaved.${
-                  clean ? "" : " Click to save."
-                }`}
-              >
-                <span>
-                  <IconButton
-                    color="primary"
-                    size="small"
-                    disabled={clean}
-                    onClick={save}
+            <Grid container columns={6}>
+              <Grid size={5}>
+                <LabelWithHelp
+                  hidden={helpHidden}
+                  label="Lemma"
+                  explanation={
+                    'The canonical, "dictionary" form of the selected phrase. The lemma of "running", for example, might be "run".'
+                  }
+                  sx={{ pb: 1 }}
+                >
+                  <TextField
+                    onChange={
+                      debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                        dispatch({
+                          action: "phrase",
+                          phrase: { ...phrase!, lemma: e.target.value },
+                        })
+                      }, 500) as React.ChangeEventHandler<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >
+                    }
+                    variant="standard"
+                    hiddenLabel
+                    placeholder="Lemma"
+                    defaultValue={phrase?.lemma}
+                    sx={{ width: "100%" }}
+                    inputRef={lemmaRef}
+                  />
+                </LabelWithHelp>
+              </Grid>
+              <Grid size={1}>
+                <Stack
+                  sx={{
+                    display: "inline-table",
+                    float: "right",
+                  }}
+                >
+                  <Tooltip
+                    arrow
+                    title={`When this is enabled, some part of this phrase is unsaved.${
+                      clean ? "" : " Click to save."
+                    }`}
                   >
-                    <Save fontSize="inherit" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              {languages.length > 1 && (
-                <>
-                  <Tooltip arrow title="Change language assignment for note">
-                    <Badge
-                      badgeContent={
-                        currentLanguage?.locale === "und"
-                          ? undefined
-                          : currentLanguage?.locale
-                      }
-                      overlap="circular"
-                      color="secondary"
-                    >
+                    <span>
                       <IconButton
                         color="primary"
                         size="small"
-                        onClick={(e) =>
-                          setLanguageMenuAnchorEl(e.currentTarget)
-                        }
+                        disabled={clean}
+                        onClick={save}
                       >
-                        <LanguageIcon fontSize="inherit" />
+                        <Save fontSize="inherit" />
                       </IconButton>
-                    </Badge>
+                    </span>
                   </Tooltip>
-                  <Menu
-                    MenuListProps={{ dense: true }}
-                    anchorEl={languageMenuAnchorEl}
-                    open={languageMenuOpen}
-                    onClose={() => setLanguageMenuAnchorEl(null)}
-                  >
-                    {languages
-                      .sort((a, b) => (a.name < b.name ? -1 : 1))
-                      .map((l) => (
-                        <MenuItem
-                          key={l.id!}
-                          selected={l.id === phrase.languageId}
-                          onClick={changeLanguage(l)}
+                  {languages.length > 1 && (
+                    <>
+                      <Tooltip
+                        arrow
+                        title="Change language assignment for note"
+                      >
+                        <Badge
+                          badgeContent={
+                            currentLanguage?.locale === "und"
+                              ? undefined
+                              : currentLanguage?.locale
+                          }
+                          overlap="circular"
+                          color="secondary"
                         >
-                          {l.name}
-                        </MenuItem>
-                      ))}
-                  </Menu>
-                </>
-              )}
-            </Stack>
-            <LabelWithHelp
-              hidden={helpHidden}
-              label="Lemma"
-              explanation={
-                'The canonical, "dictionary" form of the selected phrase. The lemma of "running", for example, might be "run".'
-              }
-              sx={{ pb: 1 }}
-            >
-              <TextField
-                onChange={
-                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                    dispatch({
-                      action: "phrase",
-                      phrase: { ...phrase!, lemma: e.target.value },
-                    })
-                  }, 500) as React.ChangeEventHandler<
-                    HTMLInputElement | HTMLTextAreaElement
-                  >
-                }
-                variant="standard"
-                hiddenLabel
-                placeholder="Lemma"
-                defaultValue={phrase?.lemma}
-                sx={{ width: "85%" }}
-                inputRef={lemmaRef}
-              />
-            </LabelWithHelp>
+                          <IconButton
+                            color="primary"
+                            size="small"
+                            onClick={(e) =>
+                              setLanguageMenuAnchorEl(e.currentTarget)
+                            }
+                          >
+                            <LanguageIcon fontSize="inherit" />
+                          </IconButton>
+                        </Badge>
+                      </Tooltip>
+                      <Menu
+                        MenuListProps={{ dense: true }}
+                        anchorEl={languageMenuAnchorEl}
+                        open={languageMenuOpen}
+                        onClose={() => setLanguageMenuAnchorEl(null)}
+                      >
+                        {languages
+                          .sort((a, b) => (a.name < b.name ? -1 : 1))
+                          .map((l) => (
+                            <MenuItem
+                              key={l.id!}
+                              selected={l.id === phrase.languageId}
+                              onClick={changeLanguage(l)}
+                            >
+                              {l.name}
+                            </MenuItem>
+                          ))}
+                      </Menu>
+                    </>
+                  )}
+                </Stack>
+              </Grid>
+            </Grid>
             <LabelWithHelp
               hidden={helpHidden}
               label="Lemma Note"
@@ -219,8 +238,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 hiddenLabel
                 placeholder="Lemma Note"
                 defaultValue={phrase?.note}
-                sx={{ width: "85%" }}
-                inputRef={noteRef}
+                sx={{ width: "100%" }}
               />
             </LabelWithHelp>
             <TagWidget
@@ -297,6 +315,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 tags={tags}
                 chosen={state.citationIndex === i}
                 helpHidden={helpHidden}
+                onlyCitation={(phrase?.citations.length ?? 0) < 2}
                 state={state}
                 dispatch={dispatch}
               />
@@ -315,6 +334,7 @@ type CitationInBriefProps = {
   chosen: boolean
   tags: Tag[] | undefined
   helpHidden: boolean
+  onlyCitation: boolean
   state: AppState
   dispatch: React.Dispatch<Action>
 }
@@ -325,9 +345,12 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   tags,
   chosen,
   helpHidden: hidden,
+  onlyCitation,
   state,
   dispatch,
 }) => {
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null)
   const separation = citationIndex === 0 ? 2 : 1
   const divider = <Divider sx={{ mt: separation, mb: separation }} />
   if (chosen)
@@ -335,12 +358,92 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
       <Stack spacing={1}>
         {divider}
         <LabelWithHelp hidden={hidden} label="Title and URL">
-          <TitleDateAndUrl
-            citation={citation}
-            state={state}
-            dispatch={dispatch}
-            phrase={phrase}
-          />
+          <Grid container columns={12}>
+            <Grid size={onlyCitation ? 12 : 11}>
+              <TitleDateAndUrl
+                citation={citation}
+                state={state}
+                dispatch={dispatch}
+                phrase={phrase}
+              />
+            </Grid>
+            {!onlyCitation && (
+              <Grid size={1}>
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={(e) => setMoreMenuAnchorEl(e.currentTarget)}
+                >
+                  <MoreVertIcon fontSize="inherit" />
+                </IconButton>
+                <Menu
+                  MenuListProps={{ dense: true }}
+                  anchorEl={moreMenuAnchorEl}
+                  open={Boolean(moreMenuAnchorEl)}
+                  onClose={() => setMoreMenuAnchorEl(null)}
+                >
+                  <MenuItem>
+                    <Tooltip title="The canonical citation is the one shown by default">
+                      <Button
+                        color="secondary"
+                        size="small"
+                        disabled={citation.canonical}
+                        sx={{ width: "100%" }}
+                        endIcon={<StarRateIcon fontSize="inherit" />}
+                        onClick={() => {
+                          const i = phrase.citations.findIndex(
+                            (c) => c === citation
+                          )
+                          const citations = phrase.citations.map((c) => ({
+                            ...c,
+                            canonical: false,
+                          }))
+                          citations[i].canonical = true
+                          console.log("citations", citations)
+                          dispatch({
+                            action: "phrase",
+                            phrase: { ...phrase, citations },
+                          })
+                          dispatch({
+                            action: "message",
+                            message: "displayed citation marked as canonical; change not yet saved",
+                          })
+                          setMoreMenuAnchorEl(null)
+                        }}
+                      >
+                        Canonical
+                      </Button>
+                    </Tooltip>
+                  </MenuItem>
+                  <MenuItem>
+                    <Button
+                      color="primary"
+                      size="small"
+                      sx={{ width: "100%" }}
+                      endIcon={<DeleteIcon fontSize="inherit" />}
+                      onClick={() => {
+                        const i = phrase.citations.findIndex(
+                          (c) => c === citation
+                        )
+                        const citations = phrase.citations.splice(i, 1)
+                        dispatch({
+                          action: "phrase",
+                          phrase: { ...phrase, citations },
+                        })
+                        dispatch({
+                          action: "message",
+                          message: "citation removed from phrase; change not yet saved",
+                        })
+                        setMoreMenuAnchorEl(null)
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </MenuItem>
+                </Menu>
+              </Grid>
+            )}
+          </Grid>
         </LabelWithHelp>
         <LabelWithHelp
           hidden={hidden}
