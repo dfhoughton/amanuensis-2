@@ -73,3 +73,10 @@ export function magicUrl(c: Citation): string | undefined {
     return url
   }
 }
+
+/** strip away any hash from the URL */
+export function cleanUrl(url: string): string {
+  const u = new Url(url)
+  u.set('hash', '')
+  return u.href
+}

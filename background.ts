@@ -1,4 +1,5 @@
 import { citationToPhrase } from "./util/database"
+import { cleanUrl } from "./util/magic_url"
 import {
   MessageFromBackgroundToContent,
   MessageFromBackgroundToPopup,
@@ -30,7 +31,7 @@ function sendToContent(
                   const { title, url } = tab
                   const { selection } = m
                   selection.title = title
-                  selection.url = url
+                  selection.url = cleanUrl(url!)
                   const text = `${selection.before}${selection.phrase}${selection.after}`
                   chrome.i18n
                     .detectLanguage(text)
