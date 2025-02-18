@@ -82,7 +82,8 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
           >
             {!presentTags?.length && <FauxPlaceholder>Tags</FauxPlaceholder>}
             {presentTags
-              ?.map((i) => tags.find((t: Tag) => t.id === i)!)
+              ?.filter((i) => i != null)
+              .map((i) => tags.find((t: Tag) => t.id === i)!)
               .map((t) => {
                 const f = onClick ? onClick(t) : undefined
                 return (
