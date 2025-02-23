@@ -136,7 +136,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     variant="standard"
                     hiddenLabel
                     placeholder="Lemma"
-                    defaultValue={phrase?.lemma}
+                    value={phrase?.lemma}
                     sx={{ width: "100%" }}
                     inputRef={lemmaRef}
                   />
@@ -237,7 +237,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 variant="standard"
                 hiddenLabel
                 placeholder="Lemma Note"
-                defaultValue={phrase?.note}
+                value={phrase?.note}
                 sx={{ width: "100%" }}
               />
             </LabelWithHelp>
@@ -406,7 +406,8 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                           })
                           dispatch({
                             action: "message",
-                            message: "displayed citation marked as canonical; change not yet saved",
+                            message:
+                              "displayed citation marked as canonical; change not yet saved",
                           })
                           setMoreMenuAnchorEl(null)
                         }}
@@ -432,7 +433,8 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                         })
                         dispatch({
                           action: "message",
-                          message: "citation removed from phrase; change not yet saved",
+                          message:
+                            "citation removed from phrase; change not yet saved",
                         })
                         setMoreMenuAnchorEl(null)
                       }}
