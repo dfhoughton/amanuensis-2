@@ -54,6 +54,10 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const { phrase, priorPhrase, citationIndex = 0 } = state
   const [languages, setLanguages] = useState<Language[]>([])
   const [currentLanguage, setCurrentLanguage] = useState<Language>()
+  const [note, setNote] = useState(phrase?.note)
+  useEffect(() => {
+    setNote(phrase?.note)
+  }, [phrase?.note])
   useEffect(() => {
     perhapsStaleLanguages()
       .then((languages) => {
@@ -136,7 +140,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                     variant="standard"
                     hiddenLabel
                     placeholder="Lemma"
-                    value={phrase?.lemma}
+                    defaultValue={phrase?.lemma}
                     sx={{ width: "100%" }}
                     inputRef={lemmaRef}
                   />
@@ -224,20 +228,16 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               <TextField
                 multiline
                 autoFocus
-                onChange={
-                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                    dispatch({
-                      action: "phrase",
-                      phrase: { ...phrase!, note: e.target.value },
-                    })
-                  }, 500) as React.ChangeEventHandler<
-                    HTMLInputElement | HTMLTextAreaElement
-                  >
-                }
+                onChange={(e) => {
+                  dispatch({
+                    action: "phrase",
+                    phrase: { ...phrase!, note: e.target.value },
+                  })
+                }}
                 variant="standard"
                 hiddenLabel
                 placeholder="Lemma Note"
-                value={phrase?.note}
+                value={note}
                 sx={{ width: "100%" }}
               />
             </LabelWithHelp>
