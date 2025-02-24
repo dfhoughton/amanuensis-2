@@ -937,6 +937,15 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                     })
                   )
                   .catch(errorHandler(dispatch))
+              } else if (state.searchTab === SearchTabs.Page) {
+                const s: UrlSearch = { ...state.urlSearch, page: p } as any
+                phrasesOnPage(s).then((results) =>
+                  dispatch({
+                    action: "urlSearch",
+                    search: s,
+                    searchResults: results,
+                  })
+                )
               } else {
                 const s: SimilaritySearch = {
                   ...state.similaritySearch,
