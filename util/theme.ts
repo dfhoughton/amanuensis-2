@@ -37,5 +37,18 @@ export const theme = createTheme({
           }),
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        clickable: ({ theme }) =>
+          theme.unstable_sx({
+            ":hover": {
+              color: theme.palette.secondary.main,
+              "& > svg": {
+                color: theme.palette.secondary.main,
+              },
+            },
+          }),
+      },
+    },
   },
 })
