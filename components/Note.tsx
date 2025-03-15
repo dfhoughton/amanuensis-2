@@ -25,7 +25,7 @@ import {
   Tag,
   UrlSearch,
 } from "../types/common"
-import { Action, errorHandler } from "../util/reducer"
+import { Action, errorHandler, selectCitation } from "../util/reducer"
 import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import isEqual from "lodash/isEqual"
@@ -426,9 +426,11 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                         const i = phrase.citations.findIndex(
                           (c) => c === citation
                         )
-                        const citations = phrase.citations.splice(i, 1)
+                        const citations = phrase.citations
+                        citations.splice(i, 1)
                         dispatch({
                           action: "phrase",
+                          citationIndex: selectCitation(citations),
                           phrase: { ...phrase, citations },
                         })
                         dispatch({

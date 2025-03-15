@@ -29,7 +29,7 @@ export type Action =
     }
   | { action: "error"; message: string }
   | { action: "config"; config: Configuration }
-  | { action: "phrase"; phrase: Phrase }
+  | { action: "phrase"; phrase: Phrase; citationIndex?: number }
   | { action: "phraseSaved" }
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
@@ -67,6 +67,7 @@ export type Action =
   | { action: "relationClicked"; phrase: Phrase }
 
 export function reducer(state: AppState, action: Action): AppState {
+  let ci: number | undefined // citationIndex
   switch (action.action) {
     case "phraseSelected":
       const {
@@ -152,7 +153,8 @@ export function reducer(state: AppState, action: Action): AppState {
       setConfiguration(config)
       return { ...state, config }
     case "phrase": // unsaved change to phrase
-      return { ...state, phrase: action.phrase, searchResults: undefined }
+      ci = action.citationIndex ?? state.citationIndex;
+      return { ...state, phrase: action.phrase, citationIndex: ci, searchResults: undefined }
     case "phraseSaved":
       return { ...state, priorPhrase: { ...state.phrase! } }
     case "citationSelected":
@@ -238,7 +240,7 @@ export function reducer(state: AppState, action: Action): AppState {
       }
       const { selected } = action
       const selectedPhrase = results!.phrases[selected]
-      const ci = selectCitation(selectedPhrase.citations)
+      ci = selectCitation(selectedPhrase.citations)
       return {
         ...state,
         phrase: selectedPhrase,
@@ -350,7 +352,7 @@ export function errorHandler(dispatch: React.Dispatch<Action>) {
   }
 }
 
-const selectCitation = (citations: Citation[]): number => {
+export const selectCitation = (citations: Citation[]): number => {
   const i = citations.findIndex((c) => c.canonical)
   if (i > -1) return i
   return 0
