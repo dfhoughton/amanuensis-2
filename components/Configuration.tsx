@@ -458,7 +458,14 @@ const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box>
+      <Box
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setOpen(false)
+          }
+        }}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {`Add ${name} to Languages`}
         </Typography>
@@ -530,6 +537,12 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
       onClose={() => setLanguage(undefined)}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault()
+          setLanguage(undefined)
+        }
+      }}
     >
       <Box>
         <Typography id="modal-modal-title" variant="h6" component="h2">

@@ -202,6 +202,12 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                         anchorEl={languageMenuAnchorEl}
                         open={languageMenuOpen}
                         onClose={() => setLanguageMenuAnchorEl(null)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            e.preventDefault()
+                            setLanguageMenuAnchorEl(null)
+                          }
+                        }}
                       >
                         {languages
                           .sort((a, b) => (a.name < b.name ? -1 : 1))
@@ -382,6 +388,12 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                   anchorEl={moreMenuAnchorEl}
                   open={Boolean(moreMenuAnchorEl)}
                   onClose={() => setMoreMenuAnchorEl(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault()
+                      setMoreMenuAnchorEl(null)
+                    }
+                  }}
                 >
                   <MenuItem>
                     <Tooltip title="The canonical citation is the one shown by default">

@@ -430,6 +430,12 @@ const SortWidget: React.FC<SortWidgetProps> = ({ state, search, dispatch }) => {
         anchorEl={sortMenuAnchorEl}
         open={sortMenuOpen}
         onClose={() => setSortMenuAnchorEl(null)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setSortMenuAnchorEl(null)
+          }
+        }}
       >
         {sorts.map(({ description, sort: s }, i) => (
           <MenuItem
@@ -553,6 +559,12 @@ const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
         anchorEl={languageMenuAnchorEl}
         open={languageMenuOpen}
         onClose={() => setLanguageMenuAnchorEl(null)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setLanguageMenuAnchorEl(null)
+          }
+        }}
       >
         {!!languages &&
           languages
@@ -1185,7 +1197,15 @@ const MergeModal: React.FC<MergeModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Stack spacing={1}>
+      <Stack
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            close()
+          }
+        }}
+        spacing={1}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           Merge <i>{from?.lemma}</i> into <i>{merged?.lemma}</i>
         </Typography>
