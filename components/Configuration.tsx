@@ -335,6 +335,12 @@ export const Languages: React.FC<LanguagesProps> = ({
           anchorEl={languageMenuAnchorEl}
           open={languageMenuOpen}
           onClose={() => setLanguageMenuAnchorEl(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault()
+              setLanguageMenuAnchorEl(null)
+            }
+          }}
         >
           {Object.entries(languageList)
             .filter(
