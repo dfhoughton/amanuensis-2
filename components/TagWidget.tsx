@@ -116,13 +116,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                 {tags
                   .filter((t) => !usedTags.has(t.id!))
                   .map((t) => (
-                    <MenuItem
-                      key={t.id!}
-                      onClick={() => {
-                        addTag(t)
-                        setAddTagMenuAnchorEl(null)
-                      }}
-                    >
+                    <MenuItem key={t.id!} onClick={() => addTag(t)}>
                       <TagChip tag={t} />
                     </MenuItem>
                   ))}
