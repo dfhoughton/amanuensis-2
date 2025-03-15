@@ -112,6 +112,12 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                 anchorEl={addTagMenuAnchorEl}
                 open={addTagMenuOpen}
                 onClose={() => setAddTagMenuAnchorEl(null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault()
+                    setAddTagMenuAnchorEl(null)
+                  }
+                }}
               >
                 {tags
                   .filter((t) => !usedTags.has(t.id!))

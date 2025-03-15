@@ -116,6 +116,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
         {!citation && <i>no word yet</i>}
         {!!citation && (
           <>
+            {/* lemma and save and language widgets */}
             <Grid container columns={6}>
               <Grid size={5}>
                 <LabelWithHelp
