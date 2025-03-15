@@ -23,7 +23,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box>
+      <Box
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setOpen(false)
+          }
+        }}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {title}
         </Typography>

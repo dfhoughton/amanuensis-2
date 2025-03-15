@@ -336,7 +336,7 @@ export const Languages: React.FC<LanguagesProps> = ({
           open={languageMenuOpen}
           onClose={() => setLanguageMenuAnchorEl(null)}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
               e.preventDefault()
               setLanguageMenuAnchorEl(null)
             }
@@ -710,7 +710,14 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box>
+      <Box
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setOpen(false)
+          }
+        }}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {`Import an exported database`}
         </Typography>
