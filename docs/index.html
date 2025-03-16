@@ -1,0 +1,190 @@
+<html lang="en">
+  <head>
+    <title>Amanuensis</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="owl16.ico" type="image/x-icon" />
+    <!--
+        page structure and styles borrowed from
+        https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Realizing_common_layouts_using_grids
+    -->
+    <style type="text/css">
+      :root {
+        --primary-color: #931f1d;
+        --secondary-color: rgb(80 116 235);
+      }
+      .head,
+      .footer {
+        color: #fff;
+        background-color: var(--primary-color);
+        padding: 1rem 2rem;
+      }
+      .m2 {
+        margin-left: 0.5rem;
+      }
+      .m3 {
+        margin-left: 1rem;
+      }
+      .m4 {
+        margin-left: 1.5rem;
+      }
+      .m5 {
+        margin-left: 2rem;
+      }
+      .m6 {
+        margin-left: 2.5rem;
+      }
+      .toc-link {
+        display: block;
+      }
+      .head {
+        grid-area: header;
+      }
+      .content {
+        grid-area: content;
+        padding-right: 2rem;
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          color: var(--secondary-color);
+          filter: brightness(
+            95%
+          ); /* the raw color is a little low contrast for this use */
+        }
+      }
+      .side {
+        grid-area: sidebar;
+      }
+      .footer {
+        grid-area: footer;
+      }
+      .wrapper {
+        display: grid;
+        grid-template-areas:
+          "header"
+          "sidebar"
+          "content"
+          "footer";
+      }
+      @media (min-width: 500px) {
+        .wrapper {
+          grid-template-columns: 1fr 3fr;
+          grid-template-areas:
+            "header  header"
+            "sidebar content"
+            "footer  footer";
+        }
+        .side {
+          padding-left: 1rem;
+        }
+        .head,
+        .footer {
+          padding: 1rem 5rem;
+        }
+        .content {
+          padding-right: 4rem;
+        }
+      }
+      @media (min-width: 700px) {
+        .wrapper {
+          grid-template-columns: 1fr 5fr;
+          grid-template-areas:
+            "header  header"
+            "sidebar content"
+            "footer  footer";
+        }
+        .sidebar {
+          padding-left: 2rem;
+        }
+        .head {
+          h1 {
+            font-size: 3rem;
+            line-height: 3rem;
+          }
+        }
+        .head,
+        .footer {
+          padding: 2rem 10rem;
+        }
+        .content {
+          padding-right: 10rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="head">
+        <h1>Amanuensis</h1>
+        A language learning assistant.
+      </header>
+      <nav class="side">
+        <h2>Contents</h2>
+        <div id="toc" />
+      </nav>
+      <article class="content">
+        <h2>What is Amanuensis</h2>
+        <h3>Philosophy</h3>
+        <p>
+          When people learn languages in a classroom, most context is removed.
+          Words are learned in lists and are taught when the textbook or
+          professor deems best, not when the student is interested. But learning
+          facts unconnected to your interests is inefficient. You if you don't
+          already want to know the answer, the answer doesn't sink in.
+        </p>
+        <h3>Future</h3>
+        <p>
+          I have written Amanuensis because it is the language learning tool I
+          want. I am sharing it because, having written it, it costs me nothing
+          to do so. It is free. It will remain free. I have no plans to make
+          money off of it.
+        </p>
+        <p>
+          However, for the same reason I cannot guarantee it will be supported
+          and developed forever. I will keep working on it as long as I have use
+          for it. Since I love learning languages, I will keep at it for
+          decades, as long as I keep my health. But Amanuensis has a bus number
+          of one. If support drops off, something bad has happened. But I
+          imagine it will keep working, just without additional bells and
+          whistles.
+        </p>
+        <h2>Documentation</h2>
+        <p>This is documentation of the functionality of the</p>
+        <h3>Note</h3>
+        <h3>Dictionary</h3>
+        <h3>Tags</h3>
+        <h3>Configuration</h3>
+        <h2>Dedication</h2>
+        <p>
+          Amanuensis, like most of my projects, is dedicated to my son Jude, who
+          died on February 1st, 2023. He was a better programmer and a better,
+          kinder, more interesting person than me. I was looking forwarde to
+          being surprised and amazed by him as he went out into the world. He
+          shared repositories in github under the name
+          <a href="https://github.com/TurkeyMcMac">TurkeyMcMac</a>.
+        </p>
+        <p>We love you and miss you, Jude.</p>
+      </article>
+      <footer class="footer">The footer</footer>
+    </div>
+    <script>
+      // construct a table of contents
+      const toc = document.getElementById("toc")
+      document
+        .querySelectorAll(
+          ".content h2, .content h3, .content h4, .content h5, .content h6"
+        )
+        .forEach((n) => {
+          const e = document.createElement("a")
+          e.innerText = n.innerText
+          e.classList.add("toc-link")
+          e.classList.add(`m${n.nodeName.slice(1)}`)
+          e.setAttribute("href", "#")
+          e.onclick = () => n.scrollIntoView(true)
+          toc.appendChild(e)
+        })
+    </script>
+  </body>
+</html>
