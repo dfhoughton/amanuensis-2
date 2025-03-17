@@ -37,6 +37,13 @@
       .toc-link {
         display: block;
       }
+      .up-link {
+        vertical-align: top;
+        font-size: 12px;
+      }
+      code {
+        background-color: bisque;
+      }
       .head {
         grid-area: header;
       }
@@ -125,7 +132,19 @@
         <div id="toc" />
       </nav>
       <article class="content">
-        <h2>What is Amanuensis</h2>
+        <h2>What is Amanuensis?</h2>
+        <p>
+          Amanuensis is a Chrome extension that facilitates taking notes on
+          phrases you find as you browse the web. It captures the phrase, its
+          context &mdash; the surrounding text &mdash; the time you recorded it,
+          the URL, and any tags and notes, either on the phrase generally or
+          particular citations. You can link notes together, search for them,
+          export them, or merge exports.
+        </p>
+        <p>
+          In principal, you can use Amanuensis to take any sort of note. It was
+          designed, however, with language learning in mind.
+        </p>
         <h3>Philosophy</h3>
         <p>
           When people learn languages in a classroom, most context is removed.
@@ -133,6 +152,18 @@
           professor deems best, not when the student is interested. But learning
           facts unconnected to your interests is inefficient. You if you don't
           already want to know the answer, the answer doesn't sink in.
+        </p>
+        <p>
+          The idea with Amanuensis is that you find something which is
+          inherently interesting to you and you try to read it. When you come
+          across unfamiliar words, you will be more likely to remember them,
+          because you <i>want</i> to know what they mean.
+        </p>
+        <p>
+          When you come across the words again, and look them up again, as one
+          does, you will be reminded of the last context in which you saw the
+          word. The words will all hang together in a web of meaning and
+          association.
         </p>
         <h3>Future</h3>
         <p>
@@ -150,8 +181,38 @@
           imagine it will keep working, just without additional bells and
           whistles.
         </p>
+        <h2>Installation</h2>
+        <p>
+          For the time being the only way to install Amanuensis is to
+          <a
+            href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
+            >clone the repository</a
+          >, run the compile script, and
+          <a
+            href="https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked"
+            >load the unpacked extension into chrome</a
+          >.
+        </p>
+        <p>
+          The respository is at
+          <a href="https://github.com/dfhoughton/amanuensis-2"
+            >https://github.com/dfhoughton/amanuensis-2</a
+          >.
+        </p>
+        <p>
+          To run the build script, you must have
+          <a href="https://nodejs.org/en/download">installed node</a>. Then, in
+          a terminal, cd to the install directory and run
+          <code>npm run release-build</code>.
+        </p>
+        <p>
+          Once things are more buttoned up I will submit Amanuensis to the
+          chrome store. An earlier incarnation of it was there before. Then one
+          will be able to install it as one does any chrome extension. The
+          instructions above will continue to work.
+        </p>
         <h2>Documentation</h2>
-        <p>This is documentation of the functionality of the</p>
+        <p>This is documentation of the functionality of the exten</p>
         <h3>Note</h3>
         <h3>Dictionary</h3>
         <h3>Tags</h3>
@@ -170,7 +231,7 @@
       <footer class="footer">The footer</footer>
     </div>
     <script>
-      // construct a table of contents
+      // construct a table of contents and related links
       const toc = document.getElementById("toc")
       document
         .querySelectorAll(
@@ -180,10 +241,20 @@
           const e = document.createElement("a")
           e.innerText = n.innerText
           e.classList.add("toc-link")
+          e.setAttribute("title", `go to ${n.innerText}`)
           e.classList.add(`m${n.nodeName.slice(1)}`)
           e.setAttribute("href", "#")
-          e.onclick = () => n.scrollIntoView(true)
+          e.onclick = (e) => {
+            e.preventDefault()
+            n.scrollIntoView(true)
+          }
           toc.appendChild(e)
+          const up = document.createElement("a")
+          up.innerHTML = "&uarr;"
+          up.setAttribute("href", "#toc")
+          up.setAttribute("title", "return to table of contents")
+          up.classList.add("up-link")
+          n.appendChild(up)
         })
     </script>
   </body>

@@ -11,6 +11,8 @@ look up. The idea is that retaining words in a useful form requires not only rem
 of context they tend to appear in and other words they are used alongside. Amanuensis captures phrases in their
 context.
 
+More detailed documentation can be found at https://dfhoughton.github.io/amanuensis-2/.
+
 ## Installation
 
 Eventually Amanuensis will be in the Chrome extension store again. In the meantime, you will need to install it
