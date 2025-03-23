@@ -3,6 +3,7 @@
 import isArray from "lodash/isArray"
 import isObject from "lodash/isObject"
 import { wsrx } from "./string"
+import { isEqual } from "lodash"
 
 export function uniq<T>(things: T[], by?: (T) => any): T[] {
   const ar: T[] = []
@@ -56,4 +57,36 @@ export function matcher(
   }
   s = chars.join(fuzzy ? ".*" : "")
   return new RegExp(s, caseInsensitive ? "i" : "")
+}
+
+// create a visual representation of the difference between two objects for debugging
+export function diff(a: any, b: any): any {
+  if (!isEqual(a, b)) {
+    if (typeof a == typeof b) {
+      if (isObject(a) && isObject(b)) {
+        const d = {}
+        const keys = new Set<string>()
+        for (const obj of [a, b]) {
+          for (const k of Object.keys(obj)) keys.add(k)
+        }
+        for (const k of [...keys].sort()) {
+          const d2 = diff(a[k], b[k])
+          if (d2) d[k] = d2
+        }
+        return d
+      } else if (isArray(a) && isArray(b)) {
+        const lim = a.length > b.length ? a.length : b.length
+        const d: any[] = []
+        for (let i = 0; i < lim; i++) {
+          const d2 = diff(a[i], b[i])
+          d.push(d2 ?? null)
+        }
+        return d
+      } else {
+        return { a, b }
+      }
+    } else {
+      return { a, b }
+    }
+  }
 }

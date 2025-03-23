@@ -1,17 +1,28 @@
 <html lang="en">
+  <!-- I was hoping to figure out how to use Jekyll to do what I wanted, but got impatient with the documentation. -->
   <head>
     <title>Amanuensis</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="owl16.ico" type="image/x-icon" />
     <!--
-        page structure and styles borrowed from
+        hat top to
         https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Realizing_common_layouts_using_grids
+        which got me going with the grid
     -->
     <style type="text/css">
       :root {
         --primary-color: #931f1d;
+        --primary-light: oklch(from var(--primary-color) calc(l + 0.3) c h);
+        --primary-dark: oklch(from var(--primary-color) calc(l * 0.75) c h);
         --secondary-color: rgb(80 116 235);
+        --secondary-light: oklch(
+          from var(--secondary-color) calc(l + 0.35) c h
+        );
+        --secondary-dark: oklch(from var(--secondary-color) calc(l * 0.75) c h);
+      }
+      body {
+        font-family: Helvetica;
       }
       .head,
       .footer {
@@ -47,6 +58,27 @@
       .head {
         grid-area: header;
       }
+      .side,
+      .content {
+        a {
+          text-decoration: none;
+          background-color: transparent;
+          color: var(--secondary-dark);
+          &:hover,
+          &:active,
+          &:focus {
+            background-color: var(--secondary-color);
+            color: #fff !important;
+          }
+          &:active,
+          &:focus {
+            background-color: var(--secondary-dark);
+          }
+          &:visited {
+            color: var(--secondary-color);
+          }
+        }
+      }
       .content {
         grid-area: content;
         padding-right: 2rem;
@@ -55,10 +87,7 @@
         h4,
         h5,
         h6 {
-          color: var(--secondary-color);
-          filter: brightness(
-            95%
-          ); /* the raw color is a little low contrast for this use */
+          color: var(--secondary-dark);
         }
       }
       .side {
@@ -145,12 +174,31 @@
           In principal, you can use Amanuensis to take any sort of note. It was
           designed, however, with language learning in mind.
         </p>
+        <h3>Use</h3>
+        <p>
+          The general pattern of usage: You're reading an article on something
+          that interests you. You find a phrase of particular interest. If
+          you're using Amanuensis to learn a language, it's an unfamiliar phrase
+          or idiom. If you're using it as a research tool, it's a fact,
+          observation, or data point. You highlight the phrase and click the
+          Amanuensis icon or press ctrl-shift-A to start a note. You add
+          relevant information, perhaps some tags; you look for similar or
+          related notes and link them. You save it.
+        </p>
+        <p>
+          Later, you wish to continue with an article. Say it's the last
+          article. You click the icon or press ctrl-shift-A and open Amanuensis.
+          You search, sorting for the most recently updated note. You click on
+          the first note, then click on the URL. This takes you to the page,
+          highlighting the phrase. You click on the search tab and see a list of
+          all the notes you took on the page.
+        </p>
         <h3>Philosophy</h3>
         <p>
           When people learn languages in a classroom, most context is removed.
           Words are learned in lists and are taught when the textbook or
           professor deems best, not when the student is interested. But learning
-          facts unconnected to your interests is inefficient. You if you don't
+          facts unconnected to your interests is inefficient. If you don't
           already want to know the answer, the answer doesn't sink in.
         </p>
         <p>
@@ -169,8 +217,11 @@
         <p>
           I have written Amanuensis because it is the language learning tool I
           want. I am sharing it because, having written it, it costs me nothing
-          to do so. It is free. It will remain free. I have no plans to make
-          money off of it.
+          to do so.
+        </p>
+        <p>
+          It is free. It will remain free. I have no plans to make money off of
+          it.
         </p>
         <p>
           However, for the same reason I cannot guarantee it will be supported
@@ -212,11 +263,21 @@
           instructions above will continue to work.
         </p>
         <h2>Documentation</h2>
-        <p>This is documentation of the functionality of the exten</p>
+        <h3>Design Constraints</h3>
         <h3>Note</h3>
         <h3>Dictionary</h3>
+        <h4>search</h4>
+        <h4>similar phrase</h4>
+        <h4>citations on page</h4>
         <h3>Tags</h3>
         <h3>Configuration</h3>
+        <h4>string distance metrics</h4>
+        <h4>max similar phrases</h4>
+        <h4>database actions</h4>
+        <h5>clear</h5>
+        <h5>export</h5>
+        <h5>import</h5>
+        <h4>languages</h4>
         <h2>Dedication</h2>
         <p>
           Amanuensis, like most of my projects, is dedicated to my son Jude, who
