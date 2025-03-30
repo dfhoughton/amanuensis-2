@@ -116,9 +116,45 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   const showingHelp = !!state?.config?.showHelp
   return (
     <>
-      <Typography variant="h5" component="h1">
-        Configuration
-      </Typography>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ justifyContent: "space-between", alignItems: "end" }}
+      >
+        <Typography variant="h5" component="h1">
+          Configuration
+        </Typography>
+        <Link
+          sx={{ cursor: "pointer" }}
+          onClick={async () => {
+            let [tab] = await chrome.tabs.query({
+              active: true,
+              lastFocusedWindow: true,
+            })
+            if (tab === undefined) {
+              // try a different query
+              const tabs = await chrome.tabs.query({
+                active: true,
+                currentWindow: true,
+              })
+              if (tabs.length === 1) tab = tabs[0]
+            }
+            if (tab?.id) {
+              chrome.tabs.sendMessage(tab.id, {
+                action: "help",
+              })
+            }
+          }}
+        >
+          <Tooltip
+            title={
+              <>about Amanuensis &mdash; go to the Amanuensis documentation</>
+            }
+          >
+            <HelpOutlineIcon />
+          </Tooltip>
+        </Link>
+      </Stack>
       <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
         <LabelWithHelp
           hidden={!showingHelp}

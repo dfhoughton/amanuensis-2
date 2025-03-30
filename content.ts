@@ -134,6 +134,9 @@ chrome.runtime.onMessage.addListener(function (
         sendResponse({ action: "error", message: "received no URL" })
       }
       break
+    case "help": // load documentation into current tab
+      window.location.assign('https://dfhoughton.github.io/amanuensis-2/');
+      break
     case "getSelection":
       const selection = wrapSelection()
       if (selection) {

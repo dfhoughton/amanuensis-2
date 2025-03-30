@@ -27,6 +27,7 @@ export type MessageFromBackgroundToContent =
   | { action: "load"; url: string }
   | { action: "select"; selection: Citation }
   | { action: 'welcome' }
+  | { action: 'help' } // load amanuensis github page into active tab
 
 export type MessageFromContentToBackground =
   | { action: "open" }
@@ -39,6 +40,7 @@ export type MessageFromContentToBackground =
 export type MessageFromPopupToBackground =
   | { action: "open" }
   | { action: "goto"; citation: Citation }
+  | { action: "help" } // load amanuensis github page into active tab
 
 export const handleMessageFromBackgroundToPopup = (
   msg: MessageFromBackgroundToPopup

@@ -86,6 +86,7 @@ function handlePopupMessage(
     case "open":
       sendToContent({ action: "getSelection" }, sendResponse)
       break
+    case "help":
     case "goto":
       sendToContent(msg, sendResponse)
       break
