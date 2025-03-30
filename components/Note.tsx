@@ -235,16 +235,20 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               <TextField
                 multiline
                 autoFocus
-                onChange={(e) => {
-                  dispatch({
-                    action: "phrase",
-                    phrase: { ...phrase!, note: e.target.value },
-                  })
-                }}
+                onChange={
+                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                    dispatch({
+                      action: "phrase",
+                      phrase: { ...phrase!, note: e.target.value },
+                    })
+                  }, 500) as React.ChangeEventHandler<
+                    HTMLInputElement | HTMLTextAreaElement
+                  >
+                }
                 variant="standard"
                 hiddenLabel
                 placeholder="Lemma Note"
-                value={note}
+                defaultValue={phrase.note}
                 sx={{ width: "100%" }}
               />
             </LabelWithHelp>
