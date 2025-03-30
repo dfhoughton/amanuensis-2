@@ -4,9 +4,9 @@
     <title>Amanuensis</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="owl16.ico" type="image/x-icon" />
+    <link rel="icon" href="images/owl16.ico" type="image/x-icon" />
     <!--
-        hat top to
+        hat tip to
         https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Realizing_common_layouts_using_grids
         which got me going with the grid
     -->
@@ -30,20 +30,40 @@
         background-color: var(--primary-color);
         padding: 1rem 2rem;
       }
+      .footer {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: space-between;
+        a {
+          text-decoration: none;
+          background-color: transparent;
+          color: #fff;
+          line-height: 1.5rem;
+          padding: 0 0.5rem;
+          border-radius: 0.75rem;
+          &:hover,
+          &:active,
+          &:focus {
+            background-color: #fff;
+            color: var(--primary-color);
+          }
+        }
+      }
       .m2 {
-        margin-left: 0.5rem;
+        margin-left: 0.75rem;
       }
       .m3 {
-        margin-left: 1rem;
-      }
-      .m4 {
         margin-left: 1.5rem;
       }
+      .m4 {
+        margin-left: 2.25rem;
+      }
       .m5 {
-        margin-left: 2rem;
+        margin-left: 3rem;
       }
       .m6 {
-        margin-left: 2.5rem;
+        margin-left: 3.75rem;
       }
       .toc-link {
         display: block;
@@ -57,6 +77,10 @@
       }
       .head {
         grid-area: header;
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: space-between;
       }
       .side,
       .content {
@@ -153,8 +177,11 @@
   <body>
     <div class="wrapper">
       <header class="head">
-        <h1>Amanuensis</h1>
-        A language learning assistant.
+        <div>
+          <h1>Amanuensis</h1>
+          A language learning assistant.
+        </div>
+        <img src="images/owl128.png" alt="Amanuensis logo -- an owl" />
       </header>
       <nav class="side">
         <h2>Contents</h2>
@@ -237,10 +264,12 @@
           For the time being the only way to install Amanuensis is to
           <a
             href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
+            title="how to clone a repository"
             >clone the repository</a
           >, run the compile script, and
           <a
             href="https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked"
+            title="how to load an unpacked extension"
             >load the unpacked extension into chrome</a
           >.
         </p>
@@ -252,8 +281,9 @@
         </p>
         <p>
           To run the build script, you must have
-          <a href="https://nodejs.org/en/download">installed node</a>. Then, in
-          a terminal, cd to the install directory and run
+          <a href="https://nodejs.org/en/download" title="how to install node"
+            >installed node</a
+          >. Then, in a terminal, cd to the install directory and run
           <code>npm run release-build</code>.
         </p>
         <p>
@@ -285,11 +315,29 @@
           kinder, more interesting person than me. I was looking forwarde to
           being surprised and amazed by him as he went out into the world. He
           shared repositories in github under the name
-          <a href="https://github.com/TurkeyMcMac">TurkeyMcMac</a>.
+          <a
+            href="https://github.com/TurkeyMcMac"
+            title="Jude's github repositories"
+            >TurkeyMcMac</a
+          >.
         </p>
         <p>We love you and miss you, Jude.</p>
       </article>
-      <footer class="footer">The footer</footer>
+      <footer class="footer">
+        <a
+          href="https://github.com/dfhoughton/amanuensis-2"
+          title="source repository"
+          >https://github.com/dfhoughton/amanuensis-2</a
+        >
+        <a href="https://github.com/dfhoughton/amanuensis-2/blob/main/LICENSE"
+          >License</a
+        >
+        <a
+          href="https://dfhoughton.github.io"
+          title="a random assortment of other things I've done"
+          >https://dfhoughton.github.io</a
+        >
+      </footer>
     </div>
     <script>
       // construct a table of contents and related links
@@ -299,11 +347,13 @@
           ".content h2, .content h3, .content h4, .content h5, .content h6"
         )
         .forEach((n) => {
+          const indentationLevel = Number.parseInt(n.nodeName.slice(1))
+          n.classList.add(`m${indentationLevel - 1}`)
           const e = document.createElement("a")
           e.innerText = n.innerText
           e.classList.add("toc-link")
           e.setAttribute("title", `go to ${n.innerText}`)
-          e.classList.add(`m${n.nodeName.slice(1)}`)
+          e.classList.add(`m${indentationLevel}`)
           e.setAttribute("href", "#")
           e.onclick = (e) => {
             e.preventDefault()
