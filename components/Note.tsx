@@ -54,10 +54,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const { phrase, priorPhrase, citationIndex = 0 } = state
   const [languages, setLanguages] = useState<Language[]>([])
   const [currentLanguage, setCurrentLanguage] = useState<Language>()
-  const [note, setNote] = useState(phrase?.note)
-  useEffect(() => {
-    setNote(phrase?.note)
-  }, [phrase?.note])
   useEffect(() => {
     perhapsStaleLanguages()
       .then((languages) => {
@@ -249,6 +245,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 hiddenLabel
                 placeholder="Lemma Note"
                 defaultValue={phrase.note}
+                inputRef={noteRef}
                 sx={{ width: "100%" }}
               />
             </LabelWithHelp>
