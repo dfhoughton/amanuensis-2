@@ -128,6 +128,32 @@
           "content"
           "footer";
       }
+      .fn {
+        display: none;
+      }
+      .fn-anchor {
+        position: relative;
+        display: inline-block;
+        min-width: 0.5rem;
+      }
+      .fn-tag {
+        position: absolute;
+        font-size: smaller;
+        color: var(--secondary-dark);
+        top: -1rem;
+        z-index: 10;
+        cursor: pointer;
+      }
+      .fn-text {
+        position: relative;
+      }
+      #footnotes {
+        margin-bottom: 1rem;
+        hr {
+          margin: 2rem 1.5rem;
+          opacity: 25%;
+        }
+      }
       @media (min-width: 500px) {
         .wrapper {
           grid-template-columns: 1fr 3fr;
@@ -208,9 +234,18 @@
           you're using Amanuensis to learn a language, it's an unfamiliar phrase
           or idiom. If you're using it as a research tool, it's a fact,
           observation, or data point. You highlight the phrase and click the
-          Amanuensis icon or press ctrl-shift-A to start a note. You add
-          relevant information, perhaps some tags; you look for similar or
-          related notes and link them. You save it.
+          Amanuensis icon or press ctrl-shift-A to start a note.<span class="fn"
+            >If you are studying a language, you will need some other source to
+            provide definitions, part of speech, etc. I find
+            <a href="https://en.wiktionary.org/wiki/Wiktionary:Main_Page"
+              >wiktionary</a
+            >
+            is a great resource. It provides you considerably more and more
+            trustworthy information than you get from Google Translate, for
+            instance.</span
+          >
+          You add relevant information, perhaps some tags; you look for similar
+          or related notes and link them. You save it.
         </p>
         <p>
           Later, you wish to continue with an article. Say it's the last
@@ -322,6 +357,9 @@
           >.
         </p>
         <p>We love you and miss you, Jude.</p>
+        <div id="footnotes">
+          <hr />
+        </div>
       </article>
       <footer class="footer">
         <a
@@ -367,6 +405,41 @@
           up.classList.add("up-link")
           n.appendChild(up)
         })
+      // move footnotes to the foot
+      const footnotes = document.getElementById("footnotes")
+      let fnIndex = 1
+      document.querySelectorAll(".fn").forEach((n) => {
+        const text = n.innerHTML
+        n.innerHTML = ""
+        n.classList.remove("fn")
+        n.classList.add("fn-anchor")
+        const topTag = document.createElement("span")
+        topTag.classList.add("fn-tag")
+        topTag.innerHTML = fnIndex
+        n.appendChild(topTag)
+        const bottomTag = document.createElement("span")
+        bottomTag.classList.add("fn-tag")
+        bottomTag.innerHTML = fnIndex
+        fnIndex++
+        const fn = document.createElement("div")
+        fn.classList.add("fn-text")
+        const tagContainer = document.createElement("span")
+        tagContainer.appendChild(bottomTag)
+        tagContainer.classList.add("fn-anchor")
+        fn.appendChild(tagContainer)
+        const txt = document.createElement("span")
+        txt.innerHTML = text
+        fn.appendChild(txt)
+        topTag.onclick = (e) => {
+          e.preventDefault()
+          bottomTag.scrollIntoView(true)
+        }
+        bottomTag.onclick = (e) => {
+          e.preventDefault()
+          topTag.scrollIntoView(true)
+        }
+        footnotes.appendChild(fn)
+      })
     </script>
   </body>
 </html>
