@@ -23,6 +23,7 @@
       }
       body {
         font-family: Helvetica;
+        margin: 0;
       }
       .head,
       .footer {
@@ -71,6 +72,7 @@
       .up-link {
         vertical-align: top;
         font-size: 12px;
+        margin-left: 2px;
       }
       code {
         background-color: bisque;
@@ -143,6 +145,13 @@
         top: -1rem;
         z-index: 10;
         cursor: pointer;
+        &:hover,
+        &:focus,
+        &:active {
+          background-color: var(--secondary-color);
+          color: #fff;
+          border-radius: 0.5rem;
+        }
       }
       .fn-text {
         position: relative;
@@ -395,7 +404,7 @@
           e.setAttribute("href", "#")
           e.onclick = (e) => {
             e.preventDefault()
-            n.scrollIntoView(true)
+            n.scrollIntoView({ behavior: "smooth" })
           }
           toc.appendChild(e)
           const up = document.createElement("a")
@@ -403,9 +412,13 @@
           up.setAttribute("href", "#toc")
           up.setAttribute("title", "return to table of contents")
           up.classList.add("up-link")
+          up.onclick = (e) => {
+            e.preventDefault()
+            toc.scrollIntoView({ behavior: "smooth", block: "center" })
+          }
           n.appendChild(up)
         })
-      // move footnotes to the foot
+      // move footnotes to the foot, etc.
       const footnotes = document.getElementById("footnotes")
       let fnIndex = 1
       document.querySelectorAll(".fn").forEach((n) => {
@@ -430,14 +443,9 @@
         const txt = document.createElement("span")
         txt.innerHTML = text
         fn.appendChild(txt)
-        topTag.onclick = (e) => {
-          e.preventDefault()
-          bottomTag.scrollIntoView(true)
-        }
-        bottomTag.onclick = (e) => {
-          e.preventDefault()
-          topTag.scrollIntoView(true)
-        }
+        topTag.onclick = (e) => bottomTag.scrollIntoView({ behavior: "smooth" })
+        bottomTag.onclick = (e) =>
+          topTag.scrollIntoView({ behavior: "smooth", block: "center" })
         footnotes.appendChild(fn)
       })
     </script>
