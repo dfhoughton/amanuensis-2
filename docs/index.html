@@ -14,6 +14,9 @@
       :root {
         --primary-color: #931f1d;
         --primary-light: oklch(from var(--primary-color) calc(l + 0.3) c h);
+        --primary-very-light: oklch(
+          from var(--primary-color) calc(l + 1.5) c h
+        );
         --primary-dark: oklch(from var(--primary-color) calc(l * 0.75) c h);
         --secondary-color: rgb(80 116 235);
         --secondary-light: oklch(
@@ -115,6 +118,10 @@
         h6 {
           color: var(--secondary-dark);
         }
+        h5,
+        h6 {
+          font-size: 14px;
+        }
       }
       .side {
         grid-area: sidebar;
@@ -137,6 +144,7 @@
         position: relative;
         display: inline-block;
         min-width: 0.5rem;
+        margin: 0 0.2rem;
       }
       .fn-tag {
         position: absolute;
@@ -155,12 +163,31 @@
       }
       .fn-text {
         position: relative;
+        .fn-anchor {
+          margin-top: 1.5rem;
+        }
+        .highlighted {
+          background-color: var(--primary-very-light);
+        }
       }
       #footnotes {
         margin-bottom: 1rem;
         hr {
           margin: 2rem 1.5rem;
           opacity: 25%;
+        }
+      }
+      figure {
+        padding: 0.5rem;
+        max-width: 33%;
+        float: right;
+        img {
+          max-width: 100%;
+        }
+        figcaption {
+          font-style: italic;
+          font-size: small;
+          margin-top: 0.5rem;
         }
       }
       @media (min-width: 500px) {
@@ -172,7 +199,7 @@
             "footer  footer";
         }
         .side {
-          padding-left: 1rem;
+          padding: 0 1rem;
         }
         .head,
         .footer {
@@ -229,8 +256,8 @@
           phrases you find as you browse the web. It captures the phrase, its
           context &mdash; the surrounding text &mdash; the time you recorded it,
           the URL, and any tags and notes, either on the phrase generally or
-          particular citations. You can link notes together, search for them,
-          export them, or merge exports.
+          particular citations. You can link notes together, edit them, merge
+          them, search for them, export them, or import them from an export.
         </p>
         <p>
           In principal, you can use Amanuensis to take any sort of note. It was
@@ -299,7 +326,7 @@
           and developed forever. I will keep working on it as long as I have use
           for it. Since I love learning languages, I will keep at it for
           decades, as long as I keep my health. But Amanuensis has a bus number
-          of one. If support drops off, something bad has happened. But I
+          of one. If support drops off, something bad has happened. Still, I
           imagine it will keep working, just without additional bells and
           whistles.
         </p>
@@ -321,7 +348,13 @@
           The respository is at
           <a href="https://github.com/dfhoughton/amanuensis-2"
             >https://github.com/dfhoughton/amanuensis-2</a
-          >.
+          >.<span class="fn"
+            >Why "amanuensis-2"? Because there was an earlier version of this
+            extension that worked with an earlier version of the Chrome
+            extension spec. That version reached end of life and the extension
+            died. This is a thorough rewrite. It is somewhat less ambitious but
+            uses more modern tech.</span
+          >
         </p>
         <p>
           To run the build script, you must have
@@ -338,7 +371,61 @@
         </p>
         <h2>Documentation</h2>
         <h3>Design Constraints</h3>
+        <p>
+          Amanuensis, like many extensions, lives in a little box in the top
+          left corner of the screen. It needs to stay out of the way of the text
+          you're reading, so everything needs to compact, minimal, abbreviated.
+          We do what we can with tooltips and icons with familiar meanings, but
+          if we had more real estate on the screen we would have made other
+          choices.
+        </p>
         <h3>Note</h3>
+        <figure>
+          <img src="images/note.png" alt="Amanuensis logo -- an owl" />
+          <figcaption>
+            A note: 1) lemma; 2) save icon; 3) language; 4) lemma note; 5) tags;
+            6) links; 7) citation title; 8) citation date; 9) citation URL; 10)
+            citation; 11) citation note; 12) citation tags
+          </figcaption>
+        </figure>
+        <p>
+          Notes are the basic unit of Amanuensis. Their creation is its central
+          purpose. They collect information about citations. When you highlight
+          a bit of text and invoke Amanuensis, it begins a new note for you.
+        </p>
+        <h4>lemma</h4>
+        <p>
+          A notes lemma is the canonical form of its various citations. If you
+          are using Amanuensis to study English, the you would probably consider
+          the lemma of <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be
+          <i>cat</i>.
+        </p>
+        <h4>save icon</h4>
+        <p>Click this to save the note.</p>
+        <h4>language</h4>
+        <p>
+          Amanuensis uses a Chrome API to guess the language of a particular
+          citation from its content and context. There are many more languages
+          than Google attempts to recognize, however, and it is not always
+          correct in its guess. The language Google guesses is represented as a
+          "locale", a two-letter identifier.
+        </p>
+        <p>
+          To use this guess, you must specify in the configuration tab which
+          <a href="#languages">languages</a> you are interested in. Amanuensis
+          will attempt to map Google's guess onto these languages. The language
+          selector allows you to edit this guess when Amanuensis gets it wrong.
+        </p>
+        <h4>lemma note</h4>
+        <h4>tags</h4>
+        <h4>links</h4>
+        <h4>citations</h4>
+        <h5>citation context</h5>
+        <h6>title</h6>
+        <h6>date</h6>
+        <h6>URL</h6>
+        <h5>citation note</h5>
+        <h5>citation tags</h5>
         <h3>Dictionary</h3>
         <h4>search</h4>
         <h4>similar phrase</h4>
@@ -351,7 +438,7 @@
         <h5>clear</h5>
         <h5>export</h5>
         <h5>import</h5>
-        <h4>languages</h4>
+        <h4 id="languages">languages</h4>
         <h2>Dedication</h2>
         <p>
           Amanuensis, like most of my projects, is dedicated to my son Jude, who
@@ -443,9 +530,17 @@
         const txt = document.createElement("span")
         txt.innerHTML = text
         fn.appendChild(txt)
-        topTag.onclick = (e) => bottomTag.scrollIntoView({ behavior: "smooth" })
-        bottomTag.onclick = (e) =>
+        topTag.onclick = (e) => {
+          document
+            .querySelectorAll(".fn-text .highlighted")
+            .forEach((n) => n.classList.remove("highlighted"))
+          txt.classList.add("highlighted")
+          bottomTag.scrollIntoView({ behavior: "smooth" })
+        }
+        bottomTag.onclick = (e) => {
+          txt.classList.remove("highlighted")
           topTag.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
         footnotes.appendChild(fn)
       })
     </script>
