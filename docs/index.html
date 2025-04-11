@@ -111,6 +111,7 @@
       .content {
         grid-area: content;
         padding-right: 2rem;
+        line-height: 1.25rem;
         h2,
         h3,
         h4,
@@ -143,14 +144,14 @@
       .fn-anchor {
         position: relative;
         display: inline-block;
-        min-width: 0.5rem;
+        min-width: 0.4rem;
         margin: 0 0.2rem;
       }
       .fn-tag {
         position: absolute;
         font-size: smaller;
         color: var(--secondary-dark);
-        top: -1rem;
+        top: -1.15rem;
         z-index: 10;
         cursor: pointer;
         &:hover,
@@ -379,15 +380,15 @@
           if we had more real estate on the screen we would have made other
           choices.
         </p>
-        <h3>Note</h3>
         <figure id="note-figure">
-          <img src="images/note.png" alt="Amanuensis logo -- an owl" />
+          <img src="images/note.png" alt="the parts of a note" />
           <figcaption>
             A note: 1) lemma; 2) save icon; 3) language; 4) lemma note; 5) tags;
             6) links; 7) citation title; 8) citation date; 9) citation URL; 10)
             citation; 11) citation note; 12) citation tags
           </figcaption>
         </figure>
+        <h3 id="note">Note</h3>
         <p>
           Notes are the basic unit of Amanuensis. Their creation is its central
           purpose. They collect information about citations. When you highlight
@@ -434,6 +435,14 @@
           This is where you writen things that are true for all uses of the
           phrase. Typically, this is the phrase's definition.
         </p>
+        <figure id="tag-figure">
+          <img
+            src="images/tag.png"
+            alt="a tag with its tooltip"
+            style="max-width: 150px"
+          />
+          <figcaption>A tag with its tooltip</figcaption>
+        </figure>
         <h4>tags</h4>
         <p>
           <a href="#tags">Tags</a> represent frequently occurring, important
@@ -456,17 +465,96 @@
         </p>
         <p>
           Links are created within the <a href="#dictionary">dictionary</a>. You
-          will find each entry has a link icon. This looks like a link in a chain.
-          If you click it, you will create a link <i>to the current note</i>.
+          will find each entry has a link icon. This looks like a link in a
+          chain. If you click it, you will create a link
+          <i>to the current note</i>.
         </p>
+        <figure id="citation-figure">
+          <img
+            src="images/citations.png"
+            alt="parts of the citations section of a note"
+          />
+          <figcaption>
+            The citations section of a note: 1) the current citation; 2)
+            per-citation options; 3) the action to mark the current citation as
+            the default; 4) the action to delete the current citation; 5) a
+            citation not currently displayed
+          </figcaption>
+        </figure>
         <h4>citations</h4>
+        <p>
+          Every note has at least one citation. A citation is a use of the
+          note's lemma in context. Quite likely until you have been using
+          Amanuensis for some time each note will have just the one citation. If
+          you have a memory like a steel trap, you will only ever have the one.
+          But if you have an ordinary memory, or you find many interesting
+          citations, this number will grow.
+        </p>
+        <p>
+          If you have more than one citation, as in
+          <a href="#citation-figure">the figure</a>, you may pick a "canonical"
+          one to display by default when browsing notes. You may also delete
+          citations. You cannot delete the last citation.
+        </p>
+        <p>
+          You only have these options for the currently displayed citation.
+          Click on another to display it. 5 in
+          <a href="#citation-figure">the figure</a> is a non-selected citation.
+          For non-selected citations only the form, any note for that citation,
+          and the date it was recorded are displayed.
+        </p>
         <h5>citation context</h5>
-        <h6>title</h6>
-        <h6>date</h6>
-        <h6>URL</h6>
+        <p>
+          The citation context is shown for the displayed citation. Its parts
+          are enumerated in <a href="#note-figure">the figure</a>. These are the
+          title (7), the date the citation was recorded (8), the URL (9), and
+          the phrase itself and its surrounding text (10).
+        </p>
+        <p>
+          The title, date, and URL are displayed in abbreviation. If you hover
+          over them their full content will appear in a tooltip. In the case of
+          the date, this tooltip shows the time of day that the citation was
+          recorded.
+        </p>
         <h5>citation note</h5>
+        <p>
+          Each citation has its own note in which you can record anything
+          interesting about the particular citation.
+        </p>
         <h5>citation tags</h5>
+        <p>Every citation also may have its own tags.</p>
+        <figure id="dictionary-figure">
+          <img
+            src="images/dictionary.png"
+            alt="parts of the citations section of a note"
+          />
+          <figcaption>
+            The elements of the dictionary: 1) the manner of browsing; 2) the
+            search form; 3) notes; 4) lemma; 5) lemma note; 6) language; 7)
+            merge action; 8) link action; 9) delete action
+          </figcaption>
+        </figure>
         <h3 id="dictionary">Dictionary</h3>
+        <p>
+          The dictionary is where one may browse notes. As shown in
+          <a href="#dictionary-figure">the figure</a>, there are three manners
+          in which one may browse the dictionary (1): ad hoc search, by
+          similarity to the current citation, and by page (URL). Every manner of
+          search has a form (2). Every search results in zero or more notes (3).
+        </p>
+        <p>
+          Each note in turn is represented by its lemma (4), its lemma note (5),
+          its language (6), and some actions one may take: merge the note with
+          the current note &mdash; the note currently displayed in the
+          <a href="#note">note tab</a> &mdash; (7), link the note to the current
+          note (8), or delete the note (9).
+        </p>
+        <p>
+          If you click on a note in the dictionary, this will take you to the
+          <a href="#note">note tab</a>, where the note will be displayed. It is
+          now the current note, the note to which other notes displayed in the
+          dictionary may be merged or linked.
+        </p>
         <h4>search</h4>
         <h4>similar phrase</h4>
         <h4>citations on page</h4>
