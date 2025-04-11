@@ -380,7 +380,7 @@
           choices.
         </p>
         <h3>Note</h3>
-        <figure>
+        <figure id="note-figure">
           <img src="images/note.png" alt="Amanuensis logo -- an owl" />
           <figcaption>
             A note: 1) lemma; 2) save icon; 3) language; 4) lemma note; 5) tags;
@@ -393,22 +393,35 @@
           purpose. They collect information about citations. When you highlight
           a bit of text and invoke Amanuensis, it begins a new note for you.
         </p>
+        <p>
+          The various parts of a note are enumerated in
+          <a href="#note-figure">the figure</a>.
+        </p>
         <h4>lemma</h4>
         <p>
-          A notes lemma is the canonical form of its various citations. If you
-          are using Amanuensis to study English, the you would probably consider
-          the lemma of <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be
-          <i>cat</i>.
+          A note's
+          <a
+            href="https://en.wiktionary.org/wiki/lemma#:~:text=%2C%20lexicography)-,The%20canonical%20form%20of%20an%20inflected%20word,-%3B%20i.e.%2C%20the"
+            >lemma</a
+          >
+          is the canonical form of its various citations. If you are using
+          Amanuensis to study English, the you would probably consider the lemma
+          of <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be <i>cat</i>.
         </p>
         <h4>save icon</h4>
-        <p>Click this to save the note.</p>
+        <p>
+          Click this to save the note. When you begin a note by highlighting
+          some text and opening Amanuensis, it is not yet saved.
+        </p>
         <h4>language</h4>
         <p>
           Amanuensis uses a Chrome API to guess the language of a particular
           citation from its content and context. There are many more languages
           than Google attempts to recognize, however, and it is not always
           correct in its guess. The language Google guesses is represented as a
-          "locale", a two-letter identifier.
+          "locale", a two-letter identifier. You can see the locale for Finnish,
+          "fi", as a blue badge overlay on the language selector in
+          <a href="#note-figure">the figure</a>.
         </p>
         <p>
           To use this guess, you must specify in the configuration tab which
@@ -417,6 +430,10 @@
           selector allows you to edit this guess when Amanuensis gets it wrong.
         </p>
         <h4>lemma note</h4>
+        <p>
+          This is where you writen things that are true for all uses of the
+          phrase. Typically, this is the phrase's definition.
+        </p>
         <h4>tags</h4>
         <h4>links</h4>
         <h4>citations</h4>
@@ -474,6 +491,19 @@
       </footer>
     </div>
     <script>
+      // make intra-document links smooth
+      document.querySelectorAll("a").forEach((a) => {
+        const href = a.attributes.href?.value
+        if (href && /^#[\w-]+$/.test(href)) {
+          const target = document.querySelector(href)
+          if (target) {
+            a.onclick = (e) => {
+              e.preventDefault()
+              target.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+          }
+        }
+      })
       // construct a table of contents and related links
       const toc = document.getElementById("toc")
       document
@@ -542,6 +572,24 @@
           topTag.scrollIntoView({ behavior: "smooth", block: "center" })
         }
         footnotes.appendChild(fn)
+      })
+      // fix figure identifiers
+      let figIndex = 1
+      document.querySelectorAll("figure").forEach((n) => {
+        const figId = `figure ${figIndex++}`
+        let caption = n.querySelector("figcaption")
+        if (caption === null) {
+          caption = document.createElement("figcaption")
+          caption.innerHTML = `[${figId}]`
+          n.appendChild(caption)
+        } else {
+          caption.innerHTML = `[${figId}] ` + caption.innerHTML
+        }
+        if (n.id) {
+          document.querySelectorAll(`a[href="#${n.id}"]`).forEach((a) => {
+            a.innerHTML = figId
+          })
+        }
       })
     </script>
   </body>
