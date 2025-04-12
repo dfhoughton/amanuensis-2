@@ -41,6 +41,7 @@ import MergeIcon from "@mui/icons-material/Merge"
 import DeleteIcon from "@mui/icons-material/Delete"
 import LinkIcon from "@mui/icons-material/Link"
 import SortIcon from "@mui/icons-material/Sort"
+import ClearIcon from "@mui/icons-material/Clear"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import Grid from "@mui/material/Grid2"
@@ -293,7 +294,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         searchResults={searchResults}
         dispatch={dispatch}
       />
-      <Grid container columns={13} spacing={1} sx={{ width: "100%" }}>
+      <Grid container columns={14} spacing={1} sx={{ width: "100%" }}>
         <Grid size={6}>
           <TagWidget
             hideHelp={hideHelp}
@@ -377,10 +378,38 @@ const SearchForm: React.FC<SearchFormProps> = ({
         <Grid size={1}>
           <SortWidget state={state} search={search} dispatch={dispatch} />
         </Grid>
+        <Grid size={1}>
+          <ClearWidget dispatch={dispatch} />
+        </Grid>
       </Grid>
     </Stack>
   )
 }
+
+type ClearWidgetProps = {
+  dispatch: React.Dispatch<Action>
+}
+const ClearWidget: React.FC<ClearWidgetProps> = ({ dispatch }) => (
+  <Tooltip arrow title="clear search form">
+    <IconButton
+      color="primary"
+      size="small"
+      onClick={() => {
+        phraseSearch({})
+          .then((searchResults) =>
+            dispatch({
+              action: "search",
+              search: {},
+              searchResults,
+            })
+          )
+          .catch(errorHandler(dispatch))
+      }}
+    >
+      <ClearIcon fontSize="inherit" />
+    </IconButton>
+  </Tooltip>
+)
 
 type SortWidgetProps = {
   state: AppState
