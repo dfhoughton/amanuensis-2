@@ -1048,7 +1048,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                   </Box>
                   <Stack direction="row" spacing={0.5}>
                     {!!lang && (
-                      <Chip label={lang.locale} key={lang.id} size="small" />
+                      <Chip label={lang.locale} key={lang.id} size="small" color="secondary"/>
                     )}
                     <Tooltip
                       arrow
