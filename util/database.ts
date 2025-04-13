@@ -410,7 +410,7 @@ export async function phrasesOnPage(search: UrlSearch): Promise<SearchResults> {
   const { url, page = 1, pageSize = 10 } = search
   const rs = await db.phrases
     .toCollection()
-    .filter((p) => p.citations.some((c) => c.url === url))
+    .filter((p) => p.citations.some((c) => c.url?.startsWith(url)))
     .toArray()
   const offset = (page - 1) * pageSize
   const phrases = rs.slice(offset, offset + pageSize)

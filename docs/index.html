@@ -167,9 +167,9 @@
         .fn-anchor {
           margin-top: 1.5rem;
         }
-        .highlighted {
-          background-color: var(--primary-very-light);
-        }
+      }
+      .highlighted {
+        background-color: var(--primary-very-light);
       }
       #footnotes {
         margin-bottom: 1rem;
@@ -179,9 +179,10 @@
         }
       }
       figure {
-        padding: 0.5rem;
+        padding: 0.25rem;
         max-width: 33%;
         float: right;
+        clear: both;
         img {
           max-width: 100%;
         }
@@ -536,8 +537,7 @@
           />
           <figcaption>
             The elements of the dictionary: 1) the manner of browsing; 2) the
-            search form; 3) notes; 4) lemma; 5) lemma note; 6) language; 7)
-            merge action; 8) link action; 9) delete action
+            search form; 3) notes
           </figcaption>
         </figure>
         <h3 id="dictionary">Dictionary</h3>
@@ -561,13 +561,179 @@
           now the current note, the note to which other notes displayed in the
           dictionary may be merged or linked.
         </p>
+        <figure id="results-figure">
+          <img src="images/result.png" alt="a search result" />
+          <figcaption>
+            A search result: 1) lemma; 2) lemma note; 3) locale; 4) merge; 5)
+            link; 6) delete
+          </figcaption>
+        </figure>
+        <h4>search results</h4>
+        <p>
+          Every search produces zero or more search results. These are basically
+          abbreviated notes. One may click on them to view them in full. See
+          <a href="#results-figure">the figure</a> for a sample search result.
+        </p>
+        <p>
+          In addition to the lemma, lemma note, and locale, each results
+          provides a number of actions one may take: merge this note with the
+          note currently displayed in the <a href="#note">note tab</a>, link it
+          to that note, or delete it from the database. The more destructive of
+          these actions, merging and deletion, require confirmation and, in the
+          case of mergin, possible editing to complete.
+        </p>
+        <figure id="search-figure">
+          <img src="images/search.png" alt="the free search form" />
+          <figcaption>
+            The free search form: 1) lemma; 2) any text; 3) tags; 4) whole word;
+            5) fuzzy match; 6) case-insensitive; 7) sort order; 8) clear form
+          </figcaption>
+        </figure>
         <h4>search</h4>
+        <p>
+          The search tab labeled simply "search" is the most flexible, and
+          consequently the most complex. See
+          <a href="#search-figure">the figure</a>.
+        </p>
+        <p>
+          There are two areas that allow you to search text, the lemma area and
+          the free text area. The first searches only lemmas. The second
+          searches lemmas, notes, citations &mdash; the phrases themselves and
+          the context before and after &mdash; and citation notes.
+        </p>
+        <p>
+          Both text searches allow you to specify whether it is a whole word
+          search (5), whether it is a fuzzy search (6), and whether it is
+          case-insensitive (7).
+        </p>
+        <p>
+          A "whole word" search is a search where the first and last letters in
+          the search field should be the first and last letters in words
+          matched.
+        </p>
+        <p>
+          A "fuzzy" search is one where letters may intervene between characters
+          matched. A fuzzy search for <i>era</i> would also match
+          <i>terra</i> and <i>tertiary</i>, because in all three words the
+          letters <i>e</i>, <i>r</i>, and <i>a</i> occur in that order.
+        </p>
+        <p>
+          A "case-insensitive" search will match letters regardless of their
+          case. A case-insensitive search for <i>cat</i> would match <i>CAT</i>.
+          A case-insensitive fuzzy search for <i>cat</i> would match
+          <i>A Canticle for Leibowitz</i>.
+        </p>
+        <p>
+          Tag searches look for notes where a particular tag occurs in the
+          note's lemma or citation tags.
+        </p>
+        <p>Language searches search for notes with particular locales.</p>
+        <figure id="sort-figure" style="max-width: 250px">
+          <img src="images/sort.png" alt="search result sorting options" />
+          <figcaption>
+            Search result sorting options. The one pointed out with an arrow
+            will find the note you last edited.
+          </figcaption>
+        </figure>
+        <p>
+          By default the search results are sorted by lemma. Sometimes it helps
+          to apply a different sort order. This is the purpose of the icon
+          showing three horizontal bars of descending size (<a
+            href="#sort-figure"
+            >the figure</a
+          >). I frequently use the last sort order, by time of last update
+          descending, to find where I last left off.
+        </p>
+        <figure id="similar-figure">
+          <img
+            src="images/similar.png"
+            alt="form for search for similar phrases"
+          />
+          <figcaption>The similar phrase search form.</figcaption>
+        </figure>
         <h4>similar phrase</h4>
+        <p>
+          The same phrase may have different forms &mdash; <i>cat</i> and
+          <i>cats</i>, for example. It may appear as part of another word
+          &mdash; <i>cat</i> and <i>catfish</i>. To facilitate linking a note to
+          related notes, or to merge different citations into the same note,
+          Amanuensis has the similar phrase search (<a href="#similar-figure"
+            >the figure</a
+          >).
+        </p>
+        <p>
+          When you highlight some text and invoke Amanuensis, it creates a
+          provisional note, and searches for similar notes within
+          <a href="#language">the language inferred by Chrome</a>. This
+          facilitates merging the citation highlighted with an existing note
+          immediately. The search is over all lemmas and citations. Because of
+          this pattern of use, the similar phrase search form has only two
+          fields: lemma and language.
+        </p>
+        <p>
+          Amanuensis must apply a string similarity metric to do a phrase
+          similarity search. There are many of these with different virtues and
+          flaws. Some work better than others for a given language. For this
+          reason, the simularity metric is
+          <a
+            href="#distance-metrics"
+            title="how to configure the string similarity metric"
+            >configurable</a
+          >.
+        </p>
+        <p>
+          One could in principle rank all notes for their similarity to a given
+          phrase. In practice, however, there is little value in looking too far
+          down the list. For this reason, the maximum number of results
+          displayed in a similarity search is
+          <a
+            href="max-similars"
+            title="how to configure the maximum number of similar phrases displayed"
+            >configurable as well</a
+          >.
+        </p>
+        <figure id="on-page-figure">
+          <img
+            src="images/on-page.png"
+            alt="form for searching for notes at a given URL"
+          />
+          <figcaption>Search by URL.</figcaption>
+        </figure>
         <h4>citations on page</h4>
+        <p>
+          The form to find citations on a given page is the simplest (<a
+            href="#on-page-figure"
+            >the figure</a
+          >). The "page" in this case is just the URL, so the only field in the
+          search form contains a URL. The search performed is a search for notes
+          which have some citation whose URL <i>starts with</i> the string in
+          the search form. This means you can use this form to search for all
+          citations on a particular site, not just a particular page.
+        </p>
         <h3 id="tags">Tags</h3>
+        <!--
+If you capture a citation of cars, you probably don't want it to live in a separate note from a note on car, if any. You can add the citation to the existing car by finding the note via search  and then clicking the merge button .
+
+But how do you find the car note? Amanuensis provides a special variety of search for this purpose: the similarity search. Similarity searches look for notes whose lemma or citations are particularly similar to a given phrase. For this they need a definition of similarity. These are the string distance metrics.
+
+The default string distance metric is called Jaro-Winkler. It is fast and considers changes to the beginning of words to be more important than changes to the end, so cars will be found to be more similar than scar to car. This is just what you want for suffixing languages like English, where grammatical markers tend to go on the end of words. If you are working with a prefixing language like Swahili, where watu is a form of the word mtu, this is not so good.
+
+If you find the similar words found by similarity search are not all that similar, and in particular if you know that there's a similar note but it's not finding it, you could try a different string distance metric. Perhaps another will work better.
+
+
+In a similarity search you are unlikely to find any interesting similar phrases after the first few notes, so rather than display all the notes in the dictionary for the given language sorted by similarity Amanuensis just shows the few most similar ones. This parameter controls how many are shown.
+
+
+
+Clear will remove all notes, tags, languages, and configuration.
+
+Export downloads a JSON file containing all database structure and content.
+
+Import merges such a file into the current database. You may find this gives you duplicate notes.
+        -->
         <h3>Configuration</h3>
-        <h4>string distance metrics</h4>
-        <h4>max similar phrases</h4>
+        <h4 id="distance-metrics">string distance metrics</h4>
+        <h4 id="max-similars">max similar phrases</h4>
         <h4>database actions</h4>
         <h5>clear</h5>
         <h5>export</h5>
@@ -608,6 +774,17 @@
       </footer>
     </div>
     <script>
+      function removeHighlights() {
+        document
+          .querySelectorAll(".highlighted")
+          .forEach((n) => n.classList.remove("highlighted"))
+      }
+      function highlight(node) {
+        if (node) {
+          removeHighlights()
+          node.classList.add("highlighted")
+        }
+      }
       // make intra-document links smooth
       document.querySelectorAll("a").forEach((a) => {
         const href = a.attributes.href?.value
@@ -617,6 +794,9 @@
             a.onclick = (e) => {
               e.preventDefault()
               target.scrollIntoView({ behavior: "smooth", block: "center" })
+              if (target.nodeName === "FIGURE") {
+                highlight(target.querySelector("figcaption"))
+              }
             }
           }
         }
@@ -678,14 +858,11 @@
         txt.innerHTML = text
         fn.appendChild(txt)
         topTag.onclick = (e) => {
-          document
-            .querySelectorAll(".fn-text .highlighted")
-            .forEach((n) => n.classList.remove("highlighted"))
-          txt.classList.add("highlighted")
+          highlight(txt)
           bottomTag.scrollIntoView({ behavior: "smooth" })
         }
         bottomTag.onclick = (e) => {
-          txt.classList.remove("highlighted")
+          removeHighlights()
           topTag.scrollIntoView({ behavior: "smooth", block: "center" })
         }
         footnotes.appendChild(fn)
