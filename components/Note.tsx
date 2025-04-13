@@ -26,7 +26,6 @@ import {
   UrlSearch,
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
-import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
@@ -88,7 +87,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   const clean = isEqual(phrase, priorPhrase)
-  const helpHidden = !state.config?.showHelp
   const changeLanguage = (language: Language) => () => {
     setLanguageMenuAnchorEl(null)
     if (phrase?.languageId !== language.id) {
@@ -115,33 +113,24 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             {/* lemma and save and language widgets */}
             <Grid container columns={6}>
               <Grid size={5}>
-                <LabelWithHelp
-                  hidden={helpHidden}
-                  label="Lemma"
-                  explanation={
-                    'The canonical, "dictionary" form of the selected phrase. The lemma of "running", for example, might be "run".'
+                <TextField
+                  onChange={
+                    debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                      dispatch({
+                        action: "phrase",
+                        phrase: { ...phrase!, lemma: e.target.value },
+                      })
+                    }, 500) as React.ChangeEventHandler<
+                      HTMLInputElement | HTMLTextAreaElement
+                    >
                   }
-                  sx={{ pb: 1 }}
-                >
-                  <TextField
-                    onChange={
-                      debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                        dispatch({
-                          action: "phrase",
-                          phrase: { ...phrase!, lemma: e.target.value },
-                        })
-                      }, 500) as React.ChangeEventHandler<
-                        HTMLInputElement | HTMLTextAreaElement
-                      >
-                    }
-                    variant="standard"
-                    hiddenLabel
-                    placeholder="Lemma"
-                    defaultValue={phrase?.lemma}
-                    sx={{ width: "100%" }}
-                    inputRef={lemmaRef}
-                  />
-                </LabelWithHelp>
+                  variant="standard"
+                  hiddenLabel
+                  placeholder="Lemma"
+                  defaultValue={phrase?.lemma}
+                  sx={{ width: "100%", pn: 1 }}
+                  inputRef={lemmaRef}
+                />
               </Grid>
               <Grid size={1}>
                 <Stack
@@ -222,38 +211,29 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 </Stack>
               </Grid>
             </Grid>
-            <LabelWithHelp
-              hidden={helpHidden}
-              label="Lemma Note"
-              explanation={"A note that pertains to all citations."}
-              sx={{ pb: 1 }}
-            >
-              <TextField
-                multiline
-                autoFocus
-                onChange={
-                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                    dispatch({
-                      action: "phrase",
-                      phrase: { ...phrase!, note: e.target.value },
-                    })
-                  }, 500) as React.ChangeEventHandler<
-                    HTMLInputElement | HTMLTextAreaElement
-                  >
-                }
-                variant="standard"
-                hiddenLabel
-                placeholder="Lemma Note"
-                defaultValue={phrase.note}
-                inputRef={noteRef}
-                sx={{ width: "100%" }}
-              />
-            </LabelWithHelp>
+            <TextField
+              multiline
+              autoFocus
+              onChange={
+                debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                  dispatch({
+                    action: "phrase",
+                    phrase: { ...phrase!, note: e.target.value },
+                  })
+                }, 500) as React.ChangeEventHandler<
+                  HTMLInputElement | HTMLTextAreaElement
+                >
+              }
+              variant="standard"
+              hiddenLabel
+              placeholder="Lemma Note"
+              defaultValue={phrase.note}
+              inputRef={noteRef}
+              sx={{ width: "100%", pb: 1 }}
+            />
             <TagWidget
               tags={tags}
               presentTags={phrase.tags}
-              hideHelp={helpHidden}
-              dispatch={dispatch}
               addTag={(t) => {
                 const tags: number[] = [...(phrase.tags ?? []), t.id!]
                 dispatch({ action: "phrase", phrase: { ...phrase, tags } })
@@ -265,55 +245,43 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               onClick={(tag: Tag) => tagSearch(tag, dispatch)}
             />
             <Divider sx={{ my: 0.5 }} />
-            <LabelWithHelp
-              hidden={helpHidden}
-              label="Related Phrases"
-              explanation={
-                <>
-                  Phrases that have some notable relation to{" "}
-                  <i>{phrase.lemma}</i>.
-                </>
-              }
-              sx={{ pb: 1 }}
-            >
-              <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-                {!phrase.relatedPhrases?.size && (
-                  <FauxPlaceholder>Relations</FauxPlaceholder>
-                )}
-                {!!phrase.relatedPhrases?.size &&
-                  Array.from(phrase.relatedPhrases!.entries())
-                    .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
-                    .map(([pid, [rid, p]]) => {
-                      return (
-                        <Chip
-                          key={pid}
-                          label={p.lemma}
-                          size="small"
-                          variant="outlined"
-                          onClick={() => {
-                            // todo: add confirmation modal to protect unsaved state
-                            dispatch({ action: "relationClicked", phrase: p })
-                            lemmaRef.current!.value = p.lemma
-                            noteRef.current!.value = p.note ?? ""
-                          }}
-                          onDelete={() => {
-                            deleteRelation(rid)
-                              .then(() => {
-                                const relations = phrase.relations!.filter(
-                                  (n) => n !== rid
-                                )
-                                dispatch({
-                                  action: "relationsChanged",
-                                  relations,
-                                })
+            <Stack direction="row" spacing={1} sx={{ width: "100%", pb: 1 }}>
+              {!phrase.relatedPhrases?.size && (
+                <FauxPlaceholder>Relations</FauxPlaceholder>
+              )}
+              {!!phrase.relatedPhrases?.size &&
+                Array.from(phrase.relatedPhrases!.entries())
+                  .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
+                  .map(([pid, [rid, p]]) => {
+                    return (
+                      <Chip
+                        key={pid}
+                        label={p.lemma}
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          // todo: add confirmation modal to protect unsaved state
+                          dispatch({ action: "relationClicked", phrase: p })
+                          lemmaRef.current!.value = p.lemma
+                          noteRef.current!.value = p.note ?? ""
+                        }}
+                        onDelete={() => {
+                          deleteRelation(rid)
+                            .then(() => {
+                              const relations = phrase.relations!.filter(
+                                (n) => n !== rid
+                              )
+                              dispatch({
+                                action: "relationsChanged",
+                                relations,
                               })
-                              .catch(errorHandler(dispatch))
-                          }}
-                        />
-                      )
-                    })}
-              </Stack>
-            </LabelWithHelp>
+                            })
+                            .catch(errorHandler(dispatch))
+                        }}
+                      />
+                    )
+                  })}
+            </Stack>
             {phrase?.citations.map((c, i) => (
               <CitationInBrief
                 phrase={phrase}
@@ -322,7 +290,6 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 key={i}
                 tags={tags}
                 chosen={state.citationIndex === i}
-                helpHidden={helpHidden}
                 onlyCitation={(phrase?.citations.length ?? 0) < 2}
                 state={state}
                 dispatch={dispatch}
@@ -341,7 +308,6 @@ type CitationInBriefProps = {
   citationIndex: number
   chosen: boolean
   tags: Tag[] | undefined
-  helpHidden: boolean
   onlyCitation: boolean
   state: AppState
   dispatch: React.Dispatch<Action>
@@ -352,7 +318,6 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   citationIndex,
   tags,
   chosen,
-  helpHidden: hidden,
   onlyCitation,
   state,
   dispatch,
@@ -365,149 +330,130 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
     return (
       <Stack spacing={1}>
         {divider}
-        <LabelWithHelp hidden={hidden} label="Title and URL">
-          <Grid container columns={12}>
-            <Grid size={onlyCitation ? 12 : 11}>
-              <TitleDateAndUrl
-                citation={citation}
-                state={state}
-                dispatch={dispatch}
-                phrase={phrase}
-              />
-            </Grid>
-            {!onlyCitation && (
-              <Grid size={1}>
-                <IconButton
-                  color="primary"
-                  size="small"
-                  onClick={(e) => setMoreMenuAnchorEl(e.currentTarget)}
-                >
-                  <MoreVertIcon fontSize="inherit" />
-                </IconButton>
-                <Menu
-                  MenuListProps={{ dense: true }}
-                  anchorEl={moreMenuAnchorEl}
-                  open={Boolean(moreMenuAnchorEl)}
-                  onClose={() => setMoreMenuAnchorEl(null)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      e.preventDefault()
-                      setMoreMenuAnchorEl(null)
-                    }
-                  }}
-                >
-                  <MenuItem>
-                    <Tooltip title="The canonical citation is the one shown by default">
-                      <Button
-                        color="secondary"
-                        size="small"
-                        disabled={citation.canonical}
-                        sx={{ width: "100%" }}
-                        endIcon={<StarRateIcon fontSize="inherit" />}
-                        onClick={() => {
-                          const i = phrase.citations.findIndex(
-                            (c) => c === citation
-                          )
-                          const citations = phrase.citations.map((c) => ({
-                            ...c,
-                            canonical: false,
-                          }))
-                          citations[i].canonical = true
-                          console.log("citations", citations)
-                          dispatch({
-                            action: "phrase",
-                            phrase: { ...phrase, citations },
-                          })
-                          dispatch({
-                            action: "message",
-                            message:
-                              "displayed citation marked as canonical; change not yet saved",
-                          })
-                          setMoreMenuAnchorEl(null)
-                        }}
-                      >
-                        Canonical
-                      </Button>
-                    </Tooltip>
-                  </MenuItem>
-                  <MenuItem>
+        <Grid container columns={12}>
+          <Grid size={onlyCitation ? 12 : 11}>
+            <TitleDateAndUrl
+              citation={citation}
+              state={state}
+              dispatch={dispatch}
+              phrase={phrase}
+            />
+          </Grid>
+          {!onlyCitation && (
+            <Grid size={1}>
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={(e) => setMoreMenuAnchorEl(e.currentTarget)}
+              >
+                <MoreVertIcon fontSize="inherit" />
+              </IconButton>
+              <Menu
+                MenuListProps={{ dense: true }}
+                anchorEl={moreMenuAnchorEl}
+                open={Boolean(moreMenuAnchorEl)}
+                onClose={() => setMoreMenuAnchorEl(null)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault()
+                    setMoreMenuAnchorEl(null)
+                  }
+                }}
+              >
+                <MenuItem>
+                  <Tooltip title="The canonical citation is the one shown by default">
                     <Button
-                      color="primary"
+                      color="secondary"
                       size="small"
+                      disabled={citation.canonical}
                       sx={{ width: "100%" }}
-                      endIcon={<DeleteIcon fontSize="inherit" />}
+                      endIcon={<StarRateIcon fontSize="inherit" />}
                       onClick={() => {
                         const i = phrase.citations.findIndex(
                           (c) => c === citation
                         )
-                        const citations = phrase.citations
-                        citations.splice(i, 1)
+                        const citations = phrase.citations.map((c) => ({
+                          ...c,
+                          canonical: false,
+                        }))
+                        citations[i].canonical = true
+                        console.log("citations", citations)
                         dispatch({
                           action: "phrase",
-                          citationIndex: selectCitation(citations),
                           phrase: { ...phrase, citations },
                         })
                         dispatch({
                           action: "message",
                           message:
-                            "citation removed from phrase; change not yet saved",
+                            "displayed citation marked as canonical; change not yet saved",
                         })
                         setMoreMenuAnchorEl(null)
                       }}
                     >
-                      Delete
+                      Canonical
                     </Button>
-                  </MenuItem>
-                </Menu>
-              </Grid>
-            )}
-          </Grid>
-        </LabelWithHelp>
-        <LabelWithHelp
-          hidden={hidden}
-          label="Citation"
-          explanation={
-            citation.url
-              ? `The text selected from ${citation!.url}`
-              : "The text selected."
-          }
-        >
+                  </Tooltip>
+                </MenuItem>
+                <MenuItem>
+                  <Button
+                    color="primary"
+                    size="small"
+                    sx={{ width: "100%" }}
+                    endIcon={<DeleteIcon fontSize="inherit" />}
+                    onClick={() => {
+                      const i = phrase.citations.findIndex(
+                        (c) => c === citation
+                      )
+                      const citations = phrase.citations
+                      citations.splice(i, 1)
+                      dispatch({
+                        action: "phrase",
+                        citationIndex: selectCitation(citations),
+                        phrase: { ...phrase, citations },
+                      })
+                      dispatch({
+                        action: "message",
+                        message:
+                          "citation removed from phrase; change not yet saved",
+                      })
+                      setMoreMenuAnchorEl(null)
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </MenuItem>
+              </Menu>
+            </Grid>
+          )}
+        </Grid>
+        <Box>
           {citation?.before}
           <b>{citation!.phrase}</b>
           {citation?.after}
-        </LabelWithHelp>
-        <LabelWithHelp
-          hidden={hidden}
-          label="Citation Note"
-          explanation={"Any notes about this particular citation"}
-        >
-          <TextField
-            multiline
-            onChange={
-              debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                let { citations } = phrase
-                citations = [...citations]
-                citations[citationIndex] = { ...citation, note: e.target.value }
-                dispatch({
-                  action: "phrase",
-                  phrase: { ...phrase, citations },
-                })
-              }, 500) as React.ChangeEventHandler<
-                HTMLInputElement | HTMLTextAreaElement
-              >
-            }
-            variant="standard"
-            hiddenLabel={hidden}
-            placeholder="Citation Note"
-            defaultValue={citation.note}
-            sx={{ width: "85%" }}
-          />
-        </LabelWithHelp>
+        </Box>
+        <TextField
+          multiline
+          onChange={
+            debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+              let { citations } = phrase
+              citations = [...citations]
+              citations[citationIndex] = { ...citation, note: e.target.value }
+              dispatch({
+                action: "phrase",
+                phrase: { ...phrase, citations },
+              })
+            }, 500) as React.ChangeEventHandler<
+              HTMLInputElement | HTMLTextAreaElement
+            >
+          }
+          variant="standard"
+          placeholder="Citation Note"
+          defaultValue={citation.note}
+          sx={{ width: "85%" }}
+        />
         <TagWidget
           tags={tags}
           presentTags={citation.tags}
-          hideHelp={hidden}
-          dispatch={dispatch}
           addTag={(t) => {
             const tags: number[] = [...(citation.tags ?? []), t.id!]
             const c: Citation = { ...citation, tags }

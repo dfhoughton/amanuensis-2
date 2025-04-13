@@ -77,12 +77,12 @@ export type TextSearch = {
 export enum SortType {
   Lemma,
   Creation,
-  Update
+  Update,
 }
 
 export enum SortDirection {
   Ascending,
-  Descending
+  Descending,
 }
 
 export type Sort = {
@@ -154,7 +154,6 @@ export type AppState = {
 
 export type Configuration = {
   id?: number // here to make configuration compatible with indexeddb
-  showHelp?: boolean
   distanceMetric?: DistanceMetric
   maxSimilarPhrases?: number
 }

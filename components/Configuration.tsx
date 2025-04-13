@@ -9,9 +9,7 @@ import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
   Button,
-  Checkbox,
   FormControl,
-  FormControlLabel,
   IconButton,
   InputLabel,
   Link,
@@ -30,7 +28,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import Grid from "@mui/material/Grid2"
 import {
   addLanguage,
   configuration,
@@ -44,13 +41,10 @@ import {
   setConfiguration,
 } from "../util/database"
 import { ConfirmationModal } from "./ConfirmationModal"
-import { LabelWithHelp } from "./LabelWithHelp"
 import AddIcon from "@mui/icons-material/Add"
 import LanguageIcon from "@mui/icons-material/Language"
 import DeleteIcon from "@mui/icons-material/Delete"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
-import AutoStories from "@mui/icons-material/AutoStories"
-import MergeIcon from "@mui/icons-material/Merge"
 import ClearAll from "@mui/icons-material/ClearAll"
 import FileDownload from "@mui/icons-material/FileDownload"
 import FileUpload from "@mui/icons-material/FileUpload"
@@ -60,7 +54,6 @@ import {
   defaultMaxSimilarPhrases,
   DistanceMetric,
 } from "../util/similarity_sorter"
-import { Mention } from "./Mention"
 
 type ConfigurationProps = {
   state: AppState
@@ -77,17 +70,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
     configuration()
       .then((c) => {
         dispatch({ action: "config", config: c ?? {} })
-      })
-      .catch(errorHandler(dispatch))
-  }, [])
-  const showHelpHandler = useCallback((e) => {
-    const c: ConfigurationType = {
-      ...config,
-    }
-    c.showHelp = e.target.checked
-    setConfiguration(c)
-      .then(() => {
-        dispatch({ action: "config", config: c })
       })
       .catch(errorHandler(dispatch))
   }, [])
@@ -113,7 +95,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       })
       .catch(errorHandler(dispatch))
   }, [])
-  const showingHelp = !!state?.config?.showHelp
   return (
     <>
       <Stack
@@ -146,141 +127,44 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             }
           }}
         >
-          <Tooltip
-            title={
-              <>about Amanuensis &mdash; go to the Amanuensis documentation</>
-            }
-          >
+          <Tooltip title="go to the Amanuensis documentation">
             <HelpOutlineIcon />
           </Tooltip>
         </Link>
       </Stack>
-      <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-        <LabelWithHelp
-          hidden={!showingHelp}
-          label=""
-          explanation={
-            <>
-              To save space, Amanuensis leaves many interface elements
-              unlabeled. Check this to add labels and, in most cases, further
-              explanatory text. If there is explanatory text, there will be an
-              information icon <HelpOutlineIcon fontSize="inherit" /> you can
-              click to see it.
-            </>
-          }
-        >
-          <FormControlLabel
-            control={
-              <Checkbox checked={showingHelp} onChange={showHelpHandler} />
-            }
-            label="Show Help Text"
-          />
-        </LabelWithHelp>
-        <LabelWithHelp
-          hidden={!showingHelp}
-          sx={{ width: "100%" }}
-          label="Mechanism for Identifying Similar Phrases"
-          explanation={
-            <Stack spacing={1}>
-              <Typography>
-                If you capture a citation of <Mention phrase="cars" />, you
-                probably don't want it to live in a separate note from a note on{" "}
-                <Mention phrase="car" />, if any. You can add the citation to
-                the existing <Mention phrase="car" /> by finding the note via
-                search{" "}
-                <Link
-                  sx={{ cursor: "pointer" }}
-                  onClick={() =>
-                    dispatch({ action: "tab", tab: AppTabs.Dictionary })
-                  }
-                >
-                  <AutoStories fontSize="inherit" />
-                </Link>{" "}
-                and then clicking the merge button{" "}
-                <MergeIcon fontSize="inherit" />.
-              </Typography>
-              <Typography>
-                But how do you find the <Mention phrase="car" /> note?
-                Amanuensis provides a special variety of search for this
-                purpose: the similarity search. Similarity searches look for
-                notes whose lemma or citations are particularly similar to a
-                given phrase. For this they need a definition of similarity.
-                These are the string distance metrics.
-              </Typography>
-              <Typography>
-                The default string distance metric is called{" "}
-                {defaultDistanceMetric}. It is fast and considers changes to the
-                beginning of words to be more important than changes to the end,
-                so <Mention phrase="cars" /> will be found to be more similar
-                than <Mention phrase="scar" /> to <Mention phrase="car" />. This
-                is just what you want for suffixing languages like English,
-                where grammatical markers tend to go on the end of words. If you
-                are working with a prefixing language like Swahili, where{" "}
-                <Mention phrase="watu" /> is a form of the word{" "}
-                <Mention phrase="mtu" />, this is not so good.
-              </Typography>
-              <Typography>
-                If you find the similar words found by similarity search are not
-                all that similar, and in particular if you know that there's a
-                similar note but it's not finding it, you could try a different
-                string distance metric. Perhaps another will work better.
-              </Typography>
-            </Stack>
-          }
-        >
-          <FormControl fullWidth>
-            <InputLabel id="metric-select-label">
-              String Distance Metric
-            </InputLabel>
-            <Select
-              labelId="metric-select-label"
-              id="thing-select"
-              value={config?.distanceMetric ?? defaultDistanceMetric}
-              label="String Distance Metric"
-              onChange={distanceMetricHandler}
-            >
-              {Object.values(DistanceMetric).map((metric) => (
-                <MenuItem key={metric} value={metric}>
-                  {metric}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </LabelWithHelp>
-        <LabelWithHelp
-          sx={{ width: "100%" }}
-          hidden={!showingHelp}
-          label="Maximum Phrases Found in Similarity Search"
-          explanation={
-            <Stack spacing={1}>
-              <Typography>
-                In a similarity search you are unlikely to find any interesting
-                similar phrases after the first few notes, so rather than
-                display all the notes in the dictionary for the given language
-                sorted by similarity Amanuensis just shows the few most similar
-                ones. This parameter controls how many are shown.
-              </Typography>
-            </Stack>
-          }
-        >
-          <TextField
-            label="Max Similar Phrases"
-            type="number"
-            fullWidth
-            slotProps={{ htmlInput: { min: 5, step: 1 } }}
-            value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
-            onChange={maxSimilarPhrasesHandler}
-          />
-        </LabelWithHelp>
+      <Stack spacing={2} sx={{ alignItems: "flex-start", mt: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel id="metric-select-label">
+            String Distance Metric
+          </InputLabel>
+          <Select
+            labelId="metric-select-label"
+            id="thing-select"
+            value={config?.distanceMetric ?? defaultDistanceMetric}
+            label="String Distance Metric"
+            onChange={distanceMetricHandler}
+          >
+            {Object.values(DistanceMetric).map((metric) => (
+              <MenuItem key={metric} value={metric}>
+                {metric}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          label="Max Similar Phrases"
+          type="number"
+          fullWidth
+          slotProps={{ htmlInput: { min: 5, step: 1 } }}
+          value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
+          onChange={maxSimilarPhrasesHandler}
+        />
         <DbActions
-          showingHelp
           dispatch={dispatch}
           version={version}
           setVersion={setVersion}
         />
-        {/** HERE */}
         <Languages
-          state={state}
           dispatch={dispatch}
           version={version}
           setVersion={setVersion}
@@ -291,14 +175,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
 }
 
 type LanguagesProps = {
-  state: AppState
   dispatch: React.Dispatch<Action>
   version: number
   setVersion: (version: number) => void
 }
 /** lists and allows the editing of languages */
 export const Languages: React.FC<LanguagesProps> = ({
-  state,
   dispatch,
   version,
   setVersion,
@@ -633,14 +515,12 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
 }
 
 type DbActionProps = {
-  showingHelp: boolean
   version: number
   setVersion: (version: number) => void
   dispatch: React.Dispatch<Action>
 }
 
 export const DbActions: React.FC<DbActionProps> = ({
-  showingHelp,
   version,
   setVersion,
   dispatch,
@@ -649,65 +529,51 @@ export const DbActions: React.FC<DbActionProps> = ({
   const [openImportDbModal, setOpenImportDbModal] = React.useState(false)
   return (
     <>
-      <LabelWithHelp
-        hidden={!showingHelp}
-        sx={{ width: "100%" }}
-        label="Database Actions"
-        explanation={
-          <Stack spacing={1}>
-            <Typography>
-              Clear will remove all notes, tags, languages, and configuration.
-            </Typography>
-            <Typography>
-              Export downloads a JSON file containing all database structure and
-              content.
-            </Typography>
-            <Typography>
-              Import merges such a file into the current database. You may find
-              this gives you duplicate notes.
-            </Typography>
-          </Stack>
-        }
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ width: "100%", justifyContent: "space-between" }}
       >
-        <Grid container spacing={1} columns={3}>
-          <Grid size={1}>
-            <Button
-              onClick={() => setClearDbModalOpen(true)}
-              endIcon={<ClearAll />}
-            >
-              Clear
-            </Button>
-          </Grid>
-          <Grid size={1}>
-            <Button
-              endIcon={<FileDownload />}
-              onClick={async () => {
-                const data = await exportDb()
-                const a = document.createElement("a")
-                a.href = URL.createObjectURL(
-                  new Blob([data], {
-                    type: "application/json",
-                  })
-                )
-                a.download = `amanuensis-${new Date()
-                  .toLocaleDateString()
-                  .replaceAll("/", "-")}.json`
-                a.click()
-              }}
-            >
-              Export
-            </Button>
-          </Grid>
-          <Grid size={1}>
-            <Button
-              endIcon={<FileUpload />}
-              onClick={() => setOpenImportDbModal(true)}
-            >
-              Import
-            </Button>
-          </Grid>
-        </Grid>
-      </LabelWithHelp>
+        <Tooltip arrow title="clear the database">
+          <Button
+            onClick={() => setClearDbModalOpen(true)}
+            endIcon={<ClearAll />}
+          >
+            Clear
+          </Button>
+        </Tooltip>
+        <Tooltip arrow title="export database to a file">
+          <Button
+            endIcon={<FileDownload />}
+            onClick={async () => {
+              const data = await exportDb()
+              const a = document.createElement("a")
+              a.href = URL.createObjectURL(
+                new Blob([data], {
+                  type: "application/json",
+                })
+              )
+              a.download = `amanuensis-${new Date()
+                .toLocaleDateString()
+                .replaceAll("/", "-")}.json`
+              a.click()
+            }}
+          >
+            Export
+          </Button>
+        </Tooltip>
+        <Tooltip
+          arrow
+          title="import database from file, merging it into the current database"
+        >
+          <Button
+            endIcon={<FileUpload />}
+            onClick={() => setOpenImportDbModal(true)}
+          >
+            Import
+          </Button>
+        </Tooltip>
+      </Stack>
       <ConfirmationModal
         open={clearDbModalOpen}
         title="Remove All Records from Database"

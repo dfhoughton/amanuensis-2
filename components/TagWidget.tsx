@@ -1,70 +1,32 @@
 import React, { useRef } from "react"
-import { AppTabs, Tag } from "../types/common"
-import { Action } from "../util/reducer"
-import { LabelWithHelp } from "./LabelWithHelp"
+import { Tag } from "../types/common"
 import { TagChip } from "./TagChip"
-import {
-  IconButton,
-  Link,
-  Menu,
-  MenuItem,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material"
+import { IconButton, Menu, MenuItem, Stack, Tooltip } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
-import LocalOfferIcon from "@mui/icons-material/LocalOffer"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type TagWidgeProps = {
-  hideHelp: boolean
   tags: Tag[] | undefined
   presentTags: number[] | undefined
   addTag: (tag: Tag) => void
   removeTag: (tag: Tag) => void
   onClick?: (tag: Tag) => (e: React.MouseEvent) => void
-  dispatch: React.Dispatch<Action>
 }
 /** Displays tags and allows their addition or removal */
 export const TagWidget: React.FC<TagWidgeProps> = ({
-  hideHelp,
   tags,
   presentTags,
   addTag,
   removeTag,
   onClick,
-  dispatch,
 }) => {
   const [addTagMenuAnchorEl, setAddTagMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
-  const [removeTagMenuAnchorEl, setRemoveTagMenuAnchorEl] = React.useState<
-    null | HTMLElement | SVGSVGElement
-  >(null)
   const addTagMenuOpen = Boolean(addTagMenuAnchorEl)
   const menuAnchor = useRef<SVGSVGElement>(null)
   const usedTags = new Set<number>(presentTags)
   return (
-    <LabelWithHelp
-      hidden={hideHelp}
-      label="Tags"
-      sx={{ width: "100%" }}
-      explanation={
-        <>
-          <Typography>
-            See the Tags tab:{" "}
-            <Link
-              onClick={() => dispatch({ action: "tab", tab: AppTabs.Tags })}
-            >
-              <LocalOfferIcon fontSize="inherit" />
-            </Link>
-            .
-          </Typography>
-          {!tags?.length && (
-            <Typography>You currently have no defined tags.</Typography>
-          )}
-        </>
-      }
-    >
+    <>
       {tags && !!tags.length && (
         <Stack
           direction="row"
@@ -113,7 +75,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                 open={addTagMenuOpen}
                 onClose={() => setAddTagMenuAnchorEl(null)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
+                  if (e.key === "Escape") {
                     e.preventDefault()
                     setAddTagMenuAnchorEl(null)
                   }
@@ -131,6 +93,6 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
           )}
         </Stack>
       )}
-    </LabelWithHelp>
+    </>
   )
 }

@@ -58,7 +58,6 @@ import {
   similaritySearch,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
-import { LabelWithHelp } from "./LabelWithHelp"
 import debounce from "lodash/debounce"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
@@ -259,7 +258,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   dispatch,
 }) => {
   const { freeSearch: search = { ...searchDefaults } } = state
-  const hideHelp = !state.config?.showHelp
+  const lemmaRef = useRef<HTMLInputElement>()
+  const freeTextRef = useRef<HTMLInputElement>()
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
@@ -271,25 +271,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   return (
     <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-      {!hideHelp && (
-        <Paper>This tab allows you to search for particular phrases.</Paper>
-      )}
       <TextSearchWidget
-        label="Lemma"
-        explanation=""
-        hideHelp={hideHelp}
         placeholder="Lemma to search for"
         field="lemma"
+        textRef={lemmaRef}
         search={search}
         searchResults={searchResults}
         dispatch={dispatch}
       />
       <TextSearchWidget
-        label="Any Text"
-        explanation=""
-        hideHelp={hideHelp}
         placeholder="Text to search for"
         field="text"
+        textRef={freeTextRef}
         search={search}
         searchResults={searchResults}
         dispatch={dispatch}
@@ -297,10 +290,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
       <Grid container columns={14} spacing={1} sx={{ width: "100%" }}>
         <Grid size={6}>
           <TagWidget
-            hideHelp={hideHelp}
             tags={tags}
             presentTags={search.tags}
-            dispatch={dispatch}
             addTag={(t) => {
               const tags = [...(search.tags ?? []), t.id!]
               const s = { ...search, tags, page: 1 }
@@ -330,56 +321,50 @@ const SearchForm: React.FC<SearchFormProps> = ({
           />
         </Grid>
         <Grid size={6}>
-          <LabelWithHelp
-            label="Languages"
-            explanation="TODO: think of something to put here"
-            hidden={hideHelp}
-          >
-            <LanguagePickerWidget
-              languageIds={search.languages ?? []}
-              languages={languages!}
-              onDelete={(lang) => () => {
-                let languages = (search.languages ?? []).filter(
-                  (la) => la !== lang.id
-                )
-                const s = { ...search, languages, page: 1 }
-                phraseSearch(s)
-                  .then((searchResults) =>
-                    dispatch({
-                      action: "search",
-                      search: s,
-                      searchResults,
-                    })
-                  )
-                  .catch(errorHandler(dispatch))
-              }}
-              onAdd={(l) => () => {
-                let languages = search.languages ?? []
-                if (languages.some((lId: number) => lId === l.id)) {
-                  languages = languages.filter((lId) => lId !== l.id)
-                } else {
-                  languages = [...languages, l.id!]
-                }
-                const s = { ...search, languages }
-                phraseSearch(s)
-                  .then((searchResults) => {
-                    dispatch({
-                      action: "search",
-                      search: s,
-                      searchResults,
-                    })
-                    setLanguageMenuAnchorEl(null)
+          <LanguagePickerWidget
+            languageIds={search.languages ?? []}
+            languages={languages!}
+            onDelete={(lang) => () => {
+              let languages = (search.languages ?? []).filter(
+                (la) => la !== lang.id
+              )
+              const s = { ...search, languages, page: 1 }
+              phraseSearch(s)
+                .then((searchResults) =>
+                  dispatch({
+                    action: "search",
+                    search: s,
+                    searchResults,
                   })
-                  .catch(errorHandler(dispatch))
-              }}
-            />
-          </LabelWithHelp>
+                )
+                .catch(errorHandler(dispatch))
+            }}
+            onAdd={(l) => () => {
+              let languages = search.languages ?? []
+              if (languages.some((lId: number) => lId === l.id)) {
+                languages = languages.filter((lId) => lId !== l.id)
+              } else {
+                languages = [...languages, l.id!]
+              }
+              const s = { ...search, languages }
+              phraseSearch(s)
+                .then((searchResults) => {
+                  dispatch({
+                    action: "search",
+                    search: s,
+                    searchResults,
+                  })
+                  setLanguageMenuAnchorEl(null)
+                })
+                .catch(errorHandler(dispatch))
+            }}
+          />
         </Grid>
         <Grid size={1}>
           <SortWidget state={state} search={search} dispatch={dispatch} />
         </Grid>
         <Grid size={1}>
-          <ClearWidget dispatch={dispatch} />
+          <ClearWidget dispatch={dispatch} refs={[lemmaRef, freeTextRef]} />
         </Grid>
       </Grid>
     </Stack>
@@ -388,13 +373,17 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
 type ClearWidgetProps = {
   dispatch: React.Dispatch<Action>
+  refs: React.MutableRefObject<HTMLInputElement | undefined>[]
 }
-const ClearWidget: React.FC<ClearWidgetProps> = ({ dispatch }) => (
+const ClearWidget: React.FC<ClearWidgetProps> = ({ dispatch, refs }) => (
   <Tooltip arrow title="clear search form">
     <IconButton
       color="primary"
       size="small"
       onClick={() => {
+        for (const r of refs) {
+          r.current!.value = ""
+        }
         phraseSearch({})
           .then((searchResults) =>
             dispatch({
@@ -738,21 +727,17 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
 }
 
 type TextSearchWidgetProps = {
-  label: string
-  explanation: string
-  hideHelp: boolean
   placeholder: string
   field: "lemma" | "text"
+  textRef: React.MutableRefObject<HTMLInputElement | undefined>
   search: FreeFormSearch
   searchResults: SearchResults
   dispatch: React.Dispatch<Action>
 }
 const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
-  label,
-  explanation,
   placeholder,
-  hideHelp: hidden,
   field,
+  textRef,
   search,
   searchResults,
   dispatch,
@@ -763,103 +748,63 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
     exact: false,
     caseSensitive: false,
   }
-  const [textEl, setTextEl] = React.useState<null | HTMLInputElement>(null)
   return (
-    <LabelWithHelp
-      label={label}
-      hidden={hidden}
-      explanation={
-        <>
-          <Typography>{explanation}</Typography>
-        </>
-      }
-      sx={{ width: "100%" }}
-    >
-      <Grid container spacing={1} columns={12}>
-        <Grid size={9}>
-          <TextField
-            sx={{ width: "100%" }}
-            onChange={
-              debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                setTextEl(e.target)
-                ts.text = e.target.value
-                search = { ...search, [field]: ts, page: 1 }
-                phraseSearch(search)
-                  .then((searchResults) =>
-                    dispatch({
-                      action: "search",
-                      search,
-                      searchResults,
-                    })
-                  )
-                  .catch(errorHandler(dispatch))
-              }, 500) as React.ChangeEventHandler<HTMLInputElement>
-            }
-            variant="standard"
-            hiddenLabel
-            placeholder={placeholder}
-            defaultValue={ts.text}
+    <Grid container spacing={1} columns={11} sx={{ width: "100%" }}>
+      <Grid size={9}>
+        <TextField
+          sx={{ width: "100%" }}
+          onChange={
+            debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+              ts.text = e.target.value
+              search = { ...search, [field]: ts, page: 1 }
+              phraseSearch(search)
+                .then((searchResults) =>
+                  dispatch({
+                    action: "search",
+                    search,
+                    searchResults,
+                  })
+                )
+                .catch(errorHandler(dispatch))
+            }, 500) as React.ChangeEventHandler<HTMLInputElement>
+          }
+          variant="standard"
+          hiddenLabel
+          placeholder={placeholder}
+          defaultValue={ts.text}
+          inputRef={textRef}
+        />
+      </Grid>
+      <Grid container size={2} spacing={0.75} columns={3}>
+        <Grid size={1}>
+          <BooleanBubble
+            search={search}
+            searchResults={searchResults}
+            field={field}
+            subField="whole"
+            dispatch={dispatch}
           />
         </Grid>
-        <Grid container size={3} spacing={0.75} columns={4}>
-          <Grid size={1}>
-            <BooleanBubble
-              search={search}
-              searchResults={searchResults}
-              field={field}
-              subField="whole"
-              dispatch={dispatch}
-            />
-          </Grid>
-          <Grid size={1}>
-            <BooleanBubble
-              search={search}
-              searchResults={searchResults}
-              field={field}
-              subField="exact"
-              dispatch={dispatch}
-            />
-          </Grid>
-          <Grid size={1}>
-            <BooleanBubble
-              search={search}
-              searchResults={searchResults}
-              field={field}
-              subField="caseSensitive"
-              dispatch={dispatch}
-            />
-          </Grid>
-          <Grid size={1}>
-            <Tooltip arrow title={"clear"} enterDelay={1000}>
-              <Avatar
-                sx={{
-                  width: "20px",
-                  height: "20px",
-                  fontSize: "0.75rem",
-                  color: "gray",
-                  bgcolor: "transparent",
-                  border: "1px solid gray",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  ts.text = ""
-                  if (textEl) textEl.value = ""
-                  search = { ...search, [field]: ts, page: 1 }
-                  phraseSearch(search)
-                    .then((searchResults) =>
-                      dispatch({ action: "search", search, searchResults })
-                    )
-                    .catch(errorHandler(dispatch))
-                }}
-              >
-                x
-              </Avatar>
-            </Tooltip>
-          </Grid>
+        <Grid size={1}>
+          <BooleanBubble
+            search={search}
+            searchResults={searchResults}
+            field={field}
+            subField="exact"
+            dispatch={dispatch}
+          />
+        </Grid>
+        <Grid size={1}>
+          <BooleanBubble
+            search={search}
+            searchResults={searchResults}
+            field={field}
+            subField="caseSensitive"
+            dispatch={dispatch}
+          />
         </Grid>
       </Grid>
-    </LabelWithHelp>
+    </Grid>
   )
 }
 
@@ -1048,7 +993,20 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                   </Box>
                   <Stack direction="row" spacing={0.5}>
                     {!!lang && (
-                      <Chip label={lang.locale} key={lang.id} size="small" color="secondary"/>
+                      <Tooltip arrow title={lang.name}>
+                        <Avatar
+                          sx={{
+                            width: "20px",
+                            height: "20px",
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            color: "white",
+                            backgroundColor: "secondary.main",
+                          }}
+                        >
+                          {lang.locale}
+                        </Avatar>
+                      </Tooltip>
                     )}
                     <Tooltip
                       arrow
