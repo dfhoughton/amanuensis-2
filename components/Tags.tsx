@@ -7,7 +7,6 @@ import {
   Divider,
   IconButton,
   Modal,
-  Paper,
   Stack,
   TextField,
   Tooltip,
@@ -78,20 +77,6 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
           </IconButton>
         </Tooltip>
       </Stack>
-      <Paper
-        sx={{
-          m: 1,
-          p: 1,
-          my: 2,
-          fontSize: "smaller",
-          fontStyle: "italic",
-          border: "1px solid",
-          borderColor: "background.paper",
-        }}
-      >
-        You may add tags to notes and citations to mark common properties and
-        make them discoverable.
-      </Paper>
       <Stack spacing={0.75} sx={{ mt: 2 }}>
         {tags
           ?.filter((t) => !!t)
