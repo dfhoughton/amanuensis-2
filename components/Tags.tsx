@@ -146,7 +146,7 @@ export const TagRow: React.FC<TagRowProps> = ({
     ?.map((id) => languages.find((l) => l.id === id))
     .filter((l) => l != null)
     .sort((a, b) => a!.name!.localeCompare(b!.name!))
-  const languageTooltip = tagLanguages?.map((l) => l!.name!).join(", ")
+  const languageTooltip = tagLanguages?.map((l) => l!.name!).join("; ")
   return (
     <>
       <Stack

@@ -710,7 +710,92 @@
           the search form. This means you can use this form to search for all
           citations on a particular site, not just a particular page.
         </p>
+        <figure id="tags-figure">
+          <img src="images/tags.png" alt="the tag tab" />
+          <figcaption>
+            The tag tab: 1) create a new tag; 2) the tag itself; 3) tag
+            contents; 4) tag locales; 5) edit; 6) duplicate; 7) delete
+          </figcaption>
+        </figure>
         <h3 id="tags">Tags</h3>
+        <p>
+          Tags consist of a short identifier, a visually distinctive style, and
+          some content. When you hover over a tag, the content appears as
+          tooltip text. Identifiers must be unique &mdash; you can have only one
+          tag identified as "M".
+        </p>
+        <p>Tags serve two functions:</p>
+        <ul>
+          <li>they concisely encapsulate recurring information</li>
+          <li>they facilitate the discovery of similar things</li>
+        </ul>
+        <p>
+          The tag tab (<a href="#tags-figure">the figure</a>) is where you
+          create, edit, and delete tags.
+        </p>
+        <p>
+          If you wish to create a new <i>category</i> of tags, you click the
+          plus icon (1). This allows you to create all the elements of your tag
+          from scratch (<a href="#tag-modal-figure">the figure</a>).
+        </p>
+        <figure id="tag-modal-figure">
+          <img src="images/tag-modal.png" alt="the tag modal" />
+          <figcaption>Creating a new tag.</figcaption>
+        </figure>
+        <p>
+          More commonly you will want to create a tag in an existing category.
+          Perhaps you have a category of tags that indicate part of speech
+          &mdash; noun, verb, adjective, etc. &mdash; and you wish to add a tag
+          for prepositions. Perhaps you nave a category of tags that represent
+          noun class &mdash; masculine versus feminine, animate versus
+          inanimate, abstract versus concrete &mdash; and you wish to add a new
+          class. The class is represented stylistically. You part of speech
+          class might be purple text on a yellow background. Your noun class
+          might be red on pink. To create a new tag in an existing class, you
+          click the duplicate icon (6) and then add the tag, text, and perhaps
+          locales it pertains to.
+        </p>
+        <p>
+          When tags are listed, they are sorted primarily by category, in the
+          order in which the category was created, and secondarily by identifer
+          in alphabetical order.
+        </p>
+        <h4>tag locales</h4>
+        <p>
+          Sometimes a particular tag will be useful for all languages. All
+          languages have nouns and verbs, for instance, so whenever you are
+          creating a note, whatever the language, you may want to be able to tag
+          a lemma as a noun or a verb.
+        </p>
+        <p>
+          Some languages have particular categories which are very important to
+          them but mean nothing in other languages. Uralic languages, for
+          example, have an
+          <a
+            href="https://en.wikipedia.org/wiki/Elative_case"
+            title="wikipedia article on the elative nominal case"
+            >elative case</a
+          >. A noun in the elative case is describing, roughly, motion out of a
+          space: <i>talosta</i> &mdash; "out of the house" in Finnish. If you
+          create an elative tag for Finnish, it's probably of no use to you for
+          notes about Mandarin.
+        </p>
+        <p>
+          To reduce tag clutter, therefore, Amanuensis allows you to specify the
+          locales for which a tag is relevant. If you provide no locales for a
+          tag, it is available for all notes.
+        </p>
+        <p>
+          You only see a tag's locales listed explicitly in the tags tab.
+          Elsewhere they serve only to hide irrelevant tags.
+        </p>
+        <p>
+          In the tags tab, if a tag has a single locale, that locale is shown in
+          the locales bubble. If it has more than one, the bubble contains an
+          ellipsis. If you hove over a tag's locale bubble in the tags tab, all
+          its locales will appear in a tooltip. See (4) in
+          <a href="#tags-figure">the figure</a>.
+        </p>
         <!--
 If you capture a citation of cars, you probably don't want it to live in a separate note from a note on car, if any. You can add the citation to the existing car by finding the note via search  and then clicking the merge button .
 
