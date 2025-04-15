@@ -36,7 +36,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import { Language as LanguageIcon } from "@mui/icons-material"
 import MergeIcon from "@mui/icons-material/Merge"
 import DeleteIcon from "@mui/icons-material/Delete"
 import LinkIcon from "@mui/icons-material/Link"
@@ -59,7 +58,6 @@ import {
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import debounce from "lodash/debounce"
-import { FauxPlaceholder } from "./FauxPlaceholder"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import { ConfirmationModal } from "./ConfirmationModal"
 import { TagChip } from "./TagChip"
@@ -68,6 +66,8 @@ import {
   defaultMaxSimilarPhrases,
 } from "../util/similarity_sorter"
 import { sortTags } from "./Tags"
+import { LanguageChip } from "./LanguageChip"
+import { LanguagePicker } from "./LanguagePicker"
 
 const searchDefaults = {
   page: 1,
@@ -291,6 +291,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         <Grid size={6}>
           <TagWidget
             tags={tags}
+            languageIds={search.languages ?? []}
             presentTags={search.tags}
             addTag={(t) => {
               const tags = [...(search.tags ?? []), t.id!]
@@ -321,7 +322,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           />
         </Grid>
         <Grid size={6}>
-          <LanguagePickerWidget
+          <LanguagePicker
             languageIds={search.languages ?? []}
             languages={languages!}
             onDelete={(lang) => () => {
@@ -525,86 +526,6 @@ const sorts: Array<{ description: string; sort: Sort }> = [
   },
 ]
 
-type LanguagePickerProps = {
-  languages: Language[]
-  languageIds: number[]
-  onDelete: (Language) => VoidFunction
-  onAdd: (Language) => VoidFunction
-}
-const LanguagePickerWidget: React.FC<LanguagePickerProps> = ({
-  languages,
-  languageIds,
-  onDelete,
-  onAdd,
-}) => {
-  const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
-    React.useState<null | HTMLElement>(null)
-  const languageMenuAnchor = useRef<SVGSVGElement>(null)
-  const languageMenuOpen = Boolean(languageMenuAnchorEl)
-  return (
-    <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
-      <Box
-        onClick={() =>
-          setLanguageMenuAnchorEl(languageMenuAnchor.current as any)
-        }
-      >
-        {!languageIds.length && <FauxPlaceholder>Languages</FauxPlaceholder>}
-        {!!languages &&
-          languageIds
-            .map((l) => languages.find((lang) => lang.id === l)!)
-            .sort((a, b) => (a.name < b.name ? -1 : 1))
-            .filter((l) => l)
-            .map((lang) => (
-              <Chip
-                label={lang.locale}
-                key={lang.id}
-                size="small"
-                onDelete={onDelete(lang)}
-              />
-            ))}
-      </Box>
-      <Tooltip arrow title="Filter by language">
-        <IconButton
-          color="primary"
-          size="small"
-          onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
-        >
-          <LanguageIcon fontSize="inherit" ref={languageMenuAnchor} />
-        </IconButton>
-      </Tooltip>
-      <Menu
-        MenuListProps={{ dense: true }}
-        anchorEl={languageMenuAnchorEl}
-        open={languageMenuOpen}
-        onClose={() => setLanguageMenuAnchorEl(null)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault()
-            setLanguageMenuAnchorEl(null)
-          }
-        }}
-      >
-        {!!languages &&
-          languages
-            .sort((a, b) => (a.name < b.name ? -1 : 1))
-            .map((l) => {
-              const selected = languageIds.some((lId) => lId === l.id)
-              return (
-                <MenuItem
-                  key={l.id!}
-                  selected={selected}
-                  disabled={selected}
-                  onClick={onAdd(l)}
-                >
-                  {l.name}
-                </MenuItem>
-              )
-            })}
-      </Menu>
-    </Stack>
-  )
-}
-
 type UrlSearchFormProps = {
   state: AppState
   dispatch: React.Dispatch<Action>
@@ -691,7 +612,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
         />
       </Grid>
       <Grid size={2}>
-        <LanguagePickerWidget
+        <LanguagePicker
           languageIds={langs ?? []}
           languages={languages ?? []}
           onDelete={(l) => () => {
@@ -708,7 +629,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
               .then(errorHandler(dispatch))
           }}
           onAdd={(l) => () => {
-            const languageIds = [...(langs ?? []), l.id]
+            const languageIds = [...(langs ?? []), l.id!]
             const s = { ...search, languages: languageIds, page: 1 }
             similaritySearch(s)
               .then((searchResults) =>
@@ -993,20 +914,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                   </Box>
                   <Stack direction="row" spacing={0.5}>
                     {!!lang && (
-                      <Tooltip arrow title={lang.name}>
-                        <Avatar
-                          sx={{
-                            width: "20px",
-                            height: "20px",
-                            fontSize: "0.75rem",
-                            fontWeight: 800,
-                            color: "white",
-                            backgroundColor: "secondary.main",
-                          }}
-                        >
-                          {lang.locale}
-                        </Avatar>
-                      </Tooltip>
+                      <LanguageChip title={lang.name} locale={lang.locale!} />
                     )}
                     <Tooltip
                       arrow

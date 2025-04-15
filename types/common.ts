@@ -175,4 +175,5 @@ export type Tag = {
   description?: string
   color?: string
   bgcolor?: string
+  languages?: number[]
 }

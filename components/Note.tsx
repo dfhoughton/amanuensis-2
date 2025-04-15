@@ -233,6 +233,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             />
             <TagWidget
               tags={tags}
+              languageIds={currentLanguage ? [currentLanguage.id!] : []}
               presentTags={phrase.tags}
               addTag={(t) => {
                 const tags: number[] = [...(phrase.tags ?? []), t.id!]
@@ -291,6 +292,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 tags={tags}
                 chosen={state.citationIndex === i}
                 onlyCitation={(phrase?.citations.length ?? 0) < 2}
+                currentLanguage={currentLanguage}
                 state={state}
                 dispatch={dispatch}
               />
@@ -309,6 +311,7 @@ type CitationInBriefProps = {
   chosen: boolean
   tags: Tag[] | undefined
   onlyCitation: boolean
+  currentLanguage: Language | undefined
   state: AppState
   dispatch: React.Dispatch<Action>
 }
@@ -319,6 +322,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   tags,
   chosen,
   onlyCitation,
+  currentLanguage,
   state,
   dispatch,
 }) => {
@@ -453,6 +457,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         />
         <TagWidget
           tags={tags}
+          languageIds={currentLanguage ? [currentLanguage.id!] : []}
           presentTags={citation.tags}
           addTag={(t) => {
             const tags: number[] = [...(citation.tags ?? []), t.id!]

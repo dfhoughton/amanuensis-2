@@ -7,6 +7,7 @@ import { FauxPlaceholder } from "./FauxPlaceholder"
 
 type TagWidgeProps = {
   tags: Tag[] | undefined
+  languageIds: number[] // for filtering out tags inappropriate to the language
   presentTags: number[] | undefined
   addTag: (tag: Tag) => void
   removeTag: (tag: Tag) => void
@@ -15,6 +16,7 @@ type TagWidgeProps = {
 /** Displays tags and allows their addition or removal */
 export const TagWidget: React.FC<TagWidgeProps> = ({
   tags,
+  languageIds,
   presentTags,
   addTag,
   removeTag,
@@ -83,6 +85,14 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
               >
                 {tags
                   .filter((t) => !usedTags.has(t.id!))
+                  .filter(
+                    (t) =>
+                      !languageIds?.length ||
+                      !t.languages?.length ||
+                      t.languages.some((i) =>
+                        languageIds.some((i2) => i2 === i)
+                      )
+                  )
                   .map((t) => (
                     <MenuItem key={t.id!} onClick={() => addTag(t)}>
                       <TagChip tag={t} />

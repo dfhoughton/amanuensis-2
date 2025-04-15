@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { AppState, AppTabs, Tag } from "../types/common"
+import { AppState, AppTabs, Language, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
@@ -20,8 +20,16 @@ import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
-import { deleteTag, knownTags, phraseSearch, saveTag } from "../util/database"
+import {
+  deleteTag,
+  knownTags,
+  perhapsStaleLanguages,
+  phraseSearch,
+  saveTag,
+} from "../util/database"
 import { TagChip } from "./TagChip"
+import { LanguageChip } from "./LanguageChip"
+import { LanguagePicker } from "./LanguagePicker"
 
 type TagsProps = {
   state: AppState
@@ -45,6 +53,12 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
   }, [version])
   const bumpVersion = () => setVersion(version + 1)
   const [modalTag, setModalTag] = useState<Tag>({ name: "" })
+  const [languages, setLanguages] = useState<Language[]>([])
+  useEffect(() => {
+    perhapsStaleLanguages()
+      .then((languages) => setLanguages(languages))
+      .catch(errorHandler(dispatch))
+  }, [])
   return (
     <Box sx={{ minHeight: "400px" }}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -56,7 +70,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
             color="primary"
             size="small"
             onClick={() => {
-              setModalTag({ name: "" })
+              setModalTag({ name: "", languages: [] })
               setOpenAddTagModal(true)
             }}
           >
@@ -64,22 +78,20 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
           </IconButton>
         </Tooltip>
       </Stack>
-      {!!config.showHelp && (
-        <Paper
-          sx={{
-            m: 1,
-            p: 1,
-            my: 2,
-            fontSize: "smaller",
-            fontStyle: "italic",
-            border: "1px solid",
-            borderColor: "background.paper",
-          }}
-        >
-          You may add tags to notes and citations to mark common properties and
-          make them discoverable.
-        </Paper>
-      )}
+      <Paper
+        sx={{
+          m: 1,
+          p: 1,
+          my: 2,
+          fontSize: "smaller",
+          fontStyle: "italic",
+          border: "1px solid",
+          borderColor: "background.paper",
+        }}
+      >
+        You may add tags to notes and citations to mark common properties and
+        make them discoverable.
+      </Paper>
       <Stack spacing={0.75} sx={{ mt: 2 }}>
         {tags
           ?.filter((t) => !!t)
@@ -88,6 +100,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
               {!!i && <Divider />}
               <TagRow
                 tag={t}
+                languages={languages}
                 setTag={setModalTag}
                 setOpen={setOpenAddTagModal}
                 bumpVersion={bumpVersion}
@@ -104,6 +117,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
         setTag={setModalTag}
         setOpen={setOpenAddTagModal}
         tags={tags ?? []}
+        languages={languages}
         dispatch={dispatch}
       />
     </Box>
@@ -129,6 +143,7 @@ export const tagSearch =
 
 export type TagRowProps = {
   tag: Tag
+  languages: Language[]
   setTag: (Tag) => void
   setOpen: (Boolean) => void
   bumpVersion: VoidFunction
@@ -136,11 +151,17 @@ export type TagRowProps = {
 }
 export const TagRow: React.FC<TagRowProps> = ({
   tag,
+  languages,
   setTag,
   setOpen,
   bumpVersion,
   dispatch,
 }) => {
+  const tagLanguages = tag.languages
+    ?.map((id) => languages.find((l) => l.id === id))
+    .filter((l) => l != null)
+    .sort((a, b) => a!.name!.localeCompare(b!.name!))
+  const languageTooltip = tagLanguages?.map((l) => l!.name!).join(", ")
   return (
     <>
       <Stack
@@ -152,11 +173,20 @@ export const TagRow: React.FC<TagRowProps> = ({
         <TagChip tag={tag} onClick={tagSearch(tag, dispatch)} />
         <Box>{tag.description}</Box>
         <Stack direction="row" spacing={1}>
+          {!!languageTooltip && (
+            <LanguageChip
+              title={languageTooltip}
+              locale={
+                tagLanguages?.length === 1 ? tagLanguages[0]!.locale! : "…"
+              }
+            />
+          )}
           <Tooltip arrow title="edit tag">
             <IconButton
               color="primary"
               size="small"
               onClick={() => {
+                tag.languages ??= []
                 setTag(tag)
                 setOpen(true)
               }}
@@ -169,7 +199,12 @@ export const TagRow: React.FC<TagRowProps> = ({
               color="primary"
               size="small"
               onClick={() => {
-                setTag({ name: "", color: tag.color, bgcolor: tag.bgcolor })
+                setTag({
+                  name: "",
+                  color: tag.color,
+                  bgcolor: tag.bgcolor,
+                  languages: tag.languages ?? [],
+                })
                 setOpen(true)
               }}
             >
@@ -214,6 +249,7 @@ type EditTagModalProps = {
   tag: Tag
   setTag: (Tag) => void
   tags: Tag[]
+  languages: Language[]
   dispatch: React.Dispatch<Action>
 }
 const EditTagModal: React.FC<EditTagModalProps> = ({
@@ -223,8 +259,13 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   tag,
   setTag,
   tags,
+  languages,
   dispatch,
 }) => {
+  const [languageIds, setLanguageIds] = useState<number[]>()
+  useEffect(() => {
+    setLanguageIds([...(tag.languages ?? [])])
+  }, [tag.id])
   const unique = (tag: Tag) =>
     !tags.some((t) => t.id !== tag.id && t.name === tag.name)
   const error = !unique(tag)
@@ -261,7 +302,14 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
         }
       }}
     >
-      <Box>
+      <Box
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            setOpen(false)
+          }
+        }}
+      >
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {!tag?.id && <>Create a New Tag</>}
           {!!tag?.id && <>Edit Tag</>}
@@ -332,6 +380,21 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
               />
             </Grid>
           </Grid>
+          <LanguagePicker
+            languages={languages}
+            languageIds={tag.languages ?? []}
+            onAdd={(l: Language) => () => {
+              if (!tag.languages!.some((lang) => lang === l.id)) {
+                tag.languages = [...tag.languages!, l.id!]
+                setLanguageIds(tag.languages)
+              }
+            }}
+            onDelete={(l: Language) => () => {
+              const langs = tag.languages!.filter((lang) => lang !== l.id)
+              tag.languages = langs
+              setLanguageIds(langs)
+            }}
+          />
           <Stack direction="row" sx={{ justifyContent: "space-between" }}>
             <Button variant="contained" disabled={!submissible} onClick={save}>
               Save
