@@ -651,7 +651,7 @@
           />
           <figcaption>The similar phrase search form.</figcaption>
         </figure>
-        <h4>similar phrase</h4>
+        <h4 id="similar">similar phrase</h4>
         <p>
           The same phrase may have different forms &mdash; <i>cat</i> and
           <i>cats</i>, for example. It may appear as part of another word
@@ -687,7 +687,7 @@
           down the list. For this reason, the maximum number of results
           displayed in a similarity search is
           <a
-            href="max-similars"
+            href="#max-similars"
             title="how to configure the maximum number of similar phrases displayed"
             >configurable as well</a
           >.
@@ -720,9 +720,9 @@
         <h3 id="tags">Tags</h3>
         <p>
           Tags consist of a short identifier, a visually distinctive style, and
-          some content. When you hover over a tag, the content appears as
-          tooltip text. Identifiers must be unique &mdash; you can have only one
-          tag identified as "M".
+          some content. They appear in Amanuensis as colored bubbles. When you
+          hover over a tag, the content appears as tooltip text. Identifiers
+          must be unique &mdash; you can have only one tag identified as "M".
         </p>
         <p>Tags serve two functions:</p>
         <ul>
@@ -731,12 +731,16 @@
         </ul>
         <p>
           The tag tab (<a href="#tags-figure">the figure</a>) is where you
-          create, edit, and delete tags.
+          create, edit, and delete tags. If you click on a tag in the tag tab
+          Amanuensis will perform a search for you of all notes bearing this
+          tag.
         </p>
         <p>
           If you wish to create a new <i>category</i> of tags, you click the
           plus icon (1). This allows you to create all the elements of your tag
-          from scratch (<a href="#tag-modal-figure">the figure</a>).
+          from scratch (<a href="#tag-modal-figure">the figure</a>). So long as
+          this tag is distinctive in its foreground or background color, it will
+          be the first member of a new category of tags.
         </p>
         <figure id="tag-modal-figure">
           <img src="images/tag-modal.png" alt="the tag modal" />
@@ -797,28 +801,75 @@
           <a href="#tags-figure">the figure</a>.
         </p>
         <!--
-If you capture a citation of cars, you probably don't want it to live in a separate note from a note on car, if any. You can add the citation to the existing car by finding the note via search  and then clicking the merge button .
-
-But how do you find the car note? Amanuensis provides a special variety of search for this purpose: the similarity search. Similarity searches look for notes whose lemma or citations are particularly similar to a given phrase. For this they need a definition of similarity. These are the string distance metrics.
-
-The default string distance metric is called Jaro-Winkler. It is fast and considers changes to the beginning of words to be more important than changes to the end, so cars will be found to be more similar than scar to car. This is just what you want for suffixing languages like English, where grammatical markers tend to go on the end of words. If you are working with a prefixing language like Swahili, where watu is a form of the word mtu, this is not so good.
-
-If you find the similar words found by similarity search are not all that similar, and in particular if you know that there's a similar note but it's not finding it, you could try a different string distance metric. Perhaps another will work better.
-
-
-In a similarity search you are unlikely to find any interesting similar phrases after the first few notes, so rather than display all the notes in the dictionary for the given language sorted by similarity Amanuensis just shows the few most similar ones. This parameter controls how many are shown.
-
-
-
 Clear will remove all notes, tags, languages, and configuration.
 
 Export downloads a JSON file containing all database structure and content.
 
 Import merges such a file into the current database. You may find this gives you duplicate notes.
         -->
+        <figure id="config-figure">
+          <img src="images/configuration.png" alt="the configuration tab" />
+          <figcaption>
+            The configuration tab: 1) link to documentation; 2) similarity
+            metric selector; 3) maximum similar phrase count; 4) clear database
+            button; 5) export database button; 6) import database button; 7)
+            language adder; 8) the unknown language; 9) locale tallyß
+          </figcaption>
+        </figure>
         <h3>Configuration</h3>
+        <p>
+          Amanuensis does not yet have many configurable parameters. Those that
+          there are, together with some database actions, can be found on the
+          configuration tab (<a href="#config-figure">the figure</a>).
+        </p>
+        <p>
+          The configuration tab is also where one can find the link to this
+          documentation &mdash; (1) in
+          <a href="#config-figure">the figure</a> &mdash; something which you
+          likely already know, since it's likely what has brought you to be
+          reading this text.
+        </p>
         <h4 id="distance-metrics">string distance metrics</h4>
+        <p>
+          If you capture a citation of <i>cars</i>, you probably don't want it
+          to live in a separate note from a note on <i>car</i>, if any. You can
+          add the citation to the existing <i>car</i> by finding the note via
+          search and then clicking the merge button.
+        </p>
+        <p>
+          But how do you find the <i>car</i> note? Amanuensis provides a special
+          variety of search for this purpose: the
+          <a href="#similar">similarity search</a>. Similarity searches look for
+          notes whose lemma or citations are particularly similar to a given
+          phrase. For this they need a definition of similarity. These are the
+          <a href="https://en.wikipedia.org/wiki/String_metric"
+            >string distance metrics</a
+          >.
+        </p>
+        <p>
+          The default string distance metric is called Jaro-Winkler. It is fast
+          and considers changes to the beginning of words to be more important
+          than changes to the end, so <i>cars</i> will be found to be more
+          similar than <i>scar</i> to <i>car</i>. This is just what you want for
+          suffixing languages like English, where grammatical markers tend to go
+          on the end of words. If you are working with a prefixing language like
+          Swahili, where <i>watu</i> is a form of the word <i>mtu</i>, this is
+          not so good.
+        </p>
+        <p>
+          If you find the similar words found by similarity search are not all
+          that similar, and in particular if you know that there's a similar
+          note but it's not finding it, you could try a different string
+          distance metric. Perhaps another will work better.
+        </p>
         <h4 id="max-similars">max similar phrases</h4>
+        <p>
+          In a similarity search you are unlikely to find any interesting
+          similar phrases after the first few notes, so rather than display all
+          the notes in the dictionary for the given language sorted by
+          similarity Amanuensis just shows the few most similar ones. This
+          parameter controls how many are shown.
+        </p>
         <h4>database actions</h4>
         <h5>clear</h5>
         <h5>export</h5>
