@@ -871,10 +871,108 @@ Import merges such a file into the current database. You may find this gives you
           parameter controls how many are shown.
         </p>
         <h4>database actions</h4>
+        <p>
+          Amanuensis saves all its data on your machine in a database. It
+          doesn't call home to a central server. It doesn't store data in the
+          cloud.
+        </p>
+        <p>
+          This design provides simplicity and privacy. It also potentially locks
+          you into one device and prevents sharing notes with others. The
+          database actions provide some workarounds if you want a bit of both
+          worlds.
+        </p>
         <h5>clear</h5>
+        <p>
+          The clear action &mdash; (4) in
+          <a href="#config-figure">the figure</a> &mdash; allows you to reset
+          Amanuensis to "factory settings". Once done one cannot restore the
+          database unless you've exported the data, so a confirmation modal will
+          intervene and ask whether you really mean to do this before your data
+          is erased forever.
+        </p>
         <h5>export</h5>
+        <p>
+          The export database action &mdash; (5) in
+          <a href="#config-figure">the figure</a> &mdash; dumps the entire
+          contents of your Amanuensis database into a
+          <a
+            href="https://en.wikipedia.org/wiki/JSON"
+            title="an explanation of javascript object notation"
+            >JSON file</a
+          >.
+        </p>
+        <p>
+          Having exported your database to a file, you can now save a backup
+          copy, install Amanuensis on another machine and restore your database
+          there, or share your notes with someone else.
+        </p>
+        <p>
+          If you want to use your notes for some other purpose, you can write a
+          script in some programming language that will parse the exported JSON
+          allow you to manipulate, transform, or extract it.
+        </p>
         <h5>import</h5>
+        <p>
+          The import database action &mdash; (6) in
+          <a href="#config-figure">the figure</a> &mdash; allows you to add the
+          notes exported from a different instance of Amanuensis into your
+          current one.
+        </p>
+        <p>
+          The import process takes some pains to import notes without clobbering
+          existing notes. This may result in duplicate notes and tags requiring
+          merging or deletion.
+        </p>
         <h4 id="languages">languages</h4>
+        <p>
+          You do not need to use Amanuensis to study languages. You can use it
+          simply as a note taking tool. Amanuensis begins configured to use only
+          one language, the "unknown" language &mdash; (8) in
+          <a href="#config-figure">the figure</a>. You do not need to configure
+          it further. If you create a note, it will begin and remain assigned to
+          the unkown language.
+        </p>
+        <p>
+          If you do wish to study a particular language you need to tell
+          Amanuensis which languages you wish to study so that it can attempt to
+          categorize your notes correctly. This will ensure that
+          <a href="#similar">similar phrases</a> are sought only within the
+          correct language and that only those <a href="#tags">tags</a>
+          appropriate to the language are offered.
+        </p>
+        <p>
+          To add a language, click the add-language icon &mdash; (7) in
+          <a href="#config-figure">the figure</a>. This will open a modal where
+          you can select a language with an
+          <a
+            href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
+            title="the wikipedia page listing the ISO-639-1 language codes"
+            >ISO-639-1 language code</a
+          >. At this time, Amanuensis does not provide a mechanism to add a
+          language which lacks an ISO-639-1 code. There are many languages that
+          lack such a code &mdash;
+          <a href="https://en.wikipedia.org/wiki/Yinjibarndi_language"
+            >Yinjibarndi</a
+          >, for example, or
+          <a href="https://en.wikipedia.org/wiki/Sumerian_language">Sumerian</a
+          >. Amanuensis does not yet provide a means to add these for study. If
+          I am made aware of a demand for this, I this may hasten my adding it.
+          I may add it regardless of whether anyone demands it. I simply have
+          not yet.
+        </p>
+        <p>
+          When you create a note, Chrome uses the phrase selected and the
+          surrounding text to guess its language. It may guess wrong, or be
+          unable to identify the language at all, assigning it the unknown
+          language. You can correct this using the language picker widget
+          &mdash; (3) in <a href="#note-figure">the figure</a>. Amanuensis will
+          record this discrepancy and use it to improve its language assignment
+          for subsequent notes. In (9) in
+          <a href="#config-figure">the figure</a> you can see an instance of
+          this: 4 notes on Finnish were guessed by Chrome to contain Estonian
+          (et).
+        </p>
         <h2>Dedication</h2>
         <p>
           Amanuensis, like most of my projects, is dedicated to my son Jude, who
