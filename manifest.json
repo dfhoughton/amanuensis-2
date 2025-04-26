@@ -14,18 +14,18 @@
   },
   "permissions": ["activeTab", "storage"],
   "icons": {
-    "16": "images/owl16.png",
-    "32": "images/owl32.png",
-    "48": "images/owl48.png",
-    "128": "images/owl128.png"
+    "16": "images/oofla16.png",
+    "32": "images/oofla32.png",
+    "48": "images/oofla48.png",
+    "128": "images/oofla128.png"
   },
   "action": {
     "default_popup" : "popup.html",
     "default_icon": {
-      "16": "images/owl16.png",
-      "32": "images/owl32.png",
-      "48": "images/owl48.png",
-      "128": "images/owl128.png"
+      "16": "images/oofla16.png",
+      "32": "images/oofla32.png",
+      "48": "images/oofla48.png",
+      "128": "images/oofla128.png"
     }
   },
   "commands": {
