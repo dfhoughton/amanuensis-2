@@ -1,7 +1,7 @@
 {
-  "name": "Amanuensis 2",
+  "name": "Amanuensis",
   "description": "Take notes on page contents. Quiz yourself on these notes later.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
