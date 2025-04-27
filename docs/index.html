@@ -33,12 +33,13 @@
         color: #fff;
         background-color: var(--primary-color);
         padding: 1rem 2rem;
-      }
-      .footer {
         display: flex;
         flex-direction: row;
         gap: 1rem;
         justify-content: space-between;
+      }
+      .footer {
+        grid-area: footer;
         a {
           text-decoration: none;
           background-color: transparent;
@@ -82,10 +83,6 @@
       }
       .head {
         grid-area: header;
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        justify-content: space-between;
       }
       .side,
       .content {
@@ -126,9 +123,6 @@
       }
       .side {
         grid-area: sidebar;
-      }
-      .footer {
-        grid-area: footer;
       }
       .wrapper {
         display: grid;
@@ -173,6 +167,7 @@
       }
       #footnotes {
         margin-bottom: 1rem;
+        clear: both;
         hr {
           margin: 2rem 1.5rem;
           opacity: 25%;
@@ -1044,6 +1039,14 @@ Import merges such a file into the current database. You may find this gives you
           node.classList.add("highlighted")
         }
       }
+      // fiddle with history so the back button works as expected
+      // the parameter should be something like "#toc" or "#tags"
+      function storeHistory(hash) {
+        if (history.state !== hash) {
+          const href = location.origin + location.pathname + hash
+          history.pushState(hash, "", href)
+        }
+      }
       // make intra-document links smooth
       document.querySelectorAll("a").forEach((a) => {
         const href = a.attributes.href?.value
@@ -1053,6 +1056,7 @@ Import merges such a file into the current database. You may find this gives you
             a.onclick = (e) => {
               e.preventDefault()
               target.scrollIntoView({ behavior: "smooth", block: "center" })
+              storeHistory(a.getAttribute("href"))
               if (target.nodeName === "FIGURE") {
                 highlight(target.querySelector("figcaption"))
               }
@@ -1062,11 +1066,29 @@ Import merges such a file into the current database. You may find this gives you
       })
       // construct a table of contents and related links
       const toc = document.getElementById("toc")
+      const idMap = new Map()
       document
         .querySelectorAll(
           ".content h2, .content h3, .content h4, .content h5, .content h6"
         )
         .forEach((n) => {
+          let headerId
+          if (n.id) {
+            headerId = n.id
+          } else {
+            // synthesize an id, adding a suffix in case of collisions
+            const base =
+              "_" +
+              (n.innerText + "")
+                .replace(/^\s+|\s+$/g, "")
+                .replace(/\s+/g, " ")
+                .replace(/\W+/, "-")
+                .substr(0, 10)
+            const count = idMap.get(base) ?? 0
+            headerId = count === 0 ? base : base + count
+            idMap.set(base, count + 1)
+            n.setAttribute("id", headerId)
+          }
           const indentationLevel = Number.parseInt(n.nodeName.slice(1))
           n.classList.add(`m${indentationLevel - 1}`)
           const e = document.createElement("a")
@@ -1074,9 +1096,10 @@ Import merges such a file into the current database. You may find this gives you
           e.classList.add("toc-link")
           e.setAttribute("title", `go to ${n.innerText}`)
           e.classList.add(`m${indentationLevel}`)
-          e.setAttribute("href", "#")
+          e.setAttribute("href", "#" + headerId)
           e.onclick = (e) => {
             e.preventDefault()
+            storeHistory("#" + headerId)
             n.scrollIntoView({ behavior: "smooth" })
           }
           toc.appendChild(e)
@@ -1102,10 +1125,14 @@ Import merges such a file into the current database. You may find this gives you
         const topTag = document.createElement("span")
         topTag.classList.add("fn-tag")
         topTag.innerHTML = fnIndex
+        const topTagId = `__fn-${fnIndex}-top`
+        const bottomTagId = `__fn-${fnIndex}-bottom`
+        topTag.setAttribute("id", topTagId)
         n.appendChild(topTag)
         const bottomTag = document.createElement("span")
         bottomTag.classList.add("fn-tag")
         bottomTag.innerHTML = fnIndex
+        bottomTag.setAttribute("id", bottomTagId)
         fnIndex++
         const fn = document.createElement("div")
         fn.classList.add("fn-text")
@@ -1118,10 +1145,12 @@ Import merges such a file into the current database. You may find this gives you
         fn.appendChild(txt)
         topTag.onclick = (e) => {
           highlight(txt)
+          storeHistory("#" + bottomTagId)
           bottomTag.scrollIntoView({ behavior: "smooth" })
         }
         bottomTag.onclick = (e) => {
           removeHighlights()
+          storeHistory("#" + topTagId)
           topTag.scrollIntoView({ behavior: "smooth", block: "center" })
         }
         footnotes.appendChild(fn)
