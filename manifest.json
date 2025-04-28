@@ -1,6 +1,6 @@
 {
   "name": "Amanuensis",
-  "description": "Take notes on page contents. Quiz yourself on these notes later.",
+  "description": "A note taking app focused on language learning.",
   "version": "1.0.0",
   "content_scripts": [
     {
