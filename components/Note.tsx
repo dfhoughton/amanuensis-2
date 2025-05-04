@@ -255,31 +255,33 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                   .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
                   .map(([pid, [rid, p]]) => {
                     return (
-                      <Chip
-                        key={pid}
-                        label={p.lemma}
-                        size="small"
-                        variant="outlined"
-                        onClick={() => {
-                          // todo: add confirmation modal to protect unsaved state
-                          dispatch({ action: "relationClicked", phrase: p })
-                          lemmaRef.current!.value = p.lemma
-                          noteRef.current!.value = p.note ?? ""
-                        }}
-                        onDelete={() => {
-                          deleteRelation(rid)
-                            .then(() => {
-                              const relations = phrase.relations!.filter(
-                                (n) => n !== rid
-                              )
-                              dispatch({
-                                action: "relationsChanged",
-                                relations,
+                      <Tooltip arrow title={p.note!}>
+                        <Chip
+                          key={pid}
+                          label={p.lemma}
+                          size="small"
+                          variant="outlined"
+                          onClick={() => {
+                            // todo: add confirmation modal to protect unsaved state
+                            dispatch({ action: "relationClicked", phrase: p })
+                            lemmaRef.current!.value = p.lemma
+                            noteRef.current!.value = p.note ?? ""
+                          }}
+                          onDelete={() => {
+                            deleteRelation(rid)
+                              .then(() => {
+                                const relations = phrase.relations!.filter(
+                                  (n) => n !== rid
+                                )
+                                dispatch({
+                                  action: "relationsChanged",
+                                  relations,
+                                })
                               })
-                            })
-                            .catch(errorHandler(dispatch))
-                        }}
-                      />
+                              .catch(errorHandler(dispatch))
+                          }}
+                        />
+                      </Tooltip>
                     )
                   })}
             </Stack>
