@@ -14,7 +14,10 @@ import {
 } from "../types/common"
 import { setConfiguration } from "./database"
 import { deepClone } from "./general"
-import { defaultDistanceMetric, defaultMaxSimilarPhrases } from "./similarity_sorter";
+import {
+  defaultDistanceMetric,
+  defaultMaxSimilarPhrases,
+} from "./similarity_sorter"
 
 export type Action =
   | { action: "selection"; selection: Citation }
@@ -65,6 +68,7 @@ export type Action =
       relatedPhrases: Map<number, [number, Phrase]>
     }
   | { action: "relationClicked"; phrase: Phrase }
+  | { action: "saveQuizState"; quizzingOnLemmas: boolean }
 
 export function reducer(state: AppState, action: Action): AppState {
   let ci: number | undefined // citationIndex
@@ -153,8 +157,13 @@ export function reducer(state: AppState, action: Action): AppState {
       setConfiguration(config)
       return { ...state, config }
     case "phrase": // unsaved change to phrase
-      ci = action.citationIndex ?? state.citationIndex;
-      return { ...state, phrase: action.phrase, citationIndex: ci, searchResults: undefined }
+      ci = action.citationIndex ?? state.citationIndex
+      return {
+        ...state,
+        phrase: action.phrase,
+        citationIndex: ci,
+        searchResults: undefined,
+      }
     case "phraseSaved":
       return { ...state, priorPhrase: { ...state.phrase! } }
     case "citationSelected":
@@ -336,6 +345,11 @@ export function reducer(state: AppState, action: Action): AppState {
         phrase: ap,
         citationIndex: selectCitation(ap.citations),
         priorPhrase: ap,
+      }
+    case "saveQuizState":
+      return {
+        ...state,
+        quizzingOnLemmas: action.quizzingOnLemmas,
       }
     default:
       console.error({ wut: action })

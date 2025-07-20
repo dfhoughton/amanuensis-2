@@ -1,6 +1,7 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
 import { OverridableStringUnion } from "@material-ui/types"
 import { DistanceMetric } from "../util/similarity_sorter"
+import { DailyQuiz, QuizSignature } from "../util/spaced_repetition"
 
 // a representation of a selection
 export type Selection = {
@@ -59,6 +60,7 @@ export enum AppTabs {
   Dictionary = "dictionary",
   Tags = "tags",
   Configuration = "configuration",
+  Quiz = "quiz",
 }
 
 export enum SearchTabs {
@@ -150,12 +152,20 @@ export type AppState = {
   urlSearch?: UrlSearch
   urlSearchResults?: SearchResults
   searchTab?: SearchTabs
+  quizzingOnLemmas?: boolean
 }
 
 export type Configuration = {
   id?: number // here to make configuration compatible with indexeddb
   distanceMetric?: DistanceMetric
   maxSimilarPhrases?: number
+  // the number of as yet untested phrases Amanuensis will attempt to provide
+  // in a fresh quiz
+  newPhrases?: number
+  // the state of the last quiz started where the phrases were the questions
+  currentPhraseQuiz?: QuizSignature
+  // the state of the last quiz started where the glosses were the questions
+  currentGlossQuiz?: QuizSignature
 }
 
 export type Language = {

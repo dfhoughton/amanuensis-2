@@ -18,6 +18,13 @@ import every from "lodash/every"
 import uniq from "lodash/uniq"
 import { exportDB } from "dexie-export-import"
 import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
+import {
+  NonInitialOutcome,
+  PreparedTrial,
+  QuizSignature,
+  Summary,
+  Trial,
+} from "./spaced_repetition"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -50,11 +57,18 @@ type ConfigurationTable = {
 const configurationSchema = {
   configuration: "id",
 }
+type TrialTable = {
+  trials: Table<Trial>
+}
+const trialSchema = {
+  trials: "phraseId",
+}
 type DexieTable = PhraseTable &
   LanguageTable &
   ConfigurationTable &
   TagTable &
-  RelationTable
+  RelationTable &
+  TrialTable
 type Dexie<T extends any = DexieTable> = BaseDexie & T
 const db = new BaseDexie("amanuensis") as Dexie
 const schema = Object.assign(
@@ -63,7 +77,8 @@ const schema = Object.assign(
   languagesSchema,
   tagsSchema,
   relationsSchema,
-  configurationSchema
+  configurationSchema,
+  trialSchema
 )
 db.version(1).stores(schema)
 function init() {
@@ -666,4 +681,135 @@ async function mergeLanguages(tmp: Dexie<DexieTable>) {
     }
   })
   return languageMap
+}
+
+// functions relating to spaced repetition quizzes
+
+// collect the information necessary to start a spaced repetition quiz
+export async function makeQuiz(
+  // the maximum number of new phrases to include
+  newPhrases: number,
+  // whether questions concern the lemma or the gloss
+  phrasesAreQuestionsAndGlossesAreAnswers: boolean
+): Promise<QuizSignature> {
+  const startTime = new Date()
+  const phrases: number[] = []
+  return db.transaction("r", db.phrases, db.trials, async () => {
+    const trials = await db.trials.toArray()
+    const trialMap = new Map<number, Trial>()
+    trials.forEach((t) => trialMap.set(t.phraseId, t))
+    const phraseIds: number[] = await db.phrases.toCollection().primaryKeys()
+    // shuffle these
+    for (let i = phraseIds.length - 1; i > 0; i--) {
+      const j = Math.floor((i + 1) * Math.random()) as number
+      ;[phraseIds[i], phraseIds[j]] = [phraseIds[j], phraseIds[i]]
+    }
+    let newCount = 0
+    for (const i of phraseIds) {
+      const t = trialMap.get(i)
+      if (t) {
+        const times =
+          t[
+            phrasesAreQuestionsAndGlossesAreAnswers
+              ? "phraseTrials"
+              : "glossTrials"
+          ]
+        if (times) {
+          if (times.done) continue
+          if (times.nextTime < startTime) {
+            phrases.push(i)
+          }
+        } else {
+          if (newCount < newPhrases) {
+            newCount++
+            phrases.push(i)
+          }
+        }
+      } else {
+        if (newCount < newPhrases) {
+          newCount++
+          phrases.push(i)
+        }
+      }
+    }
+    return {
+      startTime,
+      phrasesAreQuestionsAndGlossesAreAnswers,
+      phrases,
+      index: 0,
+    }
+  })
+}
+
+// gather the information necessary to display a single flashcard
+export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
+  return db.transaction(
+    "r",
+    db.phrases,
+    db.languages,
+    db.tags,
+    db.trials,
+    async () => {
+      const phrase = (await db.phrases.get(phraseId)) as Phrase
+      const language = (await db.languages.get(phrase.languageId!)) as Language
+      const tags: Tag[] = phrase.tags?.length
+        ? await db.tags.where("id").anyOf(phrase.tags).toArray()
+        : []
+      const trial = (await db.trials.get(phraseId)) ?? { phraseId }
+      return { phrase, trial, tags, language }
+    }
+  )
+}
+
+// save the outcome of a single flash card trial
+export async function saveTrial(trial: Trial): Promise<void> {
+  return db.trials.put(trial, trial.phraseId)
+}
+
+// returns a summary of how a quiz is going
+export async function howTheQuizIsGoingSoFar(
+  phrases: number[],
+  startTime: Date,
+  quizzingOnLemmas: boolean
+): Promise<Summary> {
+  return db.transaction("r", db.trials, async () => {
+    const allTrials = await db.trials.where("phraseId").anyOf(phrases).toArray()
+    const trialsWithinPeriod: NonInitialOutcome[] = []
+    const field = quizzingOnLemmas ? "phraseTrials" : "glossTrials"
+    // preliminary counts
+    let old = allTrials.length // if we have any trials, it's probably old
+    let remaining = phrases.length // we have to review them all
+    for (const trial of allTrials) {
+      const previous = trial[field]
+      // we might have trials, but not for this type of quiz
+      if (previous?.times.length) {
+        // reduce it to just today's trials
+        let times = previous.times.filter(([time, outcome]) => {
+          const usableTime = time > startTime
+          const usableOutcome = outcome !== 'first'
+          return usableTime && usableOutcome
+        })
+        // do we have any left?
+        if (times.length) {
+          // store these outcomes
+          for (const [_time, outcome] of times) {
+            trialsWithinPeriod.push(outcome as NonInitialOutcome)
+          }
+          // did all trials happen today? if so, we miscounted it as old
+          if (times.length + 1 === previous.times.length) old--
+          // do we have any left after removing 'again'? if so, we've miscounted remaining
+          if (times.filter(([_time, outcome]) => outcome !== 'again').length) remaining--
+        }
+      } else {
+        // no trials of this type, so it's new
+        old--
+      }
+    }
+    return {
+      old,
+      new: phrases.length - old,
+      remaining,
+      outcomes: trialsWithinPeriod,
+    }
+  })
 }

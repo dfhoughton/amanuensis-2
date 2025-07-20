@@ -16,7 +16,7 @@ import TabList from "@mui/lab/TabList"
 import TabPanel from "@mui/lab/TabPanel"
 import CreateIcon from "@mui/icons-material/Create"
 import LocalOfferIcon from "@mui/icons-material/LocalOffer"
-import { AutoStories, Tune } from "@mui/icons-material"
+import { AutoStories, Tune, Quiz } from "@mui/icons-material"
 import { Note } from "./Note"
 import { Dictionary } from "./Dictionary"
 import { Configuration } from "./Configuration"
@@ -24,6 +24,7 @@ import { configuration } from "../util/database"
 import { Tags } from "./Tags"
 import { ErrorBoundary } from "react-error-boundary"
 import { useCommunicationCenter } from "../hooks/communication_center"
+import { SpacedRepetitionQuiz } from "./SpacedRepetitionQuiz"
 
 /** the footprint Amanuensis requires */
 const width = "500px"
@@ -51,7 +52,7 @@ const App: React.FC = () => {
     >
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Container sx={{ width }}>
+        <Container sx={{ width, px: 2 }}>
           <TabContext value={state.tab}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <TabList
@@ -61,6 +62,7 @@ const App: React.FC = () => {
               >
                 <Tab icon={<CreateIcon />} value={AppTabs.Note} />
                 <Tab icon={<AutoStories />} value={AppTabs.Dictionary} />
+                <Tab icon={<Quiz />} value={AppTabs.Quiz} />
                 <Tab icon={<LocalOfferIcon />} value={AppTabs.Tags} />
                 <Tab icon={<Tune />} value={AppTabs.Configuration} />
               </TabList>
@@ -70,6 +72,9 @@ const App: React.FC = () => {
             </TabPanel>
             <TabPanel value={AppTabs.Dictionary}>
               <Dictionary state={state} dispatch={dispatch} />
+            </TabPanel>
+            <TabPanel value={AppTabs.Quiz}>
+              <SpacedRepetitionQuiz state={state} dispatch={dispatch} />
             </TabPanel>
             <TabPanel value={AppTabs.Tags}>
               <Tags state={state} dispatch={dispatch} />

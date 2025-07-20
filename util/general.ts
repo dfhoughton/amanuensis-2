@@ -90,3 +90,18 @@ export function diff(a: any, b: any): any {
     }
   }
 }
+
+// do these two times fall on the same day?
+export function sameDate(d1: Date, d2: Date): boolean {
+  return (
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear()
+  )
+}
+
+// return the last n items of an array
+export function lastN<T>(array: T[], n: number): T[] {
+  if (array.length <= n) return [...array]
+  return array.slice(array.length - n)
+}

@@ -1,3 +1,4 @@
+import type {} from "@mui/lab/themeAugmentation"
 import { createTheme } from "@mui/material"
 import { alpha } from "@mui/material/styles"
 
@@ -18,6 +19,14 @@ export const theme = createTheme({
     fontFamily: "Helvetica",
   },
   components: {
+    MuiTabPanel: {
+      styleOverrides: {
+        root: ({ theme }) =>
+          theme.unstable_sx({
+            p: 2, // make things a bit more compact
+          }),
+      },
+    },
     MuiModal: {
       styleOverrides: {
         root: ({ theme }) =>

@@ -16,9 +16,13 @@ export type MessageFromBackgroundToPopup =
     }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | { action: "locale"; locale: string }
-  | { action: "goingTo", url: string }  | Extract<
+  | { action: "goingTo"; url: string }
+  | Extract<
       MessageFromContentToBackground,
-      { action: "error" } | { action: "noSelection" } | { action: "highlight" } | { action: "goingTo"}
+      | { action: "error" }
+      | { action: "noSelection" }
+      | { action: "highlight" }
+      | { action: "goingTo" }
     >
 
 export type MessageFromBackgroundToContent =
@@ -26,21 +30,21 @@ export type MessageFromBackgroundToContent =
   | { action: "goto"; citation: Citation }
   | { action: "load"; url: string }
   | { action: "select"; selection: Citation }
-  | { action: 'welcome' }
-  | { action: 'help' } // load amanuensis github page into active tab
+  | { action: "welcome" }
+  | { action: "help"; anchor?: string } // load amanuensis github page into active tab
 
 export type MessageFromContentToBackground =
   | { action: "open" }
   | { action: "selection"; selection: Citation }
-  | { action: "noSelection", url: string }
+  | { action: "noSelection"; url: string }
   | { action: "error"; message: string }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
-  | { action: "goingTo", url: string }
+  | { action: "goingTo"; url: string }
 
 export type MessageFromPopupToBackground =
   | { action: "open" }
   | { action: "goto"; citation: Citation }
-  | { action: "help" } // load amanuensis github page into active tab
+  | { action: "help"; anchor?: string } // load amanuensis github page into active tab
 
 export const handleMessageFromBackgroundToPopup = (
   msg: MessageFromBackgroundToPopup

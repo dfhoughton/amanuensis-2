@@ -115,7 +115,7 @@ function getTitle(): string {
   const firstH1 = document.body.getElementsByTagName("h1")[0]
   if (firstH1) return firstH1.innerText
   // give up
-  return ''
+  return ""
 }
 
 chrome.runtime.onMessage.addListener(function (
@@ -128,21 +128,26 @@ chrome.runtime.onMessage.addListener(function (
       const { citation } = request
       const magic = magicUrl(citation)
       if (magic) {
-        sendResponse({ action: 'goingTo', url: magic})
+        sendResponse({ action: "goingTo", url: magic })
         window.location.assign(magic)
       } else {
         sendResponse({ action: "error", message: "received no URL" })
       }
       break
     case "help": // load documentation into current tab
-      window.location.assign('https://dfhoughton.github.io/amanuensis-2/');
+      const { anchor } = request
+      window.location.assign(
+        `https://dfhoughton.github.io/amanuensis-2/${
+          anchor ? `#${anchor}` : ""
+        }`
+      )
       break
     case "getSelection":
       const selection = wrapSelection()
       if (selection) {
         selection.title = getTitle()
         selection.url = document.URL
-        sendResponse({action: 'selection', selection})
+        sendResponse({ action: "selection", selection })
       } else {
         sendResponse({ action: "noSelection", url: window.location.href })
       }
@@ -154,4 +159,6 @@ chrome.runtime.onMessage.addListener(function (
 })
 
 // tell background we're ready
-chrome.runtime.sendMessage({action: 'open'}, (response) => console.log('Amanuensis received this confirmation', response))
+chrome.runtime.sendMessage({ action: "open" }, (response) =>
+  console.log("Amanuensis received this confirmation", response)
+)
