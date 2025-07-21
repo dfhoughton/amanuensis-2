@@ -503,6 +503,7 @@ export async function phraseSearch(
         scope = scope.filter((p: Phrase) => {
           if (rx.test(p.lemma)) return true
           if (p.note && rx.test(p.note)) return true
+          if (p.elaboration && rx.test(p.elaboration)) return true
           for (const c of p.citations) {
             if (rx.test(c.phrase)) return true
             if (rx.test(c.before)) return true

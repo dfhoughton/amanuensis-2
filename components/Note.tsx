@@ -32,6 +32,8 @@ import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
+import { grey } from '@mui/material/colors';
+
 import {
   deleteRelation,
   knownTags,
@@ -84,6 +86,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     React.useState<null | HTMLElement>(null)
   const lemmaRef = useRef<HTMLInputElement>()
   const noteRef = useRef<HTMLInputElement>()
+  const elaborationRef = useRef<HTMLInputElement>()
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   const clean = isEqual(phrase, priorPhrase)
@@ -231,6 +234,26 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               inputRef={noteRef}
               sx={{ width: "100%", pb: 1 }}
             />
+            <TextField
+              multiline
+              autoFocus
+              onChange={
+                debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                  dispatch({
+                    action: "phrase",
+                    phrase: { ...phrase!, elaboration: e.target.value },
+                  })
+                }, 500) as React.ChangeEventHandler<
+                  HTMLInputElement | HTMLTextAreaElement
+                >
+              }
+              variant="standard"
+              hiddenLabel
+              placeholder="Elaboration"
+              defaultValue={phrase.elaboration}
+              inputRef={elaborationRef}
+              sx={{ width: "100%", pb: 1 }}
+            />
             <TagWidget
               tags={tags}
               languageIds={currentLanguage ? [currentLanguage.id!] : []}
@@ -266,6 +289,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                             dispatch({ action: "relationClicked", phrase: p })
                             lemmaRef.current!.value = p.lemma
                             noteRef.current!.value = p.note ?? ""
+                            elaborationRef.current!.value = p.elaboration ?? ""
                           }}
                           onDelete={() => {
                             deleteRelation(rid)
@@ -486,7 +510,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         elevation={0}
         sx={{
           cursor: "pointer",
-          bgcolor: "primary.light",
+          bgcolor: grey[200],
         }}
         onClick={() => {
           if (!chosen) dispatch({ action: "citationSelected", citationIndex })

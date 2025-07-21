@@ -1,7 +1,7 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
 import { OverridableStringUnion } from "@material-ui/types"
 import { DistanceMetric } from "../util/similarity_sorter"
-import { DailyQuiz, QuizSignature } from "../util/spaced_repetition"
+import { QuizSignature } from "../util/spaced_repetition"
 
 // a representation of a selection
 export type Selection = {
@@ -41,6 +41,7 @@ export interface Phrase {
   id?: number
   lemma: string
   note?: string
+  elaboration?: string
   tags?: number[] // foreign keys into the tags table
   relations?: number[] // a collection of relation ids
   languageId?: number
