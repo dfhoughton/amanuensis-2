@@ -43,5 +43,5 @@ export function wsrx(s: string): string | undefined {
 
 // splits a string up into bits that might be cited
 export function sackOWords(s: string): string[] {
-  return s.split(/(\W+)/)
+  return s.split(/((?:\p{L}-\p{L}|\p{L})+)/u)
 }

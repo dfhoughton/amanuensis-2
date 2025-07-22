@@ -822,13 +822,17 @@ export async function phrasesInText(
   language: Language
 ): Promise<Phrase[]> {
   const set = new Set<string>()
-  for (const s of words.filter(w => /\S/.test(w))) set.add(s)
+  const locale = language.locale
+  for (const s of words.filter((w) => /\S/.test(w)))
+    set.add(s.toLocaleLowerCase(locale))
   return db.transaction("r", db.phrases, async () => {
     const phrases = await db.phrases
       .where("languageId")
       .equals(language.id!)
       .filter(
-        (p) => set.has(p.lemma) || p.citations.some((c) => set.has(c.phrase))
+        (p) =>
+          set.has(p.lemma.toLocaleLowerCase(locale)) ||
+          p.citations.some((c) => set.has(c.phrase.toLocaleLowerCase(locale)))
       )
       .toArray()
     return phrases
