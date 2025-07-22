@@ -787,7 +787,7 @@ export async function howTheQuizIsGoingSoFar(
         // reduce it to just today's trials
         let times = previous.times.filter(([time, outcome]) => {
           const usableTime = time > startTime
-          const usableOutcome = outcome !== 'first'
+          const usableOutcome = outcome !== "first"
           return usableTime && usableOutcome
         })
         // do we have any left?
@@ -799,7 +799,8 @@ export async function howTheQuizIsGoingSoFar(
           // did all trials happen today? if so, we miscounted it as old
           if (times.length + 1 === previous.times.length) old--
           // do we have any left after removing 'again'? if so, we've miscounted remaining
-          if (times.filter(([_time, outcome]) => outcome !== 'again').length) remaining--
+          if (times.filter(([_time, outcome]) => outcome !== "again").length)
+            remaining--
         }
       } else {
         // no trials of this type, so it's new
@@ -812,5 +813,24 @@ export async function howTheQuizIsGoingSoFar(
       remaining,
       outcomes: trialsWithinPeriod,
     }
+  })
+}
+
+// given a list of words looks for exact matches among lemmas or citations in given language
+export async function phrasesInText(
+  words: string[],
+  language: Language
+): Promise<Phrase[]> {
+  const set = new Set<string>()
+  for (const s of words.filter(w => /\S/.test(w))) set.add(s)
+  return db.transaction("r", db.phrases, async () => {
+    const phrases = await db.phrases
+      .where("languageId")
+      .equals(language.id!)
+      .filter(
+        (p) => set.has(p.lemma) || p.citations.some((c) => set.has(c.phrase))
+      )
+      .toArray()
+    return phrases
   })
 }

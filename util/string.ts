@@ -40,3 +40,8 @@ export function wsrx(s: string): string | undefined {
   }
   return chars.join("")
 }
+
+// splits a string up into bits that might be cited
+export function sackOWords(s: string): string[] {
+  return s.split(/(\W+)/)
+}

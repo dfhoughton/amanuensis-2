@@ -32,19 +32,21 @@ import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
-import { grey } from '@mui/material/colors';
+import { grey } from "@mui/material/colors"
 
 import {
   deleteRelation,
   knownTags,
   perhapsStaleLanguages,
   phrasesForRelations,
+  phrasesInText,
   phrasesOnPage,
   savePhrase,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
+import { sackOWords } from "../util/string"
 
 type NoteProps = {
   state: AppState
@@ -319,6 +321,11 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 chosen={state.citationIndex === i}
                 onlyCitation={(phrase?.citations.length ?? 0) < 2}
                 currentLanguage={currentLanguage}
+                lemmaRef={lemmaRef as React.MutableRefObject<HTMLInputElement>}
+                noteRef={noteRef as React.MutableRefObject<HTMLInputElement>}
+                elaborationRef={
+                  elaborationRef as React.MutableRefObject<HTMLInputElement>
+                }
                 state={state}
                 dispatch={dispatch}
               />
@@ -337,6 +344,9 @@ type CitationInBriefProps = {
   chosen: boolean
   tags: Tag[] | undefined
   onlyCitation: boolean
+  lemmaRef: React.MutableRefObject<HTMLInputElement>
+  noteRef: React.MutableRefObject<HTMLInputElement>
+  elaborationRef: React.MutableRefObject<HTMLInputElement>
   currentLanguage: Language | undefined
   state: AppState
   dispatch: React.Dispatch<Action>
@@ -348,6 +358,9 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   tags,
   chosen,
   onlyCitation,
+  lemmaRef,
+  noteRef,
+  elaborationRef,
   currentLanguage,
   state,
   dispatch,
@@ -457,9 +470,27 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           )}
         </Grid>
         <Box>
-          {citation?.before}
+          {!!(citation?.before && currentLanguage) && (
+            <ClickableText
+              text={citation.before}
+              language={currentLanguage}
+              lemmaRef={lemmaRef}
+              noteRef={noteRef}
+              elaborationRef={elaborationRef}
+              dispatch={dispatch}
+            />
+          )}
           <b>{citation!.phrase}</b>
-          {citation?.after}
+          {!!(citation?.after && currentLanguage) && (
+            <ClickableText
+              text={citation.after}
+              language={currentLanguage}
+              lemmaRef={lemmaRef}
+              noteRef={noteRef}
+              elaborationRef={elaborationRef}
+              dispatch={dispatch}
+            />
+          )}
         </Box>
         <TextField
           multiline
@@ -537,6 +568,95 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
         </Stack>
       </Paper>
     </>
+  )
+}
+
+type ClickableTextProps = {
+  text: string
+  language: Language
+  lemmaRef: React.MutableRefObject<HTMLInputElement>
+  noteRef: React.MutableRefObject<HTMLInputElement>
+  elaborationRef: React.MutableRefObject<HTMLInputElement>
+  dispatch: React.Dispatch<Action>
+}
+
+// takes a block of text and replaces any words in the dictionary with links to
+// their entries
+const ClickableText: React.FC<ClickableTextProps> = ({
+  text,
+  language,
+  lemmaRef,
+  noteRef,
+  elaborationRef,
+  dispatch,
+}) => {
+  const [words] = useState(sackOWords(text))
+  const [wordMap, setWordMap] = useState(new Map<string, Phrase>())
+  useEffect(() => {
+    const m = new Map<string, Phrase>()
+    phrasesInText(words, language)
+      .then((phrases) => {
+        for (const p of phrases) {
+          if (!m.has(p.lemma)) m.set(p.lemma, p)
+          for (const c of p.citations) if (!m.has(c.phrase)) m.set(c.phrase, p)
+        }
+        setWordMap(m)
+      })
+      .catch(errorHandler(dispatch))
+  }, [words])
+  return (
+    <>
+      {words.map((w) => (
+        <ClickableWord
+          word={w}
+          wordMap={wordMap}
+          lemmaRef={lemmaRef}
+          noteRef={noteRef}
+          elaborationRef={elaborationRef}
+          dispatch={dispatch}
+        />
+      ))}
+    </>
+  )
+}
+
+type ClickableWordProps = {
+  word: string
+  wordMap: Map<string, Phrase>
+  lemmaRef: React.MutableRefObject<HTMLInputElement>
+  noteRef: React.MutableRefObject<HTMLInputElement>
+  elaborationRef: React.MutableRefObject<HTMLInputElement>
+  dispatch: React.Dispatch<Action>
+}
+
+// a word which
+const ClickableWord: React.FC<ClickableWordProps> = ({
+  word,
+  wordMap,
+  lemmaRef,
+  noteRef,
+  elaborationRef,
+  dispatch,
+}) => {
+  const phrase = wordMap.get(word)
+  if (!phrase) return <>{word}</>
+  return (
+    <Tooltip arrow title={phrase.note}>
+      <Link
+        onClick={() => {
+          lemmaRef.current!.value = phrase.lemma
+          noteRef.current!.value = phrase.note ?? ""
+          elaborationRef.current!.value = phrase.elaboration ?? ""
+          dispatch({
+            action: "goto",
+            phrase,
+            citationIndex: selectCitation(phrase.citations),
+          })
+        }}
+      >
+        {word}
+      </Link>
+    </Tooltip>
   )
 }
 
