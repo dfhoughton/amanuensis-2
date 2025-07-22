@@ -594,11 +594,16 @@ const ClickableText: React.FC<ClickableTextProps> = ({
   const [wordMap, setWordMap] = useState(new Map<string, Phrase>())
   useEffect(() => {
     const m = new Map<string, Phrase>()
+    const locale = language.locale
     phrasesInText(words, language)
       .then((phrases) => {
         for (const p of phrases) {
-          if (!m.has(p.lemma)) m.set(p.lemma, p)
-          for (const c of p.citations) if (!m.has(c.phrase)) m.set(c.phrase, p)
+          let w = p.lemma.toLocaleLowerCase(locale)
+          if (!m.has(w)) m.set(w, p)
+          for (const c of p.citations) {
+            w = c.phrase.toLocaleLowerCase(locale)
+            if (!m.has(w)) m.set(w, p)
+          }
         }
         setWordMap(m)
       })
@@ -610,6 +615,7 @@ const ClickableText: React.FC<ClickableTextProps> = ({
         <ClickableWord
           word={w}
           wordMap={wordMap}
+          language={language}
           lemmaRef={lemmaRef}
           noteRef={noteRef}
           elaborationRef={elaborationRef}
@@ -623,6 +629,7 @@ const ClickableText: React.FC<ClickableTextProps> = ({
 type ClickableWordProps = {
   word: string
   wordMap: Map<string, Phrase>
+  language: Language
   lemmaRef: React.MutableRefObject<HTMLInputElement>
   noteRef: React.MutableRefObject<HTMLInputElement>
   elaborationRef: React.MutableRefObject<HTMLInputElement>
@@ -633,12 +640,13 @@ type ClickableWordProps = {
 const ClickableWord: React.FC<ClickableWordProps> = ({
   word,
   wordMap,
+  language,
   lemmaRef,
   noteRef,
   elaborationRef,
   dispatch,
 }) => {
-  const phrase = wordMap.get(word)
+  const phrase = wordMap.get(word.toLocaleLowerCase(language.locale))
   if (!phrase) return <>{word}</>
   return (
     <Tooltip
