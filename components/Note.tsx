@@ -641,7 +641,23 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
   const phrase = wordMap.get(word)
   if (!phrase) return <>{word}</>
   return (
-    <Tooltip arrow title={phrase.note}>
+    <Tooltip
+      arrow
+      title={phrase.note}
+      placement="bottom"
+      slotProps={{
+        popper: {
+          modifiers: [
+            {
+              name: "offset",
+              options: {
+                offset: [0, -5], // move tooltip 5 pixels vertically closer to link
+              },
+            },
+          ],
+        },
+      }}
+    >
       <Link
         onClick={() => {
           lemmaRef.current!.value = phrase.lemma
