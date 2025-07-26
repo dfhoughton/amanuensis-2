@@ -33,7 +33,7 @@ export type Action =
   | { action: "error"; message: string }
   | { action: "config"; config: Configuration }
   | { action: "phrase"; phrase: Phrase; citationIndex?: number }
-  | { action: "phraseSaved" }
+  | { action: "phraseSaved"; newPhrase: boolean }
   | { action: "citationSelected"; citationIndex: number }
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
@@ -165,7 +165,11 @@ export function reducer(state: AppState, action: Action): AppState {
         searchResults: undefined,
       }
     case "phraseSaved":
-      return { ...state, priorPhrase: { ...state.phrase! } }
+      const { history: h = [] } = state
+      if (action.newPhrase) {
+        h.push(state.phrase?.id!)
+      }
+      return { ...state, priorPhrase: { ...state.phrase! }, history: h }
     case "citationSelected":
       return { ...state, citationIndex: action.citationIndex }
     case "search":
@@ -238,7 +242,7 @@ export function reducer(state: AppState, action: Action): AppState {
         },
       }
     case "selectResult":
-      let { searchResults: results } = state
+      let { searchResults: results, history: h2 = [] } = state
       results ??= {
         selected: -1,
         phrases: [],
@@ -250,6 +254,7 @@ export function reducer(state: AppState, action: Action): AppState {
       const { selected } = action
       const selectedPhrase = results!.phrases[selected]
       ci = selectCitation(selectedPhrase.citations)
+      if (h2[h2.length - 1] !== selectedPhrase.id) h2.push(selectedPhrase.id!)
       return {
         ...state,
         phrase: selectedPhrase,
@@ -266,14 +271,20 @@ export function reducer(state: AppState, action: Action): AppState {
         },
         similaritySearchResults: undefined,
         searchResults: { ...results, selected },
+        history: h2,
       }
     case "goto":
       const { phrase: gotoPhrase, citationIndex } = action
+      const { history = [] } = state
+      if (history[history.length - 1] !== gotoPhrase.id) {
+        history.push(gotoPhrase.id!)
+      }
       return {
         ...state,
         phrase: gotoPhrase,
         priorPhrase: deepClone(gotoPhrase),
         citationIndex,
+        history,
         tab: AppTabs.Note,
       }
     case "noSelection":

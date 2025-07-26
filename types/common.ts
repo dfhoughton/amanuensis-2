@@ -154,6 +154,7 @@ export type AppState = {
   urlSearchResults?: SearchResults
   searchTab?: SearchTabs
   quizzingOnLemmas?: boolean
+  history?: number[] // the history of phrases visited
 }
 
 export type Configuration = {

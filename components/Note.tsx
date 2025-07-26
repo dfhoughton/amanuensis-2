@@ -36,6 +36,7 @@ import { grey } from "@mui/material/colors"
 
 import {
   deleteRelation,
+  getPhrase,
   knownTags,
   perhapsStaleLanguages,
   phrasesForRelations,
@@ -47,6 +48,7 @@ import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { sackOWords } from "../util/string"
+import { bell } from "../util/general"
 
 type NoteProps = {
   state: AppState
@@ -88,6 +90,8 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     React.useState<null | HTMLElement>(null)
   const lemmaRef = useRef<HTMLInputElement>()
   const noteRef = useRef<HTMLInputElement>()
+  // on phrase change, focus the note element; the chief purpose of this is to get the keypress handler to work
+  useEffect(() => noteRef?.current?.focus(), [phrase?.id])
   const elaborationRef = useRef<HTMLInputElement>()
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
@@ -99,240 +103,270 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       dispatch({ action: "changeLanguage", language })
     }
   }
-  const save = () =>
-    savePhrase(phrase!).then((p) => dispatch({ action: "phraseSaved" }))
+  const save = () => {
+    if (clean) return
+    const newPhrase = phrase?.id === undefined
+    savePhrase(phrase!)
+      .then((_p) => dispatch({ action: "phraseSaved", newPhrase }))
+      .catch(errorHandler(dispatch))
+  }
+  const back = () => {
+    const { history = [] } = state
+    if (history.length > 1) {
+      history.pop()
+      getPhrase(history[history.length - 1])
+        .then((p) => {
+          if (!p) return
+          lemmaRef.current!.value = p.lemma
+          noteRef.current!.value = p.note ?? ""
+          elaborationRef.current!.value = p.elaboration ?? ""
+          dispatch({
+            action: "goto",
+            phrase: p,
+            citationIndex: selectCitation(p.citations),
+          })
+        })
+        .catch(errorHandler(dispatch))
+    } else {
+      bell()
+    }
+  }
+  const handleKeyPress = (e) => {
+    const halt = () => {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.code) {
+        case "KeyS":
+          halt()
+          save()
+          break
+        case "KeyB":
+          halt()
+          back()
+          break
+      }
+    }
+  }
   return (
     <>
-      <Box
-        onKeyDown={(e) => {
-          if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault()
-            e.stopPropagation()
-            if (!clean) save()
-          }
-        }}
-      >
-        {!citation && <i>no word yet</i>}
-        {!!citation && (
-          <>
-            {/* lemma and save and language widgets */}
-            <Grid container columns={6}>
-              <Grid size={5}>
-                <TextField
-                  onChange={
-                    debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                      dispatch({
-                        action: "phrase",
-                        phrase: { ...phrase!, lemma: e.target.value },
-                      })
-                    }, 500) as React.ChangeEventHandler<
-                      HTMLInputElement | HTMLTextAreaElement
-                    >
-                  }
-                  variant="standard"
-                  hiddenLabel
-                  placeholder="Lemma"
-                  defaultValue={phrase?.lemma}
-                  sx={{ width: "100%", pn: 1 }}
-                  inputRef={lemmaRef}
-                />
-              </Grid>
-              <Grid size={1}>
-                <Stack
-                  sx={{
-                    display: "inline-table",
-                    float: "right",
-                  }}
-                >
-                  <Tooltip
-                    arrow
-                    title={`When this is enabled, some part of this phrase is unsaved.${
-                      clean ? "" : " Click to save."
-                    }`}
+      {!citation && <i>no word yet</i>}
+      {!!citation && (
+        <Box onKeyDown={handleKeyPress}>
+          {/* lemma and save and language widgets */}
+          <Grid container columns={6}>
+            <Grid size={5}>
+              <TextField
+                onChange={
+                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                    dispatch({
+                      action: "phrase",
+                      phrase: { ...phrase!, lemma: e.target.value },
+                    })
+                  }, 500) as React.ChangeEventHandler<
+                    HTMLInputElement | HTMLTextAreaElement
                   >
-                    <span>
-                      <IconButton
-                        color="primary"
-                        size="small"
-                        disabled={clean}
-                        onClick={save}
-                      >
-                        <Save fontSize="inherit" />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  {languages.length > 1 && (
-                    <>
-                      <Tooltip
-                        arrow
-                        title="Change language assignment for note"
-                      >
-                        <Badge
-                          badgeContent={
-                            currentLanguage?.locale === "und"
-                              ? undefined
-                              : currentLanguage?.locale
-                          }
-                          overlap="circular"
-                          color="secondary"
-                        >
-                          <IconButton
-                            color="primary"
-                            size="small"
-                            onClick={(e) =>
-                              setLanguageMenuAnchorEl(e.currentTarget)
-                            }
-                          >
-                            <LanguageIcon fontSize="inherit" />
-                          </IconButton>
-                        </Badge>
-                      </Tooltip>
-                      <Menu
-                        MenuListProps={{ dense: true }}
-                        anchorEl={languageMenuAnchorEl}
-                        open={languageMenuOpen}
-                        onClose={() => setLanguageMenuAnchorEl(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            e.preventDefault()
-                            setLanguageMenuAnchorEl(null)
-                          }
-                        }}
-                      >
-                        {languages
-                          .sort((a, b) => (a.name < b.name ? -1 : 1))
-                          .map((l) => (
-                            <MenuItem
-                              key={l.id!}
-                              selected={l.id === phrase.languageId}
-                              onClick={changeLanguage(l)}
-                            >
-                              {l.name}
-                            </MenuItem>
-                          ))}
-                      </Menu>
-                    </>
-                  )}
-                </Stack>
-              </Grid>
-            </Grid>
-            <TextField
-              multiline
-              autoFocus
-              onChange={
-                debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                  dispatch({
-                    action: "phrase",
-                    phrase: { ...phrase!, note: e.target.value },
-                  })
-                }, 500) as React.ChangeEventHandler<
-                  HTMLInputElement | HTMLTextAreaElement
-                >
-              }
-              variant="standard"
-              hiddenLabel
-              placeholder="Lemma Note"
-              defaultValue={phrase.note}
-              inputRef={noteRef}
-              sx={{ width: "100%", pb: 1 }}
-            />
-            <TextField
-              multiline
-              autoFocus
-              onChange={
-                debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                  dispatch({
-                    action: "phrase",
-                    phrase: { ...phrase!, elaboration: e.target.value },
-                  })
-                }, 500) as React.ChangeEventHandler<
-                  HTMLInputElement | HTMLTextAreaElement
-                >
-              }
-              variant="standard"
-              hiddenLabel
-              placeholder="Elaboration"
-              defaultValue={phrase.elaboration}
-              inputRef={elaborationRef}
-              sx={{ width: "100%", pb: 1 }}
-            />
-            <TagWidget
-              tags={tags}
-              languageIds={currentLanguage ? [currentLanguage.id!] : []}
-              presentTags={phrase.tags}
-              addTag={(t) => {
-                const tags: number[] = [...(phrase.tags ?? []), t.id!]
-                dispatch({ action: "phrase", phrase: { ...phrase, tags } })
-              }}
-              removeTag={(t) => {
-                const tags: number[] = phrase.tags!.filter((i) => i !== t.id)
-                dispatch({ action: "phrase", phrase: { ...phrase, tags } })
-              }}
-              onClick={(tag: Tag) => tagSearch(tag, dispatch)}
-            />
-            <Divider sx={{ my: 0.5 }} />
-            <Stack direction="row" spacing={1} sx={{ width: "100%", pb: 1 }}>
-              {!phrase.relatedPhrases?.size && (
-                <FauxPlaceholder>Relations</FauxPlaceholder>
-              )}
-              {!!phrase.relatedPhrases?.size &&
-                Array.from(phrase.relatedPhrases!.entries())
-                  .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
-                  .map(([pid, [rid, p]]) => {
-                    return (
-                      <Tooltip arrow title={p.note!}>
-                        <Chip
-                          key={pid}
-                          label={p.lemma}
-                          size="small"
-                          variant="outlined"
-                          onClick={() => {
-                            // todo: add confirmation modal to protect unsaved state
-                            dispatch({ action: "relationClicked", phrase: p })
-                            lemmaRef.current!.value = p.lemma
-                            noteRef.current!.value = p.note ?? ""
-                            elaborationRef.current!.value = p.elaboration ?? ""
-                          }}
-                          onDelete={() => {
-                            deleteRelation(rid)
-                              .then(() => {
-                                const relations = phrase.relations!.filter(
-                                  (n) => n !== rid
-                                )
-                                dispatch({
-                                  action: "relationsChanged",
-                                  relations,
-                                })
-                              })
-                              .catch(errorHandler(dispatch))
-                          }}
-                        />
-                      </Tooltip>
-                    )
-                  })}
-            </Stack>
-            {phrase?.citations.map((c, i) => (
-              <CitationInBrief
-                phrase={phrase}
-                citation={c}
-                citationIndex={i}
-                key={i}
-                tags={tags}
-                chosen={state.citationIndex === i}
-                onlyCitation={(phrase?.citations.length ?? 0) < 2}
-                currentLanguage={currentLanguage}
-                lemmaRef={lemmaRef as React.MutableRefObject<HTMLInputElement>}
-                noteRef={noteRef as React.MutableRefObject<HTMLInputElement>}
-                elaborationRef={
-                  elaborationRef as React.MutableRefObject<HTMLInputElement>
                 }
-                state={state}
-                dispatch={dispatch}
+                variant="standard"
+                hiddenLabel
+                placeholder="Lemma"
+                defaultValue={phrase?.lemma}
+                sx={{ width: "100%", pn: 1 }}
+                inputRef={lemmaRef}
               />
-            ))}
-          </>
-        )}
-      </Box>
+            </Grid>
+            <Grid size={1}>
+              <Stack
+                sx={{
+                  display: "inline-table",
+                  float: "right",
+                }}
+              >
+                <Tooltip
+                  arrow
+                  title={`When this is enabled, some part of this phrase is unsaved.${
+                    clean ? "" : " Click to save."
+                  }`}
+                >
+                  <span>
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      disabled={clean}
+                      onClick={save}
+                    >
+                      <Save fontSize="inherit" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                {languages.length > 1 && (
+                  <>
+                    <Tooltip arrow title="Change language assignment for note">
+                      <Badge
+                        badgeContent={
+                          currentLanguage?.locale === "und"
+                            ? undefined
+                            : currentLanguage?.locale
+                        }
+                        overlap="circular"
+                        color="secondary"
+                      >
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          onClick={(e) =>
+                            setLanguageMenuAnchorEl(e.currentTarget)
+                          }
+                        >
+                          <LanguageIcon fontSize="inherit" />
+                        </IconButton>
+                      </Badge>
+                    </Tooltip>
+                    <Menu
+                      MenuListProps={{ dense: true }}
+                      anchorEl={languageMenuAnchorEl}
+                      open={languageMenuOpen}
+                      onClose={() => setLanguageMenuAnchorEl(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          e.preventDefault()
+                          setLanguageMenuAnchorEl(null)
+                        }
+                      }}
+                    >
+                      {languages
+                        .sort((a, b) => (a.name < b.name ? -1 : 1))
+                        .map((l) => (
+                          <MenuItem
+                            key={l.id!}
+                            selected={l.id === phrase.languageId}
+                            onClick={changeLanguage(l)}
+                          >
+                            {l.name}
+                          </MenuItem>
+                        ))}
+                    </Menu>
+                  </>
+                )}
+              </Stack>
+            </Grid>
+          </Grid>
+          <TextField
+            multiline
+            autoFocus
+            onChange={
+              debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                dispatch({
+                  action: "phrase",
+                  phrase: { ...phrase!, note: e.target.value },
+                })
+              }, 500) as React.ChangeEventHandler<
+                HTMLInputElement | HTMLTextAreaElement
+              >
+            }
+            variant="standard"
+            hiddenLabel
+            placeholder="Lemma Note"
+            defaultValue={phrase.note}
+            inputRef={noteRef}
+            sx={{ width: "100%", pb: 1 }}
+          />
+          <TextField
+            multiline
+            onChange={
+              debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                dispatch({
+                  action: "phrase",
+                  phrase: { ...phrase!, elaboration: e.target.value },
+                })
+              }, 500) as React.ChangeEventHandler<
+                HTMLInputElement | HTMLTextAreaElement
+              >
+            }
+            variant="standard"
+            hiddenLabel
+            placeholder="Elaboration"
+            defaultValue={phrase.elaboration}
+            inputRef={elaborationRef}
+            sx={{ width: "100%", pb: 1 }}
+          />
+          <TagWidget
+            tags={tags}
+            languageIds={currentLanguage ? [currentLanguage.id!] : []}
+            presentTags={phrase.tags}
+            addTag={(t) => {
+              const tags: number[] = [...(phrase.tags ?? []), t.id!]
+              dispatch({ action: "phrase", phrase: { ...phrase, tags } })
+            }}
+            removeTag={(t) => {
+              const tags: number[] = phrase.tags!.filter((i) => i !== t.id)
+              dispatch({ action: "phrase", phrase: { ...phrase, tags } })
+            }}
+            onClick={(tag: Tag) => tagSearch(tag, dispatch)}
+          />
+          <Divider sx={{ my: 0.5 }} />
+          <Stack direction="row" spacing={1} sx={{ width: "100%", pb: 1 }}>
+            {!phrase.relatedPhrases?.size && (
+              <FauxPlaceholder>Relations</FauxPlaceholder>
+            )}
+            {!!phrase.relatedPhrases?.size &&
+              Array.from(phrase.relatedPhrases!.entries())
+                .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
+                .map(([pid, [rid, p]]) => {
+                  return (
+                    <Tooltip arrow title={p.note!}>
+                      <Chip
+                        key={pid}
+                        label={p.lemma}
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          // todo: add confirmation modal to protect unsaved state
+                          dispatch({ action: "relationClicked", phrase: p })
+                          lemmaRef.current!.value = p.lemma
+                          noteRef.current!.value = p.note ?? ""
+                          elaborationRef.current!.value = p.elaboration ?? ""
+                        }}
+                        onDelete={() => {
+                          deleteRelation(rid)
+                            .then(() => {
+                              const relations = phrase.relations!.filter(
+                                (n) => n !== rid
+                              )
+                              dispatch({
+                                action: "relationsChanged",
+                                relations,
+                              })
+                            })
+                            .catch(errorHandler(dispatch))
+                        }}
+                      />
+                    </Tooltip>
+                  )
+                })}
+          </Stack>
+          {phrase?.citations.map((c, i) => (
+            <CitationInBrief
+              phrase={phrase}
+              citation={c}
+              citationIndex={i}
+              key={i}
+              tags={tags}
+              chosen={state.citationIndex === i}
+              onlyCitation={(phrase?.citations.length ?? 0) < 2}
+              currentLanguage={currentLanguage}
+              lemmaRef={lemmaRef as React.MutableRefObject<HTMLInputElement>}
+              noteRef={noteRef as React.MutableRefObject<HTMLInputElement>}
+              elaborationRef={
+                elaborationRef as React.MutableRefObject<HTMLInputElement>
+              }
+              state={state}
+              dispatch={dispatch}
+            />
+          ))}
+        </Box>
+      )}
     </>
   )
 }
@@ -420,7 +454,6 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                           canonical: false,
                         }))
                         citations[i].canonical = true
-                        console.log("citations", citations)
                         dispatch({
                           action: "phrase",
                           phrase: { ...phrase, citations },
@@ -678,7 +711,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
           })
         }}
         sx={{
-          textDecoration: 'none'
+          textDecoration: "none",
         }}
       >
         {word}

@@ -105,3 +105,26 @@ export function lastN<T>(array: T[], n: number): T[] {
   if (array.length <= n) return [...array]
   return array.slice(array.length - n)
 }
+
+// ring the bell
+// code provided by Gemini then modified
+export function bell() {
+  const audioContext = new window.AudioContext()
+  const oscillator = audioContext.createOscillator()
+  const gainNode = audioContext.createGain()
+
+  oscillator.connect(gainNode)
+  gainNode.connect(audioContext.destination)
+
+  oscillator.type = "sine" // 'sine', 'triangle', 'square', 'sawtooth'
+  oscillator.frequency.setValueAtTime(800, audioContext.currentTime) // Bell-like frequency
+
+  gainNode.gain.setValueAtTime(1, audioContext.currentTime)
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioContext.currentTime + 1
+  ) // Fade out
+
+  oscillator.start(audioContext.currentTime)
+  oscillator.stop(audioContext.currentTime + 1) // Stop after 1 second
+}

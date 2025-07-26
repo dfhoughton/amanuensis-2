@@ -145,6 +145,10 @@ export function createRelation(p1: Phrase, p2: Phrase): Promise<number> {
   })
 }
 
+export async function getPhrase(id: number): Promise<Phrase | undefined> {
+  return await db.phrases.get(id)
+}
+
 // this basically does a join and fetches down the related phrases
 export function phrasesForRelations(
   ids: number[]
