@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   IconButton,
+  LinearProgress,
   Link,
   Skeleton,
   Stack,
@@ -284,8 +285,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
                     })
                   }
                 >
-                  {card.phrase[quizzingOnLemmas ? "note" : "lemma"] ??
-                    "empty stack"}
+                  {card.phrase[quizzingOnLemmas ? "note" : "lemma"]}
                 </Link>
                 {!!card.tags.length && (
                   <Stack direction="row" spacing={1}>
@@ -435,24 +435,34 @@ const SummarizeQuiz: React.FC<{ summary: Summary }> = ({ summary }) => {
     counts[o] ??= 0
     counts[o]++
   }
+  const { new: n, old: o, remaining: l } = summary
+  const progress = (1 - l / (n + o)) * 100
   return (
-    <Stack direction="row" spacing={1} sx={{ justifyContent: "center" }}>
-      <Box sx={{ color: "primary.main" }}>{`new: ${summary.new}`}</Box>
-      <Box sx={{ color: "secondary.main" }}>{`old: ${summary.old}`}</Box>
-      <Box>{`left: ${summary.remaining}`}</Box>
-      {!!summary.outcomes.length && (
-        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-      )}
-      {OUTCOME_ORDER.map(
-        (o) =>
-          counts[o] && (
-            <>
-              <IconForOutcome outcome={o} />
-              <Box>{counts[o]}</Box>
-            </>
-          )
-      )}
-    </Stack>
+    <>
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "center" }}>
+        <Box sx={{ color: "primary.main" }}>{`new: ${n}`}</Box>
+        <Box sx={{ color: "secondary.main" }}>{`old: ${o}`}</Box>
+        <Box>{`left: ${l}`}</Box>
+        {!!summary.outcomes.length && (
+          <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+        )}
+        {OUTCOME_ORDER.map(
+          (o) =>
+            counts[o] && (
+              <>
+                <IconForOutcome outcome={o} />
+                <Box>{counts[o]}</Box>
+              </>
+            )
+        )}
+      </Stack>
+      <LinearProgress
+        variant="determinate"
+        color="success"
+        sx={{ mt: 1 }}
+        value={progress}
+      />
+    </>
   )
 }
 

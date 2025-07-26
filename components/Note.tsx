@@ -677,6 +677,9 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
             citationIndex: selectCitation(phrase.citations),
           })
         }}
+        sx={{
+          textDecoration: 'none'
+        }}
       >
         {word}
       </Link>
