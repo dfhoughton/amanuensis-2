@@ -401,6 +401,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
 }) => {
   const [moreMenuAnchorEl, setMoreMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
+  const { before, after, phrase: w } = citation
   const separation = citationIndex === 0 ? 2 : 1
   const divider = <Divider sx={{ mt: separation, mb: separation }} />
   if (chosen)
@@ -503,9 +504,10 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           )}
         </Grid>
         <Box>
-          {!!(citation?.before && currentLanguage) && (
+          {!!before && !currentLanguage && <>before</>}
+          {!!(before && currentLanguage) && (
             <ClickableText
-              text={citation.before}
+              text={before}
               language={currentLanguage}
               lemmaRef={lemmaRef}
               noteRef={noteRef}
@@ -513,10 +515,11 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
               dispatch={dispatch}
             />
           )}
-          <b>{citation!.phrase}</b>
-          {!!(citation?.after && currentLanguage) && (
+          <b>{w}</b>
+          {!!after && !currentLanguage && <>after</>}
+          {!!(after && currentLanguage) && (
             <ClickableText
-              text={citation.after}
+              text={after}
               language={currentLanguage}
               lemmaRef={lemmaRef}
               noteRef={noteRef}
@@ -623,7 +626,10 @@ const ClickableText: React.FC<ClickableTextProps> = ({
   elaborationRef,
   dispatch,
 }) => {
-  const [words] = useState(sackOWords(text))
+  const [words, setWords] = useState<string[]>([])
+  useEffect(() => {
+    setWords(sackOWords(text))
+  }, [text])
   const [wordMap, setWordMap] = useState(new Map<string, Phrase>())
   useEffect(() => {
     const m = new Map<string, Phrase>()
@@ -700,7 +706,9 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
       }}
     >
       <Link
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
           lemmaRef.current!.value = phrase.lemma
           noteRef.current!.value = phrase.note ?? ""
           elaborationRef.current!.value = phrase.elaboration ?? ""
@@ -711,6 +719,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
           })
         }}
         sx={{
+          cursor: 'pointer',
           textDecoration: "none",
         }}
       >
