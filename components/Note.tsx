@@ -719,7 +719,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
           })
         }}
         sx={{
-          cursor: 'pointer',
+          cursor: "pointer",
           textDecoration: "none",
         }}
       >
