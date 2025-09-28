@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import {
   AppState,
+  exhaustiveGuard,
   FreeFormSearch,
   Language,
   Phrase,
@@ -19,7 +20,6 @@ import {
   Badge,
   Box,
   Button,
-  Chip,
   Divider,
   IconButton,
   Menu,
@@ -64,10 +64,12 @@ import { TagChip } from "./TagChip"
 import {
   defaultDistanceMetric,
   defaultMaxSimilarPhrases,
+  DistanceMetric,
 } from "../util/similarity_sorter"
 import { sortTags } from "./Tags"
 import { LanguageChip } from "./LanguageChip"
 import { LanguagePicker } from "./LanguagePicker"
+import { DistanceMetricDot } from "./Configuration"
 
 const searchDefaults = {
   page: 1,
@@ -86,7 +88,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
       phrase: "",
       metric: state.config?.distanceMetric ?? defaultDistanceMetric,
       limit: defaultMaxSimilarPhrases,
-    }, // TODO: don't just type in these constants willy-nilly
+    },
     searchResults,
     searchTab = SearchTabs.Free,
     freeSearchResults,
@@ -116,20 +118,21 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
           .catch(errorHandler(dispatch))
       }
     } else if (searchTab == SearchTabs.Similar) {
+      const s = {...ss, metric: state.config?.distanceMetric ?? defaultDistanceMetric}
+      setSs(s)
       if (
         !(
           searchResults &&
           isEqual(searchResults, similaritySearchResults) &&
-          isEqual(sSearch, ss)
+          isEqual(sSearch, s)
         )
       ) {
-        similaritySearch(sSearch)
+        similaritySearch(s)
           .then((searchResults) => {
-            setSs(sSearch)
             dispatch({
               action: "similaritySearch",
               searchResults,
-              search: sSearch,
+              search: s,
             })
           })
           .catch(errorHandler(dispatch))
@@ -581,9 +584,14 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
     limit: defaultMaxSimilarPhrases,
   }
   const { phrase, languages: langs, limit } = search
+  const [metricMenuAnchorEl, setMetricMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null)
+  const metricMenuAnchor = useRef<SVGSVGElement>(null)
+  const metricMenuOpen = Boolean(metricMenuAnchorEl)
+
   return (
-    <Grid container spacing={1} columns={5}>
-      <Grid size={3}>
+    <Grid container spacing={1} columns={12}>
+      <Grid size={7}>
         <TextField
           hiddenLabel
           sx={{ width: "100%" }}
@@ -611,7 +619,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           }
         />
       </Grid>
-      <Grid size={2}>
+      <Grid size={4}>
         <LanguagePicker
           languageIds={langs ?? []}
           languages={languages ?? []}
@@ -642,6 +650,53 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
               .then(errorHandler(dispatch))
           }}
         />
+      </Grid>
+      <Grid size={1}>
+        <DistanceMetricDot metric={metric}>
+          <Tooltip arrow title={`Similarity metric: ${metric}`}>
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={(e) => setMetricMenuAnchorEl(e.currentTarget)}
+            >
+              <SortIcon fontSize="inherit" ref={metricMenuAnchor} />
+            </IconButton>
+          </Tooltip>
+        </DistanceMetricDot>
+        <Menu
+          MenuListProps={{ dense: true }}
+          anchorEl={metricMenuAnchorEl}
+          open={metricMenuOpen}
+          onClose={() => setMetricMenuAnchorEl(null)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault()
+              setMetricMenuAnchorEl(null)
+            }
+          }}
+        >
+          {Object.values(DistanceMetric).map((m) => {
+            const selected = m === metric
+            return (
+              <MenuItem
+                key={m}
+                value={m}
+                disabled={selected}
+                selected={selected}
+                onClick={() => {
+                  const config = state.config ?? {}
+                  dispatch({
+                    action: "distanceMetric",
+                    config: { ...config, distanceMetric: m },
+                  })
+                  setMetricMenuAnchorEl(null)
+                }}
+              >
+                <DistanceMetricDot metric={m} />
+              </MenuItem>
+            )
+          })}
+        </Menu>
       </Grid>
     </Grid>
   )
@@ -771,7 +826,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
       checked = !on
       break
     default:
-      throw "we should never get here"
+      exhaustiveGuard(subField)
   }
   const sx = {
     width: "20px",
@@ -1081,6 +1136,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
     to?.lemma &&
     (f.lemma !== to.lemma ||
       f.note !== to.note ||
+      f.elaboration !== to.elaboration ||
       f.tags?.length !== to.tags?.length ||
       (f.tags && !to.tags) ||
       (to.tags && !f.tags) ||
@@ -1117,7 +1173,11 @@ const MergeModal: React.FC<MergeModalProps> = ({
           </>
         )}
         {anyMerging && (
-          <Box sx={{ mx: "-1.25rem !important" }}>
+          <Stack
+            spacing={1}
+            direction="column"
+            sx={{ mx: "-1.25rem !important" }}
+          >
             <Grid
               container
               wrap="nowrap"
@@ -1144,6 +1204,14 @@ const MergeModal: React.FC<MergeModalProps> = ({
               to={merged}
               label="Note"
               field="note"
+              multiline
+              setMerged={setMerged}
+            />
+            <ComparisonWidget
+              from={from}
+              to={merged}
+              label="Elaboration"
+              field="elaboration"
               multiline
               setMerged={setMerged}
             />
@@ -1206,7 +1274,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
                 </Grid>
               </Grid>
             )}
-          </Box>
+          </Stack>
         )}
         <Stack
           spacing={2}
@@ -1220,8 +1288,8 @@ const MergeModal: React.FC<MergeModalProps> = ({
             variant="contained"
             onClick={() => {
               mergePhrases(merged, f!)
-                .then(() => {
-                  dispatch({ action: "merged", phrase: merged })
+                .then((phrase) => {
+                  dispatch({ action: "merged", phrase })
                   closeAll()
                 })
                 .catch(errorHandler(dispatch))

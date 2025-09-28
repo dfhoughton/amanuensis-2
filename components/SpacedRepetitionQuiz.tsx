@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { AppState } from "../types/common"
+import { AppState, exhaustiveGuard } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
 import {
+  Badge,
   Box,
   Button,
   Divider,
   IconButton,
   LinearProgress,
   Link,
+  Modal,
   Skeleton,
   Stack,
   Tab,
@@ -17,9 +19,9 @@ import {
 } from "@mui/material"
 import {
   DailyQuiz,
+  DEFAULT_AUTO_GRADUATE_COUNT,
   describeTimeInterval,
   IntervalsForOutcomes,
-  MAX_NEW_PHRASES_PER_QUIZ,
   NonInitialOutcome,
   OUTCOME_ORDER,
   PreparedTrial,
@@ -33,13 +35,14 @@ import { TagChip } from "./TagChip"
 import { tagSearch } from "./Tags"
 import { BigLanguageChip } from "./LanguageChip"
 import {
-  Celebration,
   Replay,
   SentimentNeutral,
   SentimentVeryDissatisfied,
   SentimentVerySatisfied,
 } from "@mui/icons-material"
 import Redo from "@mui/icons-material/Redo"
+import School from "@mui/icons-material/School"
+import { newPhraseCount } from "../util/database"
 
 type QuizProps = {
   state: AppState
@@ -138,6 +141,7 @@ type QuizCardProps = {
 const QuizCard: React.FC<QuizCardProps> = ({
   quiz,
   quizzingOnLemmas,
+  state,
   dispatch,
   bumpVersion,
 }) => {
@@ -147,6 +151,8 @@ const QuizCard: React.FC<QuizCardProps> = ({
   const [card, setCard] = useState<PreparedTrial>()
   const [summary, setSummary] = useState<Summary>()
   const [intervals, setIntervals] = useState<IntervalsForOutcomes>()
+  const [newCount, setNewCount] = useState(0)
+  // what to do when we move on from a card
   const nextCard = useCallback(() => {
     quiz
       .nextCard(quizzingOnLemmas)
@@ -161,16 +167,27 @@ const QuizCard: React.FC<QuizCardProps> = ({
           setIntervals(undefined)
         }
       })
+      .then(() => {
+        quiz.summary(quizzingOnLemmas).then((s) => setSummary(s))
+      })
       .catch(errorHandler(dispatch))
   }, [quiz, quizzingOnLemmas])
+  // reveal the first card on mount
   useEffect(() => {
-    quiz
-      .summary(quizzingOnLemmas)
-      .then((s) => setSummary(s))
-      .then(nextCard)
-      .catch(errorHandler(dispatch))
+    nextCard()
   }, [quiz])
+  useEffect(() => {
+    if (!(quiz.empty(quizzingOnLemmas) || card)) {
+      newPhraseCount(quizzingOnLemmas)
+        .then((n) => setNewCount(n))
+        .catch(errorHandler(dispatch))
+    }
+  }, [quiz, quizzingOnLemmas, card])
+  const topic = card?.phrase[quizzingOnLemmas ? "lemma" : "note"]
+  const newCard = !!card && quiz.newCard(card, quizzingOnLemmas)
   const newQuiz = !(quiz.empty(quizzingOnLemmas) || card)
+  const autoGraduateCount =
+    state.config?.autoGraduateCount ?? DEFAULT_AUTO_GRADUATE_COUNT
   return (
     <Stack
       sx={{
@@ -220,7 +237,8 @@ const QuizCard: React.FC<QuizCardProps> = ({
             position: "absolute",
             width: "250px",
             height: "250px",
-            p: 1,
+            py: 1,
+            px: 2, // push things in from the side so the green dot isn't right by the edge of the card
             alignItems: "center",
             justifyContent: "center",
             border: "2px solid black",
@@ -246,9 +264,12 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {/** something to quiz on and quiz is not yet over */}
             {!quiz.empty(quizzingOnLemmas) && !!card && (
               <>
-                <Typography>
-                  {card.phrase[quizzingOnLemmas ? "lemma" : "note"]}
-                </Typography>
+                {!newCard && <Typography>{topic}</Typography>}
+                {newCard && (
+                  <Badge variant="dot" color="success">
+                    <Typography>{topic}</Typography>
+                  </Badge>
+                )}
                 {!!card.language && (
                   <BigLanguageChip
                     language={card.language!}
@@ -260,7 +281,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {/** there was something to quiz on, but we've flipped the last card */}
             {newQuiz && (
               <Button
-                variant="contained"
+                variant="text"
                 color="secondary"
                 onClick={async () => {
                   void (await quiz
@@ -269,7 +290,9 @@ const QuizCard: React.FC<QuizCardProps> = ({
                     .catch(errorHandler(dispatch)))
                 }}
               >
-                new quiz
+                <Badge badgeContent={newCount} color="success">
+                  new quiz
+                </Badge>
               </Button>
             )}
           </Stack>
@@ -284,6 +307,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
                       citationIndex: selectCitation(card.phrase.citations),
                     })
                   }
+                  sx={{ textDecoration: "none" }}
                 >
                   {card.phrase[quizzingOnLemmas ? "note" : "lemma"]}
                 </Link>
@@ -311,6 +335,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
         >
           {intervals.map(([outcome, interval]) => (
             <IntervalButton
+              key={outcome}
               outcome={outcome}
               interval={interval}
               quizzingOnLemmas={quizzingOnLemmas}
@@ -318,6 +343,13 @@ const QuizCard: React.FC<QuizCardProps> = ({
               card={card!}
               setCard={setCard}
               setSummary={setSummary}
+              setIntervals={setIntervals}
+              autoGraduateCount={autoGraduateCount}
+              success={
+                // if we're one away from the autograduate count, we're on the verge of autograduating
+                !!summary?.outcomes &&
+                quiz.goodCount(card!, quizzingOnLemmas) >= autoGraduateCount - 1
+              }
               clearFlipped={() => {
                 setFlipped(false)
                 setFlippedOnce(false)
@@ -342,7 +374,12 @@ type IntervalButtonProps = {
   card: PreparedTrial
   setCard: (pt: PreparedTrial | undefined) => void
   setSummary: (s: Summary | undefined) => void
+  setIntervals: React.Dispatch<
+    React.SetStateAction<IntervalsForOutcomes | undefined>
+  >
   clearFlipped: () => void
+  autoGraduateCount: number
+  success: boolean // really where we're on the verge of auto-graduating -- one more "good" and we're done
   dispatch: React.Dispatch<Action>
 }
 
@@ -354,15 +391,40 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
   card,
   setCard,
   setSummary,
+  setIntervals,
   clearFlipped,
+  autoGraduateCount,
+  success,
   dispatch,
 }) => {
-  const handler = () => {
+  const [showModal, setShowModal] = useState(false)
+  const handleSave = (noAutograduate: boolean, afterSave?: VoidFunction) => {
     quiz
-      .recordTrial(card.trial, interval, outcome, quizzingOnLemmas)
-      .then((newCard) => {
+      .recordTrial(
+        card.trial,
+        interval,
+        outcome,
+        noAutograduate ? 0 : autoGraduateCount,
+        quizzingOnLemmas
+      )
+      .then((rv) => {
         clearFlipped()
-        setCard(newCard ?? undefined)
+        if (rv) {
+          const { card: newCard, intervals, graduated } = rv
+          if (graduated)
+            dispatch({
+              action: "message",
+              message: `The ${quizzingOnLemmas ? "lemma" : "gloss"} of the “${
+                card.phrase.lemma
+              }” will not appear in future quizzes.`,
+              messageLevel: "success" as any,
+            })
+          setCard(newCard)
+          setIntervals(intervals)
+          if (afterSave) afterSave()
+        } else {
+          setCard(undefined)
+        }
       })
       .then(() => {
         quiz
@@ -372,6 +434,10 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
       })
       .catch(errorHandler(dispatch))
   }
+  const maybeAutoGraduate = success && outcome === "good"
+  const handler = maybeAutoGraduate
+    ? () => setShowModal(true)
+    : () => handleSave(false)
   const special =
     outcome === "again" || outcome === "tomorrow" || outcome === "done"
   let description = special ? <>&nbsp;</> : describeTimeInterval(interval, true)
@@ -386,23 +452,97 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
         break
       case "done":
         tt = "remove from this and future quizzes"
+        break
+      default:
+        exhaustiveGuard(outcome)
     }
   }
   return (
-    <Tooltip title={tt} arrow placement="top">
-      <Stack sx={{ alignItems: "center", justifyContent: "center" }}>
-        <IconButton onClick={handler}>
-          <IconForOutcome outcome={outcome} />
-        </IconButton>
-        <Typography>{description}</Typography>
-      </Stack>
-    </Tooltip>
+    <>
+      <Tooltip title={tt} arrow placement="top">
+        <Stack sx={{ alignItems: "center", justifyContent: "center" }}>
+          <IconButton onClick={handler}>
+            <IconForOutcome outcome={outcome} success={success} />
+          </IconButton>
+          <Typography>{description}</Typography>
+        </Stack>
+      </Tooltip>
+      {maybeAutoGraduate && (
+        <Modal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Stack direction="column" spacing={2}>
+            <Typography
+              variant="h4"
+              component="h2"
+              sx={{ textAlign: "center", color: "primary.main" }}
+            >
+              Congratulations!
+            </Typography>
+            <Typography>
+              You have marked your recall of the{" "}
+              {quizzingOnLemmas ? "gloss" : "lemma"} of “
+              {quizzingOnLemmas ? card.phrase.lemma : card.phrase.note}” as good{" "}
+              {autoGraduateCount} times in a row. Shall me mark as learned,
+              removing it from future quizzes, or simply mark it as good one
+              more time?
+            </Typography>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: "space-between", alignItems: "center" }}
+            >
+              <Button variant="outlined" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setShowModal(false)
+                  handleSave(true, () =>
+                    dispatch({
+                      action: "message",
+                      messageLevel: "info" as any,
+                      message: `Your recall of the ${
+                        quizzingOnLemmas ? "gloss" : "lemma"
+                      } of “${
+                        quizzingOnLemmas ? card.phrase.lemma : card.phrase.note
+                      }” has been marked as good.`,
+                    })
+                  )
+                }}
+                endIcon={<SentimentVerySatisfied />}
+              >
+                Good
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                autoFocus
+                onClick={() => {
+                  setShowModal(false)
+                  handleSave(false)
+                }}
+                endIcon={<School />}
+              >
+                Learned
+              </Button>
+            </Stack>
+          </Stack>
+        </Modal>
+      )}
+    </>
   )
 }
 
-const IconForOutcome: React.FC<{ outcome: NonInitialOutcome }> = ({
-  outcome,
-}) => {
+const IconForOutcome: React.FC<{
+  outcome: NonInitialOutcome
+  success?: boolean
+}> = ({ outcome, success }) => {
   switch (outcome) {
     case "again":
       return <Replay color="error" />
@@ -413,9 +553,11 @@ const IconForOutcome: React.FC<{ outcome: NonInitialOutcome }> = ({
     case "ok":
       return <SentimentNeutral />
     case "good":
-      return <SentimentVerySatisfied />
+      return <SentimentVerySatisfied color={success ? "success" : undefined} />
     case "done":
-      return <Celebration color="success" />
+      return <School color="success" />
+    default:
+      exhaustiveGuard(outcome)
   }
 }
 
@@ -432,36 +574,49 @@ const SkeletonCard: React.FC = () => {
 const SummarizeQuiz: React.FC<{ summary: Summary }> = ({ summary }) => {
   const counts = new Map<NonInitialOutcome, number>()
   for (const o of summary.outcomes) {
-    counts[o] ??= 0
-    counts[o]++
+    counts.set(o, (counts.get(o) ?? 0) + 1)
   }
   const { new: n, old: o, remaining: l } = summary
-  const progress = (1 - l / (n + o)) * 100
+  const denominator = n + o
+  const progress = (1 - l / denominator) * 100
   return (
     <>
-      <Stack direction="row" spacing={1} sx={{ justifyContent: "center" }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ mt: 1, justifyContent: "center" }}
+      >
         <Box sx={{ color: "primary.main" }}>{`new: ${n}`}</Box>
         <Box sx={{ color: "secondary.main" }}>{`old: ${o}`}</Box>
-        <Box>{`left: ${l}`}</Box>
         {!!summary.outcomes.length && (
           <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
         )}
         {OUTCOME_ORDER.map(
           (o) =>
-            counts[o] && (
-              <>
-                <IconForOutcome outcome={o} />
-                <Box>{counts[o]}</Box>
-              </>
+            counts.get(o) && (
+              <Stack
+                key={o}
+                direction="row"
+                spacing={0.5}
+                sx={{ mt: 1, justifyContent: "center" }}
+              >
+                <IconForOutcome outcome={o} key={o} />
+                <Box key={`${o}_count`}>{counts.get(o)}</Box>
+              </Stack>
             )
         )}
       </Stack>
-      <LinearProgress
-        variant="determinate"
-        color="success"
-        sx={{ mt: 1 }}
-        value={progress}
-      />
+      <Stack direction="row" spacing={1} sx={{ my: 1, alignItems: "center" }}>
+        <LinearProgress
+          variant="determinate"
+          color="success"
+          value={progress}
+          sx={{ width: "100%" }}
+        />
+        <Stack direction="row" spacing={0.5} sx={{ color: "text.secondary" }}>
+          <Box>{denominator - l}</Box> <Box>/</Box> <Box>{denominator}</Box>
+        </Stack>
+      </Stack>
     </>
   )
 }

@@ -32,6 +32,7 @@ export type Action =
     }
   | { action: "error"; message: string }
   | { action: "config"; config: Configuration }
+  | { action: "distanceMetric"; config: Configuration }
   | { action: "phrase"; phrase: Phrase; citationIndex?: number }
   | { action: "phraseSaved"; newPhrase: boolean }
   | { action: "citationSelected"; citationIndex: number }
@@ -101,23 +102,12 @@ export function reducer(state: AppState, action: Action): AppState {
       }
       const cidx = selectCitation(citations)
       return {
-        ...state,
-        languageId,
-        phrase,
+        ...changeNote(phrase, cidx, state),
+        priorPhrase: undefined,
         maybeMeld,
         message,
         messageLevel,
-        priorPhrase: undefined,
-        citationIndex: cidx,
-        similaritySearch: {
-          phrase: phrase.lemma,
-          metric: state.config?.distanceMetric ?? defaultDistanceMetric,
-          languages,
-          limit: state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases,
-        },
-        urlSearch: {
-          url: citations[cidx].url ?? "",
-        },
+        languageId,
         searchTab,
       }
     case "select":
@@ -156,6 +146,13 @@ export function reducer(state: AppState, action: Action): AppState {
       const { config } = action
       setConfiguration(config)
       return { ...state, config }
+    case "distanceMetric": // config change that also requires redoing similarity search results
+      setConfiguration(action.config)
+      return {
+        ...state,
+        config: action.config,
+        similaritySearchResults: undefined,
+      }
     case "phrase": // unsaved change to phrase
       ci = action.citationIndex ?? state.citationIndex
       return {
@@ -242,7 +239,7 @@ export function reducer(state: AppState, action: Action): AppState {
         },
       }
     case "selectResult":
-      let { searchResults: results, history: h2 = [] } = state
+      let { searchResults: results } = state
       results ??= {
         selected: -1,
         phrases: [],
@@ -254,39 +251,9 @@ export function reducer(state: AppState, action: Action): AppState {
       const { selected } = action
       const selectedPhrase = results!.phrases[selected]
       ci = selectCitation(selectedPhrase.citations)
-      if (h2[h2.length - 1] !== selectedPhrase.id) h2.push(selectedPhrase.id!)
-      return {
-        ...state,
-        phrase: selectedPhrase,
-        priorPhrase: selectedPhrase,
-        citationIndex: ci,
-        tab: AppTabs.Note,
-        urlSearch: { url: selectedPhrase.citations[ci].url! },
-        urlSearchResults: undefined,
-        similaritySearch: {
-          phrase: selectedPhrase.lemma,
-          metric: state.config?.distanceMetric ?? defaultDistanceMetric,
-          languages: [selectedPhrase.languageId!],
-          limit: state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases,
-        },
-        similaritySearchResults: undefined,
-        searchResults: { ...results, selected },
-        history: h2,
-      }
+      return changeNote(selectedPhrase, ci, state)
     case "goto":
-      const { phrase: gotoPhrase, citationIndex } = action
-      const { history = [] } = state
-      if (history[history.length - 1] !== gotoPhrase.id) {
-        history.push(gotoPhrase.id!)
-      }
-      return {
-        ...state,
-        phrase: gotoPhrase,
-        priorPhrase: deepClone(gotoPhrase),
-        citationIndex,
-        history,
-        tab: AppTabs.Note,
-      }
+      return changeNote(action.phrase, action.citationIndex, state)
     case "noSelection":
       return {
         ...state,
@@ -312,6 +279,7 @@ export function reducer(state: AppState, action: Action): AppState {
         // we must redo searches to purge the phrase merged in
         freeSearchResults: undefined,
         similaritySearchResults: undefined,
+        urlSearchResults: undefined,
       }
     case "phrasesDeleted":
       return {
@@ -350,13 +318,11 @@ export function reducer(state: AppState, action: Action): AppState {
         phrase: { ...state.phrase!, relatedPhrases: action.relatedPhrases },
       }
     case "relationClicked": // display the entity clicked, erasing any unsaved state
-      const ap = { ...action.phrase }
-      return {
-        ...state,
-        phrase: ap,
-        citationIndex: selectCitation(ap.citations),
-        priorPhrase: ap,
-      }
+      return changeNote(
+        action.phrase,
+        selectCitation(action.phrase.citations),
+        state
+      )
     case "saveQuizState":
       return {
         ...state,
@@ -370,6 +336,7 @@ export function reducer(state: AppState, action: Action): AppState {
 
 export function errorHandler(dispatch: React.Dispatch<Action>) {
   return (e: any) => {
+    console.error(e)
     const message = e.message ?? `${e}`
     const messageLevel: MessageLevel = "error" as never // unclear why typescript requires this
     const action: Action = { action: "message", message, messageLevel }
@@ -381,4 +348,36 @@ export const selectCitation = (citations: Citation[]): number => {
   const i = citations.findIndex((c) => c.canonical)
   if (i > -1) return i
   return 0
+}
+
+// what to do when someone clicks something that should change the lemma displayed under the note tab
+function changeNote(
+  phrase: Phrase,
+  citationIndex: number,
+  state: AppState
+): AppState {
+  const { history = [] } = state
+  if (history[history.length - 1] !== phrase.id) {
+    history.push(phrase.id!)
+  }
+  return {
+    ...state,
+    phrase,
+    priorPhrase: deepClone(phrase),
+    citationIndex,
+    history,
+    tab: AppTabs.Note,
+    // prepare the searches which are keyed on the current phrase
+    similaritySearch: {
+      phrase: phrase.lemma,
+      metric: state.config?.distanceMetric ?? defaultDistanceMetric,
+      limit: state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases,
+      languages: [phrase.languageId!],
+    },
+    similaritySearchResults: undefined,
+    urlSearch: {
+      url: phrase.citations[citationIndex].url!,
+    },
+    urlSearchResults: undefined,
+  }
 }

@@ -13,7 +13,7 @@ import {
   Tag,
   UrlSearch,
 } from "../types/common"
-import { matcher } from "./general"
+import { matcher, shuffle } from "./general"
 import every from "lodash/every"
 import uniq from "lodash/uniq"
 import { exportDB } from "dexie-export-import"
@@ -24,7 +24,9 @@ import {
   QuizSignature,
   Summary,
   Trial,
+  trialsKey,
 } from "./spaced_repetition"
+import { regex } from "list-matcher"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -239,9 +241,24 @@ export function deleteTag(tag: Tag): Promise<number> {
   })
 }
 
-export function mergePhrases(to: Phrase, from: Phrase): Promise<void> {
-  return db.transaction("rw", db.phrases, db.relations, async () => {
-    to.citations = [...to.citations, ...from.citations] // merge citations
+// TODO fix this so it knows about elaborations
+export function mergePhrases(to: Phrase, from: Phrase): Promise<Phrase> {
+  return db.transaction("rw", db.phrases, db.relations, db.trials, async () => {
+    // merge citations
+    to.citations = [...to.citations, ...from.citations]
+    // make sure we have at most one canonical citation
+    let anyCanonical = false
+    for (const c of to.citations) {
+      if (c.canonical) {
+        if (anyCanonical) {
+          c.canonical = false
+        } else {
+          anyCanonical = true
+        }
+      }
+    }
+    // merge tags if merging didn't happen in the merging modal
+    if (!to.tags?.length) to.tags = from.tags
     // fix relations
     const allRelations = [...(to.relations ?? []), ...(from.relations ?? [])]
     if (allRelations.length) {
@@ -276,13 +293,74 @@ export function mergePhrases(to: Phrase, from: Phrase): Promise<void> {
       await db.relations.bulkDelete(Array.from(delenda))
       to.relations = newRelations
     }
+    // fix trials
+    const fromTrials = from.id == null ? null : await db.trials.get(from.id)
+    if (fromTrials) {
+      // this is the one we're going to merge into the other
+      await db.trials.delete(from.id)
+      const toTrials = to.id == null ? null : await db.trials.get(to.id)
+      if (toTrials) {
+        // first merge phrase trials
+        const toPhraseTrials = toTrials.phraseTrials
+        if (toPhraseTrials) {
+          const fromPhraseTrials = fromTrials.phraseTrials
+          if (fromPhraseTrials) {
+            // if one of them *isn't* done, don't mark it as done
+            toPhraseTrials.done &&= fromPhraseTrials.done
+            if (toPhraseTrials.nextTime > fromPhraseTrials.nextTime)
+              toPhraseTrials.nextTime = fromPhraseTrials.nextTime
+            // keep the earlier start time
+            const start1 = fromPhraseTrials.times.shift()!
+            const start2 = toPhraseTrials.times.shift()!
+            fromPhraseTrials.times = [
+              start1[0] < start2[0] ? start1 : start2,
+              ...fromPhraseTrials.times,
+              ...toPhraseTrials.times,
+            ].sort((a, b) => {
+              return a[0]! < b[0]! ? -1 : 1
+            })
+          }
+        } else {
+          toTrials.phraseTrials = fromTrials.phraseTrials
+        }
+        // then merge gloss trials
+        const toGlossTrials = toTrials.glossTrials
+        if (toGlossTrials) {
+          const fromGlossTrials = fromTrials.glossTrials
+          if (fromGlossTrials) {
+            // if one of them *isn't* done, don't mark it as done
+            toGlossTrials.done &&= fromGlossTrials.done
+            if (toGlossTrials.nextTime > fromGlossTrials.nextTime)
+              toGlossTrials.nextTime = fromGlossTrials.nextTime
+            // keep the earlier start time
+            const start1 = fromGlossTrials.times.shift()!
+            const start2 = toGlossTrials.times.shift()!
+            fromGlossTrials.times = [
+              start1[0] < start2[0] ? start1 : start2,
+              ...fromGlossTrials.times,
+              ...toGlossTrials.times,
+            ].sort((a, b) => {
+              return a[0]! < b[0]! ? -1 : 1
+            })
+          }
+        } else {
+          toTrials.glossTrials = fromTrials.glossTrials
+        }
+      } else {
+        fromTrials.phraseId = to.id!
+        await db.trials.put(fromTrials)
+      }
+    }
+    // reduce things down to just one phrase
     if (from.updatedAt > to.updatedAt) to.updatedAt = from.updatedAt // the most recentl updatedAt wins
     if (from.id) await db.phrases.delete(from.id)
     await db.phrases.put(to, to.id!)
     knownLanguages() // recalculate cached information
+    return to
   })
 }
 
+// TODO fix this so it also deletes trials
 export function deletePhrase(phrase: Phrase): Promise<void> {
   return db.transaction("rw", db.phrases, db.relations, async () => {
     if (phrase.relations?.length) {
@@ -444,6 +522,7 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
   p.createdAt ??= new Date()
   const id = await db.phrases.put(p, phrase.id)
   if (id) phrase.id = id
+  regexCache.delete(phrase.languageId!) // force recompilation of the language's regex
   return phrase
 }
 
@@ -459,7 +538,6 @@ export async function similaritySearch(
     page = 1,
     pageSize = defaultMaxSimilarPhrases,
   } = search
-  console.log("doing similarity search")
   const rs = await db.transaction("r", db.phrases, async () => {
     if (!search.phrase) return []
     const scope = languages.length
@@ -704,21 +782,16 @@ export async function makeQuiz(
     const trialMap = new Map<number, Trial>()
     trials.forEach((t) => trialMap.set(t.phraseId, t))
     const phraseIds: number[] = await db.phrases.toCollection().primaryKeys()
-    // shuffle these
-    for (let i = phraseIds.length - 1; i > 0; i--) {
-      const j = Math.floor((i + 1) * Math.random()) as number
-      ;[phraseIds[i], phraseIds[j]] = [phraseIds[j], phraseIds[i]]
-    }
+    // shuffle these so the new phrases aren't chosen in order
+    shuffle(phraseIds)
     let newCount = 0
+    const key = phrasesAreQuestionsAndGlossesAreAnswers
+      ? "phraseTrials"
+      : "glossTrials"
     for (const i of phraseIds) {
       const t = trialMap.get(i)
       if (t) {
-        const times =
-          t[
-            phrasesAreQuestionsAndGlossesAreAnswers
-              ? "phraseTrials"
-              : "glossTrials"
-          ]
+        const times = t[key]
         if (times) {
           if (times.done) continue
           if (times.nextTime < startTime) {
@@ -737,6 +810,9 @@ export async function makeQuiz(
         }
       }
     }
+    // I have not figured out why the second shuffle is necessary, but without it all the new
+    // phrases appear first in the quiz
+    shuffle(phrases)
     return {
       startTime,
       phrasesAreQuestionsAndGlossesAreAnswers,
@@ -756,6 +832,8 @@ export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
     db.trials,
     async () => {
       const phrase = (await db.phrases.get(phraseId)) as Phrase
+      if (!phrase.languageId)
+        throw `note for "${phrase.lemma}" has no language specified`
       const language = (await db.languages.get(phrase.languageId!)) as Language
       const tags: Tag[] = phrase.tags?.length
         ? await db.tags.where("id").anyOf(phrase.tags).toArray()
@@ -780,7 +858,7 @@ export async function howTheQuizIsGoingSoFar(
   return db.transaction("r", db.trials, async () => {
     const allTrials = await db.trials.where("phraseId").anyOf(phrases).toArray()
     const trialsWithinPeriod: NonInitialOutcome[] = []
-    const field = quizzingOnLemmas ? "phraseTrials" : "glossTrials"
+    const field = trialsKey(quizzingOnLemmas)
     // preliminary counts
     let old = allTrials.length // if we have any trials, it's probably old
     let remaining = phrases.length // we have to review them all
@@ -820,25 +898,114 @@ export async function howTheQuizIsGoingSoFar(
   })
 }
 
-// given a list of words looks for exact matches among lemmas or citations in given language
-export async function phrasesInText(
-  words: string[],
-  language: Language
-): Promise<Phrase[]> {
-  const set = new Set<string>()
-  const locale = language.locale
-  for (const s of words.filter((w) => /\S/.test(w)))
-    set.add(s.toLocaleLowerCase(locale))
-  return db.transaction("r", db.phrases, async () => {
-    const phrases = await db.phrases
-      .where("languageId")
-      .equals(language.id!)
-      .filter(
-        (p) =>
-          set.has(p.lemma.toLocaleLowerCase(locale)) ||
-          p.citations.some((c) => set.has(c.phrase.toLocaleLowerCase(locale)))
-      )
-      .toArray()
-    return phrases
+// count the number of phrases that might show up as new phrases in a quiz
+export async function newPhraseCount(
+  quizzingOnLemmas: boolean
+): Promise<number> {
+  return db.transaction("r", db.phrases, db.trials, async () => {
+    const phraseIds = (await db.phrases
+      .toCollection()
+      .primaryKeys()) as number[]
+    let count = phraseIds.length
+    const key = trialsKey(quizzingOnLemmas)
+    await db.trials
+      .where("phraseId")
+      .anyOf(phraseIds)
+      .each((t) => {
+        if (t[key]) count--
+      })
+    return count
   })
+}
+
+const regexCache: Map<number, RegExp> = new Map()
+
+// obtain a capturing regular expression that matches all the lemmas and cited phrases
+// for a particular language
+async function regexForLanguage(language: Language): Promise<RegExp> {
+  let rx = regexCache.get(language.id!)
+  if (rx) return rx
+  const phrases: string[] = []
+  await db.phrases
+    .where("languageId")
+    .equals(language.id!)
+    .each((p) => {
+      phrases.push(p.lemma)
+      for (const c of p.citations) phrases.push(c.phrase)
+    })
+  rx = regex(phrases, {
+    bound: true,
+    capture: true,
+    flags: "i",
+    normalizeWhitespace: true,
+  })
+  regexCache.set(language.id!, rx)
+  return rx
+}
+
+// for converting text into text with links to known phrases
+export async function splitText(
+  text: string,
+  language: Language
+): Promise<{ parts: string[]; map: Map<string, Phrase> }> {
+  const splitter = await regexForLanguage(language)
+  const parts: string[] = []
+  let lookups: string[] = []
+  const map: Map<string, Phrase> = new Map()
+  text.split(splitter).forEach((s, i) => {
+    if (s) {
+      // skip empty strings
+      parts.push(s)
+      if (i % 2 === 1) lookups.push(s) // odd indices are matches
+    }
+  })
+  lookups = uniq(lookups) // filter out duplicates
+  // a new regex that will let us match mapped parts to phrases
+  // TODO get this to handle homonyms
+  const rx = regex(lookups, {
+    bound: true,
+    flags: "i",
+    normalizeWhitespace: true,
+  })
+  // some utility closures...
+  // see if a particular lemma or citation is one of our matches
+  const testPhrase = function (s: string): boolean {
+    const r = rx.exec(s)
+    return !!r && r[0] === s // does the whole word match?
+  }
+  // map a match back to the lookup words it corresponds to
+  const findMatches = function (s: string): string[] {
+    const rx = regex([s], {
+      bound: true,
+      flags: "i",
+      normalizeWhitespace: true,
+    })
+    return lookups.filter((s) => {
+      const r = rx.exec(s)
+      return !!r && r[0] === s // again, does the whole word match?
+    })
+  }
+  // scan through the phrases in the language and populate the map
+  await db.phrases
+    .where("languageId")
+    .equals(language.id!)
+    .each((p) => {
+      // once all lookups are accounted for, blast through the rest of the scan
+      // we'll have to change this once we have homonym handling in place
+      if (map.size === lookups.length) return
+      if (testPhrase(p.lemma)) {
+        for (const word of findMatches(p.lemma))
+          map.set(word.toLocaleLowerCase(language.locale), p)
+        return
+      }
+      for (const c of p.citations) {
+        if (c.phrase === p.lemma) continue // we've done this one already
+        if (testPhrase(c.phrase)) {
+          for (const word of findMatches(c.phrase))
+            map.set(word.toLocaleLowerCase(language.locale), p)
+          return
+        }
+      }
+    })
+  return { parts, map }
 }

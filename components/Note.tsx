@@ -40,15 +40,14 @@ import {
   knownTags,
   perhapsStaleLanguages,
   phrasesForRelations,
-  phrasesInText,
+  splitText,
   phrasesOnPage,
   savePhrase,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
-import { sackOWords } from "../util/string"
-import { bell } from "../util/general"
+import { bell, diff, isEqualIgnoring } from "../util/general"
 
 type NoteProps = {
   state: AppState
@@ -95,7 +94,8 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const elaborationRef = useRef<HTMLInputElement>()
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
-  const clean = isEqual(phrase, priorPhrase)
+  // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
+  const clean = isEqualIgnoring(phrase, priorPhrase, "id", "relations", "relatedPhrases", "updatedAt", "createdAt")
   const changeLanguage = (language: Language) => () => {
     setLanguageMenuAnchorEl(null)
     if (phrase?.languageId !== language.id) {
@@ -315,9 +315,8 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
                 .map(([pid, [rid, p]]) => {
                   return (
-                    <Tooltip arrow title={p.note!}>
+                    <Tooltip key={pid} arrow title={p.note!}>
                       <Chip
-                        key={pid}
                         label={p.lemma}
                         size="small"
                         variant="outlined"
@@ -626,32 +625,21 @@ const ClickableText: React.FC<ClickableTextProps> = ({
   elaborationRef,
   dispatch,
 }) => {
-  const [words, setWords] = useState<string[]>([])
-  useEffect(() => {
-    setWords(sackOWords(text))
-  }, [text])
+  const [words, setWords] = useState<string[]>([text])
   const [wordMap, setWordMap] = useState(new Map<string, Phrase>())
   useEffect(() => {
-    const m = new Map<string, Phrase>()
-    const locale = language.locale
-    phrasesInText(words, language)
-      .then((phrases) => {
-        for (const p of phrases) {
-          let w = p.lemma.toLocaleLowerCase(locale)
-          if (!m.has(w)) m.set(w, p)
-          for (const c of p.citations) {
-            w = c.phrase.toLocaleLowerCase(locale)
-            if (!m.has(w)) m.set(w, p)
-          }
-        }
-        setWordMap(m)
+    splitText(text, language)
+      .then(({ parts, map }) => {
+        setWords(parts)
+        setWordMap(map)
       })
       .catch(errorHandler(dispatch))
-  }, [words])
+  }, [text])
   return (
     <>
-      {words.map((w) => (
+      {words.map((w, i) => (
         <ClickableWord
+          key={i}
           word={w}
           wordMap={wordMap}
           language={language}

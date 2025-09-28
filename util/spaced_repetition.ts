@@ -119,6 +119,7 @@ export function describeTimeInterval(
 }
 
 export const MAX_NEW_PHRASES_PER_QUIZ = 10
+export const DEFAULT_AUTO_GRADUATE_COUNT = 5
 
 // a controller that manages the daily quizzes
 // its methods are asynchronous because they always persist state to the database
@@ -193,16 +194,21 @@ export class DailyQuiz {
       ["again", 5 * oneMinute],
       ["tomorrow", tomorrow.getTime() - this.now.getTime()],
     ]
-    let previous = trial[quizzingOnLemmas ? "phraseTrials" : "glossTrials"]?.times.map(n => n[0])
+    let previous = trial[this.trialsKey(quizzingOnLemmas)]?.times.map(
+      (n) => n[0]
+    )
     let interval: number
     if (previous?.length) {
       previous = lastN(previous, 4)
       let [[t0], ...rest] = previous.map((n, i) => [n, i] as [Date, number])
       if (rest.length) {
-        let sum = 0, denominator = 0
+        let sum = 0,
+          denominator = 0
         for (const [t, i] of rest) {
-          sum += (t.getTime() - t0.getTime()) * i
-          denominator += i
+          // each interval has half the weight in the weighted average of the one before
+          const weight = 2 ** i
+          sum += (t.getTime() - t0.getTime()) * weight
+          denominator += weight
           t0 = t
         }
         interval = sum / denominator
@@ -224,13 +230,18 @@ export class DailyQuiz {
     const t3 = new Date(t2.getFullYear(), t2.getMonth(), t2.getDate())
     return t3.getTime() - this.now.getTime()
   }
-  // records the outcome of the most recent trial and returns the next card to display, if any
+  // records the outcome of the most recent trial and returns the next card to display and the intervals for its buttons, if any
   async recordTrial(
     t: Trial,
     interval: number,
     outcome: Outcome,
+    autoGraduateCount: number, // set to 0 to disable autograduation
     quizzingOnLemmas: boolean
-  ): Promise<PreparedTrial | null> {
+  ): Promise<{
+    card: PreparedTrial
+    intervals: IntervalsForOutcomes
+    graduated: boolean
+  } | null> {
     const now = new Date()
     const time = new Date(now.getTime() + interval)
     const signature = this.config[this.quizKey(quizzingOnLemmas)]
@@ -240,6 +251,7 @@ export class DailyQuiz {
       nextTime: time,
       times: [],
     }
+    let graduated = false
     t[tk] = trialTimes
     if (trialTimes.times.length === 0) trialTimes.times.push([now, "first"]) // record a starting time from which to measure first interval
     trialTimes.times.push([time, outcome])
@@ -249,12 +261,45 @@ export class DailyQuiz {
       signature?.phrases.splice(signature.index, 1)
       signature?.phrases.push(t.phraseId)
     } else {
-      if (outcome === "done") trialTimes.done = true
+      if (
+        outcome === "done" ||
+        (autoGraduateCount &&
+          countDone(trialTimes.times.map(([_default, o]) => o)) >=
+            autoGraduateCount)
+      ) {
+        graduated = true
+        trialTimes.done = true
+      }
+
       signature && signature.index++
     }
     void (await saveTrial(t))
     void (await setConfiguration(this.config))
-    return await this.nextCard(quizzingOnLemmas)
+    const card = await this.nextCard(quizzingOnLemmas)
+    if (card == null) return null
+    return {
+      card,
+      graduated,
+      intervals: this.intervalsForOutcomes(card.trial, quizzingOnLemmas),
+    }
+  }
+  // for a given card, returns the sequence of outcomes for the quiz type
+  currentOutcomes(card: PreparedTrial, quizzingOnLemmas: boolean): Outcome[] {
+    return (
+      card.trial[this.trialsKey(quizzingOnLemmas)]?.times.map(([_t, o]) => o) ??
+      []
+    )
+  }
+  // how long is the most recent run of "good" outcomes?
+  goodCount(card: PreparedTrial, quizzingOnLemmas: boolean): number {
+    return countDone(this.currentOutcomes(card, quizzingOnLemmas))
+  }
+  // is this the first time this card has appeared in this sort of quiz?
+  newCard(card: PreparedTrial, quizzingOnLemmas: boolean): boolean {
+    const outcomes = this.currentOutcomes(card, quizzingOnLemmas)
+    if (outcomes.length === 0) return true
+    // belt and suspenders
+    return outcomes.length === 1 && outcomes[0] === "first"
   }
   private quizKey(
     quizzingOnLemmas: boolean
@@ -262,6 +307,25 @@ export class DailyQuiz {
     return quizzingOnLemmas ? "currentPhraseQuiz" : "currentGlossQuiz"
   }
   private trialsKey(quizzingOnLemmas: boolean): "phraseTrials" | "glossTrials" {
-    return quizzingOnLemmas ? "phraseTrials" : "glossTrials"
+    return trialsKey(quizzingOnLemmas)
   }
+}
+
+export function trialsKey(
+  quizzingOnLemmas: boolean
+): "phraseTrials" | "glossTrials" {
+  return quizzingOnLemmas ? "phraseTrials" : "glossTrials"
+}
+
+// counts the length of the latest run of "good" outcomes
+export function countDone(times: Outcome[]): number {
+  let count = 0
+  for (let i = times.length - 1; i >= 0; i--) {
+    if (times[i] === "good") {
+      count++
+    } else {
+      break
+    }
+  }
+  return count
 }

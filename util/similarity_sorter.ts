@@ -1,4 +1,4 @@
-import { Phrase } from "../types/common"
+import { exhaustiveGuard, Phrase } from "../types/common"
 import levenshtein from "talisman/metrics/levenshtein"
 import { distance as jwDistance } from "talisman/metrics/jaro-winkler"
 import { distance as jaroDistance } from "talisman/metrics/jaro"
@@ -16,16 +16,16 @@ export const defaultMaxSimilarPhrases = 10;
 
 const metric = (name: DistanceMetric): ((a: string, b: string) => number) => {
   switch (name) {
-    case "Levenshtein":
+    case DistanceMetric.Lev:
       return levenshtein
-    case "Jaro":
+    case DistanceMetric.Jaro:
       return jaroDistance
-    case "Jaro-Winkler":
+    case DistanceMetric.JaroWinkler:
       return jwDistance
-    case "longest common substring":
+    case DistanceMetric.LCS:
       return lcsDistance
     default:
-      throw `unfamiliar metric name: ${name}`
+      exhaustiveGuard(name)
   }
 }
 

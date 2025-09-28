@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { ReactNode, useCallback, useEffect, useState } from "react"
 import {
   AppState,
   Language,
   Configuration as ConfigurationType,
   AppTabs,
+  exhaustiveGuard,
 } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
+  Badge,
   Box,
   Button,
   FormControl,
@@ -54,6 +56,8 @@ import {
   defaultMaxSimilarPhrases,
   DistanceMetric,
 } from "../util/similarity_sorter"
+import { DEFAULT_AUTO_GRADUATE_COUNT } from "../util/spaced_repetition"
+import { theme } from "../util/theme"
 
 type ConfigurationProps = {
   state: AppState
@@ -84,6 +88,17 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       })
       .catch(errorHandler(dispatch))
   }, [])
+  const autoGraduateHandler = useCallback((e) => {
+    const c: ConfigurationType = {
+      ...config,
+    }
+    c.autoGraduateCount = Number.parseInt(e.target.value)
+    setConfiguration(c)
+      .then(() => {
+        dispatch({ action: "config", config: c })
+      })
+      .catch(errorHandler(dispatch))
+  }, [])
   const distanceMetricHandler = useCallback((e: SelectChangeEvent) => {
     const c: ConfigurationType = {
       ...config,
@@ -91,7 +106,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
     c.distanceMetric = e.target.value as DistanceMetric
     setConfiguration(c)
       .then(() => {
-        dispatch({ action: "config", config: c })
+        dispatch({ action: "distanceMetric", config: c })
       })
       .catch(errorHandler(dispatch))
   }, [])
@@ -146,7 +161,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           >
             {Object.values(DistanceMetric).map((metric) => (
               <MenuItem key={metric} value={metric}>
-                {metric}
+                <DistanceMetricDot metric={metric}/>
               </MenuItem>
             ))}
           </Select>
@@ -158,6 +173,14 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           slotProps={{ htmlInput: { min: 5, step: 1 } }}
           value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
           onChange={maxSimilarPhrasesHandler}
+        />
+        <TextField
+          label="Auto-graduate Count"
+          type="number"
+          fullWidth
+          slotProps={{ htmlInput: { min: 3, max: 10, step: 1 } }}
+          value={state.config?.autoGraduateCount ?? DEFAULT_AUTO_GRADUATE_COUNT}
+          onChange={autoGraduateHandler}
         />
         <DbActions
           dispatch={dispatch}
@@ -728,3 +751,34 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
     </Modal>
   )
 }
+
+function metricColor(metric: DistanceMetric): string {
+  switch (metric) {
+    case DistanceMetric.Jaro:
+      return theme.palette.tetrad1.main
+    case DistanceMetric.JaroWinkler:
+      return theme.palette.tetrad2.main
+    case DistanceMetric.LCS:
+      return theme.palette.tetrad3.main
+    case DistanceMetric.Lev:
+      return theme.palette.tetrad4.main
+    default:
+      return exhaustiveGuard(metric)
+  }
+}
+
+export const DistanceMetricDot: React.FC<{
+  metric: DistanceMetric
+  children?: ReactNode
+}> = ({ metric, children }) => (
+  <Badge
+    variant="dot"
+    sx={{
+      "& .MuiBadge-badge": {
+        backgroundColor: metricColor(metric),
+      },
+    }}
+  >
+    {children ?? metric}
+  </Badge>
+)

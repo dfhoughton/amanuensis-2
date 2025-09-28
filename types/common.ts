@@ -164,6 +164,9 @@ export type Configuration = {
   // the number of as yet untested phrases Amanuensis will attempt to provide
   // in a fresh quiz
   newPhrases?: number
+  // if you click "good" this many times in a row for a particular phrase in a quiz, this will
+  // auto-graduate it to "done"
+  autoGraduateCount?: number
   // the state of the last quiz started where the phrases were the questions
   currentPhraseQuiz?: QuizSignature
   // the state of the last quiz started where the glosses were the questions
@@ -188,4 +191,13 @@ export type Tag = {
   color?: string
   bgcolor?: string
   languages?: number[]
+}
+
+// borrowing from https://www.meticulous.ai/blog/safer-exhaustive-switch-statements-in-typescript
+export function exhaustiveGuard(_value: never): never {
+  throw new Error(
+    `ERROR! Reached forbidden guard function with unexpected value: ${JSON.stringify(
+      _value
+    )}`
+  )
 }

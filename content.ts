@@ -12,6 +12,8 @@ Send non-trivial selections to the background process to prepare for annotation.
 Selections are serialized as the selection and its context -- text before and after
 */
 
+const amanuensisUrl = "https://dfhoughton.github.io/amanuensis-2/"
+
 function parents(node: Node) {
   const ar = [node]
   let n = node.parentNode as Node
@@ -136,11 +138,7 @@ chrome.runtime.onMessage.addListener(function (
       break
     case "help": // load documentation into current tab
       const { anchor } = request
-      window.location.assign(
-        `https://dfhoughton.github.io/amanuensis-2/${
-          anchor ? `#${anchor}` : ""
-        }`
-      )
+      window.location.assign(`${amanuensisUrl}${anchor ? `#${anchor}` : ""}`)
       break
     case "getSelection":
       const selection = wrapSelection()
@@ -162,3 +160,6 @@ chrome.runtime.onMessage.addListener(function (
 chrome.runtime.sendMessage({ action: "open" }, (response) =>
   console.log("Amanuensis received this confirmation", response)
 )
+
+// leave a calling card in the console
+console.log('Amanuensis is ready on this page', amanuensisUrl)

@@ -3,8 +3,29 @@ import { createTheme } from "@mui/material"
 import { alpha } from "@mui/material/styles"
 
 const oxBlood = "#931f1d"
+// some high-contrast colors borrowed from the Olympic ring logo
+const olympicBlue = "#0078D0"
+const olympicYellow = "#FFB114"
+const olympicGreen = "#00A651"
+const olympicRed = "#F0282D"
 
-export const theme = createTheme({
+declare module "@mui/material/styles" {
+  interface Palette {
+    tetrad1: Palette["primary"]
+    tetrad2: Palette["primary"]
+    tetrad3: Palette["primary"]
+    tetrad4: Palette["primary"]
+  }
+
+  interface PaletteOptions {
+    tetrad1?: PaletteOptions["primary"]
+    tetrad2?: PaletteOptions["primary"]
+    tetrad3?: PaletteOptions["primary"]
+    tetrad4?: PaletteOptions["primary"]
+  }
+}
+
+let t = createTheme({
   palette: {
     primary: {
       main: oxBlood,
@@ -61,3 +82,36 @@ export const theme = createTheme({
     },
   },
 })
+
+// add four high-contrast colors
+t = createTheme(t, {
+  // Custom colors created with augmentColor go here
+  palette: {
+    tetrad1: t.palette.augmentColor({
+      color: {
+        main: olympicBlue,
+      },
+      name: "tetrad1",
+    }),
+    tetrad2: t.palette.augmentColor({
+      color: {
+        main: olympicYellow,
+      },
+      name: "tetrad2",
+    }),
+    tetrad3: t.palette.augmentColor({
+      color: {
+        main: olympicGreen,
+      },
+      name: "tetrad3",
+    }),
+    tetrad4: t.palette.augmentColor({
+      color: {
+        main: olympicRed,
+      },
+      name: "tetrad4",
+    }),
+  },
+})
+
+export const theme = t

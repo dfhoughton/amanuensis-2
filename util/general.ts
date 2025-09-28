@@ -22,6 +22,10 @@ export function deepClone<T>(obj: T): T {
   if (isArray(obj)) {
     return (obj as Array<any>).map(deepClone) as T
   }
+  // special case for dates
+  if (Object.prototype.toString.call(obj) === "[object Date]") {
+    return new Date((obj as any).getTime()) as T
+  }
   if (isObject(obj)) {
     const t = {}
     for (const [k, v] of Object.entries(obj as Object)) {
@@ -91,6 +95,76 @@ export function diff(a: any, b: any): any {
   }
 }
 
+// compare two objects ignoring certain keys
+export function isEqualIgnoring(a?: Object, b?: Object, ...keys: string[]) {
+  if (!(a || b)) return true
+  if (!a || !b) return false
+  a = { ...a }
+  b = { ...b }
+  for (const key of keys) {
+    delete a[key]
+    delete b[key]
+  }
+  nullifyNullish(a)
+  nullifyNullish(b)
+  deleteNullProperties(a, b)
+  return isEqual(a, b)
+}
+
+// remove differences between two objects which consist of one having an undefined
+// value for a property and the other having a null value
+function deleteNullProperties(a: Object, b: Object) {
+  if (isArray(a)) {
+    if (b) {
+      for (let i = 0; i < a.length && i < (b as any).length; i++) {
+        deleteNullProperties(a[i], b[i])
+      }
+    }
+  } else if (isObject(a)) {
+    if (b) {
+      const allKeys = new Set<string>()
+      for (const k of Object.keys(a)) allKeys.add(k)
+      for (const k of Object.keys(b)) allKeys.add(k)
+      for (const k of allKeys) {
+        const va = a[k]
+        const vb = b[k]
+        if (va === undefined && empty(vb)) {
+          delete b[k]
+        } else if (empty(va) && vb === undefined) {
+          delete a[k]
+        } else {
+          deleteNullProperties(va, vb)
+        }
+      }
+    }
+  }
+}
+
+function empty(obj): boolean {
+  return obj === null || isArray(obj) && obj.length === 0 || isObject(obj) && Object.keys(obj).length === 0
+}
+
+function nullifyNullish(obj: Object | Array<any>) {
+  if (isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      const o = obj[i]
+      if (o === "" || o === undefined || o === null) {
+        obj[i] = null
+      } else if (typeof o === "object") {
+        nullifyNullish(o)
+      }
+    }
+  } else {
+    for (const [k, o] of Object.entries(obj)) {
+      if (o === "" || o === undefined || o === null) {
+        obj[k] = null
+      } else if (typeof o === "object") {
+        nullifyNullish(o)
+      }
+    }
+  }
+}
+
 // do these two times fall on the same day?
 export function sameDate(d1: Date, d2: Date): boolean {
   return (
@@ -127,4 +201,13 @@ export function bell() {
 
   oscillator.start(audioContext.currentTime)
   oscillator.stop(audioContext.currentTime + 1) // Stop after 1 second
+}
+
+// shuffle an array in place
+export function shuffle<T>(array: T[]): void {
+  for (let i = 0; i < array.length; i++) {
+    const j = Math.floor(array.length * Math.random())
+    if (j === i) continue
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
 }
