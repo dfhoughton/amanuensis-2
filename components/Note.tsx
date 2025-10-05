@@ -350,7 +350,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               phrase={phrase}
               citation={c}
               citationIndex={i}
-              key={i}
+              key={`${phrase.id}-${i}`}
               tags={tags}
               chosen={state.citationIndex === i}
               onlyCitation={(phrase?.citations.length ?? 0) < 2}
