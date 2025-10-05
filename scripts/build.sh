@@ -2,6 +2,8 @@
 
 echo 'building extension...'
 
+TARGET="es2024"
+
 rm -rf dist/*
 mkdir -p dist/images
 
@@ -9,9 +11,9 @@ cp manifest.json dist/
 cp assets/* dist/
 cp popup.html dist/
 cp images/* dist/images/
-esbuild content.ts --bundle $BUILD_ARG --outfile=dist/content.js
-esbuild background.ts --bundle $BUILD_ARG --outfile=dist/background.js
-esbuild foreground.tsx --bundle $BUILD_ARG --outfile=dist/foreground.js
+esbuild content.ts --bundle $BUILD_ARG --outfile=dist/content.js --target=$TARGET
+esbuild background.ts --bundle $BUILD_ARG --outfile=dist/background.js --target=$TARGET
+esbuild foreground.tsx --bundle $BUILD_ARG --outfile=dist/foreground.js --target=$TARGET
 
 echo 'done'
 

@@ -486,7 +486,7 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
               You have marked your recall of the{" "}
               {quizzingOnLemmas ? "gloss" : "lemma"} of “
               {quizzingOnLemmas ? card.phrase.lemma : card.phrase.note}” as good{" "}
-              {autoGraduateCount} times in a row. Shall me mark as learned,
+              {autoGraduateCount} times in a row. Shall we mark it as learned,
               removing it from future quizzes, or simply mark it as good one
               more time?
             </Typography>

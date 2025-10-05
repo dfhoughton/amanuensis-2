@@ -8,4 +8,5 @@
   - ctrl-b takes you back to the previously visited note
 - improvements to search
   - changing notes always changes the similar phrases search and same page search
+  - metric switcher added to similarity search form
 - added elaboration to hold extended notes not suitable for a quiz

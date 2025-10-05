@@ -110,48 +110,53 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
           isEqual(freeSearch, fs)
         )
       ) {
-        phraseSearch(freeSearch)
+        const search = state.freeSearch ?? freeSearch
+        phraseSearch(search)
           .then((searchResults) => {
-            setFs(freeSearch)
-            dispatch({ action: "search", searchResults, search: freeSearch })
+            setFs(search)
+            dispatch({ action: "search", searchResults, search })
           })
           .catch(errorHandler(dispatch))
       }
     } else if (searchTab == SearchTabs.Similar) {
-      const s = {...ss, metric: state.config?.distanceMetric ?? defaultDistanceMetric}
-      setSs(s)
+      const search = {
+        ...(state.similaritySearch ?? sSearch),
+        metric: state.config?.distanceMetric ?? defaultDistanceMetric,
+      }
       if (
         !(
           searchResults &&
           isEqual(searchResults, similaritySearchResults) &&
-          isEqual(sSearch, s)
+          isEqual(sSearch, ss)
         )
       ) {
-        similaritySearch(s)
+        similaritySearch(search)
           .then((searchResults) => {
+            setSs(search)
             dispatch({
               action: "similaritySearch",
               searchResults,
-              search: s,
+              search,
             })
           })
           .catch(errorHandler(dispatch))
       }
     } else {
+      const search = state.urlSearch ?? uSearch
       if (
         !(
           searchResults &&
           isEqual(searchResults, urlSearchResults) &&
-          isEqual(uSearch, us)
+          isEqual(search, us)
         )
       ) {
-        phrasesOnPage(uSearch)
+        phrasesOnPage(search)
           .then((searchResults) => {
-            setUs(uSearch)
+            setUs(search)
             dispatch({
               action: "urlSearch",
               searchResults,
-              search: uSearch,
+              search,
             })
           })
           .catch(errorHandler(dispatch))
@@ -600,17 +605,16 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           variant="standard"
           onChange={
             debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-              const params: SimilaritySearch = {
-                limit,
-                metric,
-                languages: langs,
+              const s = {
+                ...(state.similaritySearch ?? search),
                 phrase: e.target.value,
+                page: 1,
               }
-              similaritySearch(params)
+              similaritySearch(s)
                 .then((searchResults) =>
                   dispatch({
                     action: "similaritySearch",
-                    search: { ...search, page: 1 },
+                    search: s,
                     searchResults,
                   })
                 )
@@ -625,7 +629,11 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           languages={languages ?? []}
           onDelete={(l) => () => {
             const languageIds = langs!.filter((lId) => lId !== l.id)
-            const s = { ...search, languages: languageIds, page: 1 }
+            const s = {
+              ...(state.similaritySearch ?? search),
+              languages: languageIds,
+              page: 1,
+            }
             similaritySearch(s)
               .then((searchResults) =>
                 dispatch({
@@ -638,7 +646,11 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           }}
           onAdd={(l) => () => {
             const languageIds = [...(langs ?? []), l.id!]
-            const s = { ...search, languages: languageIds, page: 1 }
+            const s = {
+              ...(state.similaritySearch ?? search),
+              languages: languageIds,
+              page: 1,
+            }
             similaritySearch(s)
               .then((searchResults) =>
                 dispatch({
@@ -684,6 +696,16 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                 disabled={selected}
                 selected={selected}
                 onClick={() => {
+                  const s = { ...(state.similaritySearch ?? search), metric, page: 1 }
+                  similaritySearch(s)
+                    .then((searchResults) =>
+                      dispatch({
+                        action: "similaritySearch",
+                        search: s,
+                        searchResults,
+                      })
+                    )
+                    .then(errorHandler(dispatch))
                   const config = state.config ?? {}
                   dispatch({
                     action: "distanceMetric",
