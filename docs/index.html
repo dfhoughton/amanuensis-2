@@ -270,10 +270,11 @@
             >spaced repetition</a
           >
           flashcard <a href="#quiz">quizzes</a>, à la
-          <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form to
-          meaning quiz and a quiz from meaning to form. You can take these
-          quizzes daily or on whatever schedule suits you. They will drum into
-          your memory the facts you annotate with notes.
+          <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form
+          (&ldquo;lemma&rdquo;) to meaning (&ldquo;gloss&rdquo;) quiz and a quiz
+          from meaning to form. You can take these quizzes daily or on whatever
+          schedule suits you. They will drum into your memory the facts you
+          annotate with notes.
         </p>
         <h3>Use</h3>
         <p>
@@ -292,7 +293,7 @@
             trustworthy information than you get from Google Translate, for
             instance.</span
           >
-          You add relevant information, perhaps some tags; you look for similar
+          You add relevant information, perhaps some tags. You look for similar
           or related notes and link them. You save it.
         </p>
         <p>
@@ -302,6 +303,12 @@
           the first note, then click on the URL. This takes you to the page,
           highlighting the phrase. You click on the search tab and see a list of
           all the notes you took on the page.
+        </p>
+        <p>
+          Once a day, more or less, you <a href="#quiz">quiz</a> yourself on
+          your notes. About a quarter of the quiz are new notes selected
+          randomly from among those you've recently created. The rest are
+          review.
         </p>
         <h3>Philosophy</h3>
         <p>
@@ -323,6 +330,14 @@
           word. The words will all hang together in a web of meaning and
           association.
         </p>
+        <p>
+          As you go you record connections between words, write down hypotheses
+          or questions to look up later, and add information. The more
+          connections you make among words and between words and ideas, the more
+          easily you will remember them. One thing will remind you of another.
+          The whole web holds when individual unconnected facts would have
+          fallen away.
+        </p>
         <h3>Future</h3>
         <p>
           I have written Amanuensis because it is the language learning tool I
@@ -343,7 +358,6 @@
           whistles.
         </p>
         <h2>Installation</h2>
-        ""
         <p>
           To install Amanuensis, go to
           <a
@@ -383,7 +397,10 @@
             >installed node</a
           >. Then, in a terminal, cd to the install directory and run
           <code>npm run release-build</code> (or <code>npm run build</code> if
-          you want to set breakpoints and inspect human-readable code).
+          you want to set breakpoints and inspect human-readable code). Then go
+          to Window > Extensions, click the &ldquo;Load unpacked&rdquo; button,
+          and select the dist directory, which will have the output of the build
+          scripts in it. This is how I work on Amanuensis.
         </p>
         <h2>Documentation</h2>
         <h3>Design Constraints</h3>
