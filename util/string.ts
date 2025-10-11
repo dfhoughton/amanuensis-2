@@ -7,6 +7,11 @@ export function squish(string: string) {
   }
 }
 
+// reverse the order of characters in a string
+export function reverse(string: string): string {
+  return string.split('').reverse().join('')
+}
+
 // create a pattern to be compiled into a regular expression
 // the pattern matches all characters as given
 // except whitespace characters which can be any string of whitespace

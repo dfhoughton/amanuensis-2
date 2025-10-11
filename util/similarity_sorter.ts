@@ -1,14 +1,14 @@
 import { exhaustiveGuard, Phrase } from "../types/common"
 import levenshtein from "talisman/metrics/levenshtein"
 import { distance as jwDistance } from "talisman/metrics/jaro-winkler"
-import { distance as jaroDistance } from "talisman/metrics/jaro"
 import { distance as lcsDistance } from "talisman/metrics/lcs"
+import { reverse } from "./string"
 
 export enum DistanceMetric {
-  Lev = "Levenshtein",
-  Jaro = "Jaro",
   JaroWinkler = "Jaro-Winkler",
   LCS = "longest common substring",
+  Lev = "Levenshtein",
+  ReverseJaroWinkler = "reverse Jaro-Winkler",
 }
 
 export const defaultDistanceMetric: DistanceMetric = DistanceMetric.JaroWinkler
@@ -18,8 +18,8 @@ const metric = (name: DistanceMetric): ((a: string, b: string) => number) => {
   switch (name) {
     case DistanceMetric.Lev:
       return levenshtein
-    case DistanceMetric.Jaro:
-      return jaroDistance
+    case DistanceMetric.ReverseJaroWinkler:
+      return reverseJaroWinkler
     case DistanceMetric.JaroWinkler:
       return jwDistance
     case DistanceMetric.LCS:
@@ -28,6 +28,8 @@ const metric = (name: DistanceMetric): ((a: string, b: string) => number) => {
       exhaustiveGuard(name)
   }
 }
+
+const reverseJaroWinkler = (a: string, b: string): number => jwDistance(reverse(a), reverse(b))
 
 /** encapsulates the mechanism by which we find a limited number of similar phrases */
 export class SimilaritySorter {

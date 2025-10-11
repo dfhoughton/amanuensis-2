@@ -754,7 +754,7 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
 
 function metricColor(metric: DistanceMetric): string {
   switch (metric) {
-    case DistanceMetric.Jaro:
+    case DistanceMetric.ReverseJaroWinkler:
       return theme.palette.tetrad1.main
     case DistanceMetric.JaroWinkler:
       return theme.palette.tetrad2.main
