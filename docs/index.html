@@ -120,6 +120,10 @@
         h6 {
           font-size: 14px;
         }
+        /* so figures aren't separated too far from their sections */
+        h2, h3 {
+          clear: both;
+        }
       }
       .side {
         grid-area: sidebar;
@@ -412,6 +416,7 @@
           if we had more real estate on the screen we would have made other
           choices.
         </p>
+        <h3 id="note">Note</h3>
         <figure id="note-figure">
           <img src="images/note.png" alt="the parts of a note" />
           <figcaption>
@@ -420,7 +425,6 @@
             10) citation URL; 11) citation; 12) citation note; 13) citation tags
           </figcaption>
         </figure>
-        <h3 id="note">Note</h3>
         <p>
           Notes are the basic unit of Amanuensis. Their creation is its central
           purpose. They collect information about citations. When you highlight
@@ -576,6 +580,7 @@
           Every citation also may have its own tags. This is (12) in
           <a href="#note-figure">the figure</a>.
         </p>
+        <h3 id="dictionary">Dictionary</h3>
         <figure id="dictionary-figure">
           <img
             src="images/dictionary.png"
@@ -586,7 +591,6 @@
             search form; 3) notes
           </figcaption>
         </figure>
-        <h3 id="dictionary">Dictionary</h3>
         <p>
           The dictionary is where one may browse notes. As shown in
           <a href="#dictionary-figure">the figure</a>, there are three manners
@@ -756,13 +760,6 @@
           the search form. This means you can use this form to search for all
           citations on a particular site, not just a particular page.
         </p>
-        <figure id="tags-figure">
-          <img src="images/tags.png" alt="the tag tab" />
-          <figcaption>
-            The tag tab: 1) create a new tag; 2) the tag itself; 3) tag
-            contents; 4) tag locales; 5) edit; 6) duplicate; 7) delete
-          </figcaption>
-        </figure>
         <h3 id="quiz">Spaced Repetition Quiz</h3>
         <p>
           The idea behind
@@ -781,6 +778,13 @@
           allow before repetition.
         </p>
         <h3 id="tags">Tags</h3>
+        <figure id="tags-figure">
+          <img src="images/tags.png" alt="the tag tab" />
+          <figcaption>
+            The tag tab: 1) create a new tag; 2) the tag itself; 3) tag
+            contents; 4) tag locales; 5) edit; 6) duplicate; 7) delete
+          </figcaption>
+        </figure>
         <p>
           Tags consist of a short identifier, a visually distinctive style, and
           some content. They appear in Amanuensis as colored bubbles. When you
@@ -863,13 +867,7 @@
           its locales will appear in a tooltip. See (4) in
           <a href="#tags-figure">the figure</a>.
         </p>
-        <!--
-Clear will remove all notes, tags, languages, and configuration.
-
-Export downloads a JSON file containing all database structure and content.
-
-Import merges such a file into the current database. You may find this gives you duplicate notes.
-        -->
+        <h3>Configuration</h3>
         <figure id="config-figure">
           <img src="images/configuration.png" alt="the configuration tab" />
           <figcaption>
@@ -879,7 +877,6 @@ Import merges such a file into the current database. You may find this gives you
             language adder; 8) the unknown language; 9) locale tally
           </figcaption>
         </figure>
-        <h3>Configuration</h3>
         <p>
           Amanuensis does not yet have many configurable parameters. Those that
           there are, together with some database actions, can be found on the
@@ -1047,6 +1044,7 @@ Import merges such a file into the current database. You may find this gives you
           Martha coached me through some confusion as I was learning
           <a href="https://react.dev/">React</a> while writing this code.
         </p>
+        <h2>Dedication</h2>
         <figure id="oofla-figure" style="max-width: 250px">
           <img
             src="images/oofla_cover.png"
@@ -1054,7 +1052,6 @@ Import merges such a file into the current database. You may find this gives you
           />
           <figcaption>The source of Amanuensis's logo.</figcaption>
         </figure>
-        <h2>Dedication</h2>
         <p>
           Amanuensis, like most of my projects, is dedicated to my son Jude, who
           died on February 1st, 2023. He was a better programmer and a better,
