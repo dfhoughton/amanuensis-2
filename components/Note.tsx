@@ -95,7 +95,15 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
-  const clean = isEqualIgnoring(phrase, priorPhrase, "id", "relations", "relatedPhrases", "updatedAt", "createdAt")
+  const clean = isEqualIgnoring(
+    phrase,
+    priorPhrase,
+    "id",
+    "relations",
+    "relatedPhrases",
+    "updatedAt",
+    "createdAt"
+  )
   const changeLanguage = (language: Language) => () => {
     setLanguageMenuAnchorEl(null)
     if (phrase?.languageId !== language.id) {
@@ -306,7 +314,11 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             onClick={(tag: Tag) => tagSearch(tag, dispatch)}
           />
           <Divider sx={{ my: 0.5 }} />
-          <Stack direction="row" spacing={1} sx={{ width: "100%", pb: 1 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ width: "100%", flexWrap: "wrap", pb: 1, rowGap: 1 }}
+          >
             {!phrase.relatedPhrases?.size && (
               <FauxPlaceholder>Relations</FauxPlaceholder>
             )}

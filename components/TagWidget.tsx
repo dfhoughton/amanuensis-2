@@ -33,12 +33,12 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
         <Stack
           direction="row"
           spacing={1}
-          sx={{ justifyContent: "space-between" }}
+          sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
         >
           <Stack
             direction="row"
             spacing={1}
-            sx={{ width: "100%" }}
+            sx={{ width: "100%", flexWrap: "wrap", rowGap: 1 }}
             onClick={() => {
               if (menuAnchor.current)
                 setAddTagMenuAnchorEl(menuAnchor.current as any)

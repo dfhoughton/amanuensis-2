@@ -30,8 +30,15 @@ export const LanguagePicker: React.FC<Props> = ({
   const languageMenuAnchor = useRef<SVGSVGElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   return (
-    <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
-      <Box
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
+    >
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ width: "100%", flexWrap: "wrap", rowGap: 1 }}
         onClick={() =>
           setLanguageMenuAnchorEl(languageMenuAnchor.current as any)
         }
@@ -50,7 +57,7 @@ export const LanguagePicker: React.FC<Props> = ({
                 onDelete={onDelete(lang)}
               />
             ))}
-      </Box>
+      </Stack>
       <Tooltip arrow title="Filter by language">
         <IconButton
           color="primary"
