@@ -837,7 +837,10 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     )
   return (
     <Tooltip arrow title={url}>
-      <Link sx={{ cursor: "pointer" }} onClick={linkHandler}>
+      <Link
+        sx={{ cursor: "pointer", overflow: "hidden" }}
+        onClick={linkHandler}
+      >
         <Typography sx={sx}>{url}</Typography>
       </Link>
     </Tooltip>
