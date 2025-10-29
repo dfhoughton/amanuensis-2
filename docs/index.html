@@ -121,7 +121,8 @@
           font-size: 14px;
         }
         /* so figures aren't separated too far from their sections */
-        h2, h3 {
+        h2,
+        h3 {
           clear: both;
         }
       }
@@ -275,8 +276,8 @@
           >
           flashcard <a href="#quiz">quizzes</a>, à la
           <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form
-          (&ldquo;lemma&rdquo;) to meaning (&ldquo;gloss&rdquo;) quiz and a quiz
-          from meaning to form. You can take these quizzes daily or on whatever
+          (&ldquo;lemma&rdquo;) to meaning (&ldquo;gloss&rdquo;) and a quiz from
+          meaning to form. You can take these quizzes daily or on whatever
           schedule suits you. They will drum into your memory the facts you
           annotate with notes.
         </p>
@@ -310,9 +311,8 @@
         </p>
         <p>
           Once a day, more or less, you <a href="#quiz">quiz</a> yourself on
-          your notes. About a quarter of the quiz are new notes selected
-          randomly from among those you've recently created. The rest are
-          review.
+          your notes. About a fifth of the quiz are new notes selected randomly
+          from among those you've recently created. The rest are review.
         </p>
         <h3>Philosophy</h3>
         <p>
@@ -404,17 +404,19 @@
           you want to set breakpoints and inspect human-readable code). Then go
           to Window > Extensions, click the &ldquo;Load unpacked&rdquo; button,
           and select the dist directory, which will have the output of the build
-          scripts in it. This is how I work on Amanuensis.
+          scripts in it.<span class="fn"
+            >This is, in fact, how I work on Amanuensis.</span
+          >
         </p>
         <h2>Documentation</h2>
         <h3>Design Constraints</h3>
         <p>
           Amanuensis, like many extensions, lives in a little box in the top
-          left corner of the screen. It needs to stay out of the way of the text
-          you're reading, so everything needs to compact, minimal, abbreviated.
-          We do what we can with tooltips and icons with familiar meanings, but
-          if we had more real estate on the screen we would have made other
-          choices.
+          right corner of the screen. It needs to stay out of the way of the
+          text you're reading, so everything needs to be compact, minimal,
+          abbreviated. We do what we can with tooltips and icons with familiar
+          meanings, but if we had more real estate on the screen we would have
+          made other choices.
         </p>
         <h3 id="note">Note</h3>
         <figure id="note-figure">
@@ -442,13 +444,15 @@
             >lemma</a
           >
           is the canonical form of its various citations. If you are using
-          Amanuensis to study English, the you would probably consider the lemma
-          of <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be <i>cat</i>.
+          Amanuensis to study English, you would probably consider the lemma of
+          <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be <i>cat</i>.
         </p>
         <h4>save icon</h4>
         <p>
           Click this to save the note. When you begin a note by highlighting
-          some text and opening Amanuensis, it is not yet saved.
+          some text and opening Amanuensis, it is not yet saved. If any part of
+          the note is unsaved, the save icon will be enabled. If it is disabled
+          &mdash; gray &mdash; there is nothing to save.
         </p>
         <h4>language</h4>
         <p>
@@ -482,6 +486,11 @@
           interesting quirks, analogies to other languages &mdash; these belong
           in the elaboration.
         </p>
+        <p>
+          The flashcards in the <a href="#quiz">quizzes</a> contain the lemma
+          and language on one side and the lemma note and tags on the other. Any
+          elaboration is excluded.
+        </p>
         <figure id="tag-figure">
           <img
             src="images/tag.png"
@@ -494,8 +503,8 @@
         <p>
           <a href="#tags">Tags</a> represent frequently occurring, important
           bits of information. If you hover over a tag, the information it
-          represents will appear as a tooltip. Click in this element to add a
-          tag.
+          represents will appear as a tooltip. Click in the tag element, the
+          area holding all the tags, to add a tag.
         </p>
         <h4>links</h4>
         <p>
@@ -511,10 +520,11 @@
           <i>b</i> will also be linked to <i>a</i>.
         </p>
         <p>
-          Links are created within the <a href="#dictionary">dictionary</a>. You
-          will find each entry has a link icon. This looks like a link in a
-          chain. If you click it, you will create a link
-          <i>to the current note</i>.
+          The mechanism for creating these links is within the
+          <a href="#dictionary">dictionary</a>. You will find each dictionary
+          entry has a link icon. This looks like a link in a chain. If you click
+          it, you will create a link <i>to the current note</i>, the note
+          currently displayed in the note tab.
         </p>
         <figure id="citation-figure">
           <img
@@ -539,9 +549,9 @@
         </p>
         <p>
           If you have more than one citation, as in
-          <a href="#citation-figure">the figure</a>, you may pick a "canonical"
-          one to display by default when browsing notes. You may also delete
-          citations. You cannot delete the last citation.
+          <a href="#citation-figure">the figure</a>, you may pick a
+          &ldquo;canonical&rdquo; one to display by default when browsing notes.
+          You may also delete citations. You cannot delete the last citation.
         </p>
         <p>
           You only have these options for the currently displayed citation.
@@ -572,13 +582,26 @@
         <h5>citation note</h5>
         <p>
           Each citation has its own note in which you can record anything
-          interesting about the particular citation. This is (11) in
+          interesting about the particular citation. This is (12) in
           <a href="#note-figure">the figure</a>.
         </p>
         <h5>citation tags</h5>
         <p>
           Every citation also may have its own tags. This is (12) in
           <a href="#note-figure">the figure</a>.
+        </p>
+        <figure id="citation-note-and-tags">
+          <img
+            src="images/citation_note_and_tags.png"
+            alt="keeping track of peculiarities of a specific citation"
+          />
+          <figcaption>
+            Using citation note and tags to keep track of unanswered questions.
+          </figcaption>
+        </figure>
+        <p>
+          I often use the citation note and tags to keep track of puzzles to
+          solve later. See <a href="#citation-note-and-tags">the figure</a>.
         </p>
         <h3 id="dictionary">Dictionary</h3>
         <figure id="dictionary-figure">
