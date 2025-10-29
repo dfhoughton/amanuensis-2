@@ -920,6 +920,15 @@ export async function newPhraseCount(
 
 const regexCache: Map<number, RegExp> = new Map()
 
+const unicodeLetter = /[\p{L}\p{N}_]/u
+
+function regexify(c1: string, s: string, c4: string): string {
+  const c2 = s.charAt(0), c3 = s.charAt(s.length - 1)
+  const b1 = unicodeLetter.test(c2) && !unicodeLetter.test(c1) ? '\0' : ''
+  const b2 = unicodeLetter.test(c3) && !unicodeLetter.test(c4) ? '\x01' : ''
+  return `${b1}${s}${b2}`
+}
+
 // obtain a capturing regular expression that matches all the lemmas and cited phrases
 // for a particular language
 async function regexForLanguage(language: Language): Promise<RegExp> {
@@ -930,13 +939,17 @@ async function regexForLanguage(language: Language): Promise<RegExp> {
     .where("languageId")
     .equals(language.id!)
     .each((p) => {
-      phrases.push(p.lemma)
-      for (const c of p.citations) phrases.push(c.phrase)
+      phrases.push(regexify(' ', p.lemma, ' '))
+      for (const c of p.citations) {
+        const c1 = c.before ? (c.before.charAt(c.before.length - 1)) : ' '
+        const c2 = c.after ? (c.after.charAt(0)) : ' '
+        phrases.push(regexify(c1, c.phrase, c2))
+      }
     })
   rx = regex(phrases, {
-    bound: true,
     capture: true,
-    flags: "i",
+    flags: "ui",
+    substitutions: {'\0': '(?<![\\p{L}\\p{N}_])', '\x01': '(?![\\p{L}\\p{N}_])'},
     normalizeWhitespace: true,
   })
   regexCache.set(language.id!, rx)
