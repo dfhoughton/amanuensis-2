@@ -922,10 +922,12 @@ const regexCache: Map<number, RegExp> = new Map()
 
 const unicodeLetter = /[\p{L}\p{N}_]/u
 
+// convert s into a new string with boundary markers as appropriate
 function regexify(c1: string, s: string, c4: string): string {
-  const c2 = s.charAt(0), c3 = s.charAt(s.length - 1)
-  const b1 = unicodeLetter.test(c2) && !unicodeLetter.test(c1) ? '\0' : ''
-  const b2 = unicodeLetter.test(c3) && !unicodeLetter.test(c4) ? '\x01' : ''
+  const c2 = s.charAt(0),
+    c3 = s.charAt(s.length - 1)
+  const b1 = unicodeLetter.test(c2) && !unicodeLetter.test(c1) ? "\0" : ""
+  const b2 = unicodeLetter.test(c3) && !unicodeLetter.test(c4) ? "\x01" : ""
   return `${b1}${s}${b2}`
 }
 
@@ -939,17 +941,21 @@ async function regexForLanguage(language: Language): Promise<RegExp> {
     .where("languageId")
     .equals(language.id!)
     .each((p) => {
-      phrases.push(regexify(' ', p.lemma, ' '))
+      phrases.push(regexify(" ", p.lemma, " "))
       for (const c of p.citations) {
-        const c1 = c.before ? (c.before.charAt(c.before.length - 1)) : ' '
-        const c2 = c.after ? (c.after.charAt(0)) : ' '
+        const c1 = c.before ? c.before.charAt(c.before.length - 1) : " "
+        const c2 = c.after ? c.after.charAt(0) : " "
         phrases.push(regexify(c1, c.phrase, c2))
       }
     })
   rx = regex(phrases, {
     capture: true,
     flags: "ui",
-    substitutions: {'\0': '(?<![\\p{L}\\p{N}_])', '\x01': '(?![\\p{L}\\p{N}_])'},
+    // unicode-safe word boundaries
+    substitutions: {
+      "\0": "(?<![\\p{L}\\p{N}_])",
+      "\x01": "(?![\\p{L}\\p{N}_])",
+    },
     normalizeWhitespace: true,
   })
   regexCache.set(language.id!, rx)
