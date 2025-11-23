@@ -13,6 +13,7 @@
     -->
   <style type="text/css">
     :root {
+      --paper: #fff;
       --primary-color: #931f1d;
       --primary-light: oklch(from var(--primary-color) calc(l + 0.3) c h);
       --primary-dark: oklch(from var(--primary-color) calc(l * 0.75) c h);
@@ -25,11 +26,13 @@
     body {
       font-family: Helvetica;
       margin: 0;
+      /* so if you try to scroll past the end or before the beginning you don't see a flash of "paper" */
+      background-color: var(--primary-color);
     }
 
     .head,
     .footer {
-      color: #fff;
+      color: var(--paper);
       background-color: var(--primary-color);
       padding: 1rem 2rem;
       display: flex;
@@ -44,7 +47,7 @@
       a {
         text-decoration: none;
         background-color: transparent;
-        color: #fff;
+        color: var(--paper);
         line-height: 1.5rem;
         padding: 0 0.5rem;
         border-radius: 0.75rem;
@@ -52,7 +55,7 @@
         &:hover,
         &:active,
         &:focus {
-          background-color: #fff;
+          background-color: var(--paper);
           color: var(--primary-color);
         }
       }
@@ -98,6 +101,8 @@
 
     .side,
     .content {
+      background-color: var(--paper);
+
       a {
         text-decoration: none;
         background-color: transparent;
@@ -107,7 +112,7 @@
         &:active,
         &:focus {
           background-color: var(--secondary-color);
-          color: #fff !important;
+          color: var(--paper) !important;
         }
 
         &:active,
@@ -191,7 +196,7 @@
       &:focus,
       &:active {
         background-color: var(--secondary-color);
-        color: #fff;
+        color: var(--paper);
         border-radius: 0.5rem;
       }
     }
@@ -210,7 +215,7 @@
       }
 
       100% {
-        background-color: #fff;
+        background-color: var(--paper);
       }
     }
 
@@ -238,7 +243,7 @@
 
       .figure-label {
         position: absolute;
-        background-color: #fff;
+        background-color: var(--paper);
         top: 0;
         left: 0;
         padding: 0.35rem;
@@ -349,7 +354,9 @@
         <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
         flashcard <a href="#quiz">quizzes</a>, à la
         <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form
-        (&ldquo;lemma&rdquo;) to meaning (&ldquo;gloss&rdquo;) and a quiz from
+        (<a
+          href="https://en.wiktionary.org/wiki/lemma#English:_canonical_form_of_an_inflected_word">&ldquo;lemma&rdquo;</a>)
+        to meaning (<a href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>) and a quiz from
         meaning to form. You can take these quizzes daily or on whatever
         schedule suits you. They will drum into your memory the facts you
         annotate with notes.
@@ -565,10 +572,11 @@
       </p>
       <p>
         The note should be <i>short</i>. It is used in
-        <a href="#quiz">quizzes</a>. Long notes make for ugly flip cards. Save
-        rambling for the <a href="elaboration">elaboration</a>.
+        <a href="#quiz">quizzes</a>, where it is referred to as the <a
+          href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>. Long notes make for ugly flip
+        cards. Save rambling for the <a href="#elaboration">elaboration</a>.
       </p>
-      <h4>elaboration</h4>
+      <h4 id="elaboration">elaboration</h4>
       <p>
         The elaboration is for things that don't fit in the note. Etymologies,
         interesting quirks, analogies to other languages &mdash; these belong
@@ -593,7 +601,8 @@
       </p>
       <figure id="link-figure">
         <img src="images/link.png" alt="how to link one note to another" />
-        <figcaption>How to link one note to another</figcaption>
+        <figcaption>How to link one note to another. Note the color difference. The red link indicates a note not
+          already linked to the current note. The green link indicates one already linked.</figcaption>
       </figure>
       <h4>links</h4>
       <p>
@@ -1188,6 +1197,7 @@
           a.onclick = (e) => {
             e.preventDefault()
             target.scrollIntoView({ behavior: "smooth", block: "center" })
+            highlight(target)
             storeHistory(a.getAttribute("href"))
             if (target.nodeName === "FIGURE") {
               highlight(...Array.from(target.querySelectorAll("figcaption,.figure-label")))
@@ -1236,6 +1246,7 @@
           e.preventDefault()
           storeHistory("#" + headerId)
           n.scrollIntoView({ behavior: "smooth" })
+          highlight(n)
         }
         toc.appendChild(e)
         const up = document.createElement("a")
