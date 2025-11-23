@@ -439,9 +439,12 @@
         whistles.
       </p>
       <h2>Installation</h2>
+      To install Amanuensis, you have two options:
+      <h3>Chrome Web Store</h3>
       <p>
-        To install Amanuensis, go to
-        <a href="https://chromewebstore.google.com/detail/amanuensis/hcclomiidfnghjhdidhhhbpdlhnbjjgg">its page</a>
+        Go to
+        <a href="https://chromewebstore.google.com/detail/amanuensis/hcclomiidfnghjhdidhhhbpdlhnbjjgg">Amanuensis's
+          page</a>
         in the Chrome Web Store and click the "Add to Chrome" button.
       </p>
       <p>
@@ -450,6 +453,19 @@
         the extension so it is available whenever you happen to be looking at
         a web page.
       </p>
+      <p>
+        For some reason, when installed from the Chrome Store the app
+        sometimes gets assigned command-shift-A as its keyboard trigger rather
+        than the control-shift-A. The former conflicts with a keyboard
+        shortcut already present in Chrome. To fix this, type
+        "Chrome://extensions/shortcuts" in the address bar. Find Amanuensis,
+        and reset the key combination.
+        <a title="how to edit extension keyboard shortcuts"
+          href="https://www.fleetingnotes.app/docs/Reference/Enable%20keyboard%20shortcuts%20for%20browser%20extensions">This
+          note</a>
+        may help.
+      </p>
+      <h3>Install from source</h3>
       <p>
         Amanuensis is open source. If you are feeling adventurous you can
         <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
@@ -468,7 +484,8 @@
       </p>
       <p>
         To run the build script, you must have
-        <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a terminal, cd
+        <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a
+        terminal, cd
         to the install directory and run
         <code>npm run release-build</code> (or <code>npm run build</code> if
         you want to set breakpoints and inspect human-readable code). Then go
@@ -476,18 +493,7 @@
         and select the dist directory, which will have the output of the build
         scripts in it.<span class="fn">This is, in fact, how I work on Amanuensis.</span>
       </p>
-      <p>
-        For some reason, when installed from the Chrome Store the app
-        sometimes gets assigned command-shift-A as its keyboard trigger rather
-        than the control-shift-A. The former conflicts with a keyboard
-        shortcut already present in Chrome. To fix this, type
-        "Chrome://extensions/shortcuts" in the address bar. Find Amanuensis,
-        and reset the key combination.
-        <a title="how to edit extension keyboard shortcuts"
-          href="https://www.fleetingnotes.app/docs/Reference/Enable%20keyboard%20shortcuts%20for%20browser%20extensions">This
-          note</a>
-        may help.
-      </p>
+      </h2>
       <h2>Amuensis's Bits and Pieces</h2>
       <h3>Design Constraints</h3>
       <p>
@@ -584,7 +590,7 @@
       </p>
       <p>
         The flashcards in the <a href="#quiz">quizzes</a> contain the lemma
-        and language on one side and the lemma note and tags on the other. Any
+        and language on one side and the lemma note/gloss and tags on the other. Any
         elaboration is excluded.
       </p>
       <figure id="tag-figure">
@@ -675,6 +681,11 @@
         the page has changed since you recorded the citation, highighting the
         original phrase in its original context may not be possible.
       </p>
+      <p>If visiting a citation involves changing the <a href="https://en.wikipedia.org/wiki/Domain_name">domain</a> of
+        the current tab, Amanuensis will likely close. This is a limitation of
+        its being a Chrome extension. If you reopen Amanuensis at this point,
+        it will open to the <a href="#citations-on-page-tab">citations on page tab</a>, which will allow you to find the
+        note you are interested in and continue from where you were when Amanuensis closed.</p>
       <h5>citation note</h5>
       <p>
         Each citation has its own note in which you can record anything
@@ -694,7 +705,9 @@
       </figure>
       <p>
         I often use the citation note and tags to keep track of puzzles to
-        solve later. See <a href="#citation-note-and-tags">the figure</a>.
+        solve later. See <a href="#citation-note-and-tags">the figure</a>. Here I have added my &ldquo;?
+        &rdquo; tag to the citation to mark it as something about which I have an unanswered question. I can click on
+        the tag to search for all unanswered questions, or I can search for this tag in the dictionary tab.
       </p>
       <h3 id="dictionary">Dictionary</h3>
       <figure id="dictionary-figure">
@@ -733,7 +746,7 @@
       </figure>
       <h4>search results</h4>
       <p>
-        Every search produces zero or more search results. These are basically
+        Every search produces some number of search results. These are basically
         abbreviated notes. One may click on them to view them in full. See
         <a href="#results-figure">the figure</a> for a sample search result.
       </p>
@@ -743,7 +756,7 @@
         note currently displayed in the <a href="#note">note tab</a>, link it
         to that note, or delete it from the database. The more destructive of
         these actions, merging and deletion, require confirmation and, in the
-        case of mergin, possible editing to complete.
+        case of merging, possible editing to complete.
       </p>
       <figure id="search-figure">
         <img src="images/search.png" alt="the free search form" />
@@ -803,11 +816,11 @@
         to apply a different sort order. This is the purpose of the icon
         showing three horizontal bars of descending size (<a href="#sort-figure">the figure</a>). I frequently use the
         last sort order, by time of last update
-        descending, to find where I last left off.
+        descending, to find where I left off when last using Amanuensis.
       </p>
       <figure id="similar-figure">
         <img src="images/similar.png" alt="form for search for similar phrases" />
-        <figcaption>The similar phrase search form.</figcaption>
+        <figcaption>The similar phrase search form: 1) form, 2) language(s), 3) string similarity metric</figcaption>
       </figure>
       <h4 id="similar">similar phrase</h4>
       <p>
@@ -826,12 +839,18 @@
         this pattern of use, the similar phrase search form has only two
         fields: lemma and language.
       </p>
+      <figure id="similarity-metric-figure">
+        <img src="images/similarity_menu.png" alt="dropdown that shows the string similarity metric" />
+        <figcaption>The string similarity metric dropdown.</figcaption>
+      </figure>
       <p>
         Amanuensis must apply a string similarity metric to do a phrase
         similarity search. There are many of these with different virtues and
         flaws. Some work better than others for a given language. For this
         reason, the simularity metric is
-        <a href="#distance-metrics" title="how to configure the string similarity metric">configurable</a>.
+        <a href="#distance-metrics" title="how to configure the string similarity metric">configurable</a> and
+        selectable in the similar phrase search form (<a href="#similarity-metric-figure">the figure</a>). Each of the
+        metrics is marked with a distinctive color so you can see what metric is in use when the dropdown is not open.
       </p>
       <p>
         One could in principle rank all notes for their similarity to a given
@@ -843,9 +862,9 @@
       </p>
       <figure id="on-page-figure">
         <img src="images/on-page.png" alt="form for searching for notes at a given URL" />
-        <figcaption>Search by URL.</figcaption>
+        <figcaption>To search for the citations on a page, you search by URL.</figcaption>
       </figure>
-      <h4>citations on page</h4>
+      <h4 id="citations-on-page-tab">citations on page</h4>
       <p>
         The form to find citations on a given page is the simplest (<a href="#on-page-figure">the figure</a>). The
         "page" in this case is just the URL, so the only field in the
@@ -859,7 +878,7 @@
         The idea behind
         <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
         is that one can learn a concept <i>most efficiently</i> when one
-        reviews it whne one is about to forget it. If you can catch the memory
+        reviews it when one is about to forget it. If you can catch the memory
         at the moment of disintegration and reconstitute it &mdash; if you
         repeat it after allowing a certain space for it to fade &mdash; you
         can rebuild it stronger without unnecessary drills.
@@ -869,6 +888,11 @@
         predicting when a memory will face &mdash; how much space one should
         allow before repetition.
       </p>
+      <p>I have not made a deep study of this problem. Rather, I observed how <a
+          href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it, mixed this
+        with what seemed sensible to me, and called it good. If you want a more state-of-the-art spaced repetition quiz,
+        I liked Anki. There are other options. My aim in writing Amanuensis was to make a note taking app, not a
+        flashcard app. That being said, I'm quite pleased with Amanuensis's hacked together spaced repetition quiz.</p>
       <h3 id="tags">Tags</h3>
       <figure id="tags-figure">
         <img src="images/tags.png" alt="the tag tab" />
