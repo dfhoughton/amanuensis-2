@@ -130,10 +130,7 @@ export type SearchResults = {
   phrases: Phrase[]
 }
 
-export type MessageLevel = OverridableStringUnion<
-  AlertColor,
-  AlertPropsColorOverrides
->
+export type MessageLevel = AlertColor | keyof AlertPropsColorOverrides
 
 export type AppState = {
   tab: AppTabs

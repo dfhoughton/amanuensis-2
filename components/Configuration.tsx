@@ -77,7 +77,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       })
       .catch(errorHandler(dispatch))
   }, [])
-  const maxSimilarPhrasesHandler = useCallback((e) => {
+  const maxSimilarPhrasesHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
       ...config,
     }
@@ -88,7 +88,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       })
       .catch(errorHandler(dispatch))
   }, [])
-  const autoGraduateHandler = useCallback((e) => {
+  const autoGraduateHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
       ...config,
     }
@@ -161,7 +161,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           >
             {Object.values(DistanceMetric).map((metric) => (
               <MenuItem key={metric} value={metric}>
-                <DistanceMetricDot metric={metric}/>
+                <DistanceMetricDot metric={metric} />
               </MenuItem>
             ))}
           </Select>
@@ -225,7 +225,7 @@ export const Languages: React.FC<LanguagesProps> = ({
   >()
   const [name, setName] = React.useState<string | undefined>()
   const [locale, setLocale] = React.useState<string | undefined>()
-  const createLanguage = (languageName, locale) => () => {
+  const createLanguage = (languageName: string, locale: string) => () => {
     countPhrasesWithLocale(locale)
       .then((c) => {
         if (c === 0) {

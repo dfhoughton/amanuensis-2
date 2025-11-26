@@ -5,7 +5,7 @@ import isObject from "lodash/isObject"
 import { wsrx } from "./string"
 import { isEqual } from "lodash"
 
-export function uniq<T>(things: T[], by?: (T) => any): T[] {
+export function uniq<T>(things: T[], by?: (t: T) => any): T[] {
   const ar: T[] = []
   by ??= (t: T) => t
   const seen = new Set<any>()
@@ -27,7 +27,7 @@ export function deepClone<T>(obj: T): T {
     return new Date((obj as any).getTime()) as T
   }
   if (isObject(obj)) {
-    const t = {}
+    const t: any = {}
     for (const [k, v] of Object.entries(obj as Object)) {
       t[k] = deepClone(v)
     }
@@ -56,8 +56,8 @@ export function matcher(
   }
   chars = chars.map((c) => wsrx(c)!) // maybe map these to grouped expressions
   if (wholeWord) {
-    chars.unshift(leftBound)
-    chars.push(rightBound)
+    chars.unshift(leftBound!)
+    chars.push(rightBound!)
   }
   s = chars.join(fuzzy ? ".*" : "")
   return new RegExp(s, caseInsensitive ? "i" : "")
@@ -74,8 +74,8 @@ export function diff(a: any, b: any): any {
           for (const k of Object.keys(obj)) keys.add(k)
         }
         for (const k of [...keys].sort()) {
-          const d2 = diff(a[k], b[k])
-          if (d2) d[k] = d2
+          const d2 = diff((a as Record<string, any>)[k], (b as Record<string, any>)[k])
+          if (d2) (d as Record<string, any>)[k] = d2
         }
         return d
       } else if (isArray(a) && isArray(b)) {
@@ -96,7 +96,7 @@ export function diff(a: any, b: any): any {
 }
 
 // compare two objects ignoring certain keys
-export function isEqualIgnoring(a?: Object, b?: Object, ...keys: string[]) {
+export function isEqualIgnoring(a?: Record<string, any>, b?: Record<string, any>, ...keys: string[]) {
   if (!(a || b)) return true
   if (!a || !b) return false
   a = { ...a }
@@ -113,7 +113,7 @@ export function isEqualIgnoring(a?: Object, b?: Object, ...keys: string[]) {
 
 // remove differences between two objects which consist of one having an undefined
 // value for a property and the other having a null value
-function deleteNullProperties(a: Object, b: Object) {
+function deleteNullProperties(a: Record<string, any>, b: Record<string, any>) {
   if (isArray(a)) {
     if (b) {
       for (let i = 0; i < a.length && i < (b as any).length; i++) {
@@ -140,11 +140,11 @@ function deleteNullProperties(a: Object, b: Object) {
   }
 }
 
-function empty(obj): boolean {
+function empty(obj: any): boolean {
   return obj === null || isArray(obj) && obj.length === 0 || isObject(obj) && Object.keys(obj).length === 0
 }
 
-function nullifyNullish(obj: Object | Array<any>) {
+function nullifyNullish(obj: Record<string, any> | Array<any>) {
   if (isArray(obj)) {
     for (let i = 0; i < obj.length; i++) {
       const o = obj[i]

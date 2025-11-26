@@ -129,8 +129,8 @@ export const tagSearch =
 export type TagRowProps = {
   tag: Tag
   languages: Language[]
-  setTag: (Tag) => void
-  setOpen: (Boolean) => void
+  setTag: (t: Tag) => void
+  setOpen: (b: boolean) => void
   bumpVersion: VoidFunction
   dispatch: React.Dispatch<Action>
 }
@@ -207,8 +207,8 @@ export const TagRow: React.FC<TagRowProps> = ({
                       count === 0
                         ? `No phrases were`
                         : count === 1
-                        ? `One phrase was`
-                        : `${count} phrases were`
+                          ? `One phrase was`
+                          : `${count} phrases were`
                     bumpVersion()
                     dispatch({
                       action: "message",
@@ -232,7 +232,7 @@ type EditTagModalProps = {
   setOpen: (open: boolean) => void
   bumpVersion: VoidFunction
   tag: Tag
-  setTag: (Tag) => void
+  setTag: (tag: Tag) => void
   tags: Tag[]
   languages: Language[]
   dispatch: React.Dispatch<Action>

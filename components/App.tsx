@@ -30,9 +30,9 @@ import { SpacedRepetitionQuiz } from "./SpacedRepetitionQuiz"
 const width = "500px"
 
 const App: React.FC = () => {
-  const [state, dispatch] = useReducer<
-    (state: AppState, action: Action) => AppState
-  >(reducer, { tab: AppTabs.Note })
+  const [state, dispatch] = useReducer(reducer, {
+    tab: AppTabs.Note,
+  })
   useCommunicationCenter(dispatch)
   useEffect(() => {
     configuration()

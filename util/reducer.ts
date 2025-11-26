@@ -97,7 +97,7 @@ export function reducer(state: AppState, action: Action): AppState {
             ? "is a phrase"
             : `are ${others.length} other phrases`
         } you may wish to attach this citation to. See the search tab.`
-        messageLevel = "info"
+        messageLevel = "info" as MessageLevel
         searchTab = SearchTabs.Similar
       }
       const cidx = selectCitation(citations)

@@ -266,8 +266,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   dispatch,
 }) => {
   const { freeSearch: search = { ...searchDefaults } } = state
-  const lemmaRef = useRef<HTMLInputElement>()
-  const freeTextRef = useRef<HTMLInputElement>()
+  const lemmaRef = useRef<HTMLInputElement>(undefined)
+  const freeTextRef = useRef<HTMLInputElement>(undefined)
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
@@ -1014,9 +1014,9 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                           selected || !state.phrase
                             ? undefined
                             : (e) => {
-                                e.stopPropagation()
-                                setMergePhrase(p)
-                              }
+                              e.stopPropagation()
+                              setMergePhrase(p)
+                            }
                         }
                       />
                     </Tooltip>
@@ -1042,8 +1042,8 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                           linked
                             ? "success"
                             : unmergeable
-                            ? "disabled"
-                            : "primary"
+                              ? "disabled"
+                              : "primary"
                         }
                         fontSize="inherit"
                         sx={iconStyle}
@@ -1051,23 +1051,22 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                           selected || !phrase
                             ? undefined
                             : (e) => {
-                                e.stopPropagation()
-                                createRelation(p, phrase!)
-                                  .then((id) => {
-                                    const relations = [
-                                      ...(phrase!.relations ?? []),
-                                      id,
-                                    ]
-                                    dispatch({
-                                      action: "relationsChanged",
-                                      relations,
-                                      message: `${
-                                        phrase!.lemma
+                              e.stopPropagation()
+                              createRelation(p, phrase!)
+                                .then((id) => {
+                                  const relations = [
+                                    ...(phrase!.relations ?? []),
+                                    id,
+                                  ]
+                                  dispatch({
+                                    action: "relationsChanged",
+                                    relations,
+                                    message: `${phrase!.lemma
                                       } is now linked to ${p.lemma}`,
-                                    })
                                   })
-                                  .catch(errorHandler(dispatch))
-                              }
+                                })
+                                .catch(errorHandler(dispatch))
+                            }
                         }
                       />
                     </Tooltip>
@@ -1258,19 +1257,19 @@ const MergeModal: React.FC<MergeModalProps> = ({
                             common
                               ? undefined
                               : () => {
-                                  const tags = from.tags!.filter(
-                                    (t2) => t2 !== t
-                                  )
-                                  setFrom({ ...from, tags })
-                                }
+                                const tags = from.tags!.filter(
+                                  (t2) => t2 !== t
+                                )
+                                setFrom({ ...from, tags })
+                              }
                           }
                           onClick={
                             common
                               ? undefined
                               : () => {
-                                  const tags = [...merged.tags!, t]
-                                  setMerged({ ...merged, tags })
-                                }
+                                const tags = [...merged.tags!, t]
+                                setMerged({ ...merged, tags })
+                              }
                           }
                         />
                       )
@@ -1334,7 +1333,7 @@ type ComparisonWidgetProps = {
   to?: Phrase
   field: keyof Phrase
   multiline?: boolean
-  setMerged: (Phrase) => void
+  setMerged: (p: Phrase) => void
 }
 const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
   label,

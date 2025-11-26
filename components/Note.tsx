@@ -87,11 +87,11 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   }, [phrase?.relations])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
-  const lemmaRef = useRef<HTMLInputElement>()
-  const noteRef = useRef<HTMLInputElement>()
+  const lemmaRef = useRef<HTMLInputElement>(null)
+  const noteRef = useRef<HTMLInputElement>(null)
   // on phrase change, focus the note element; the chief purpose of this is to get the keypress handler to work
   useEffect(() => noteRef?.current?.focus(), [phrase?.id])
-  const elaborationRef = useRef<HTMLInputElement>()
+  const elaborationRef = useRef<HTMLInputElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
@@ -139,7 +139,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       bell()
     }
   }
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLElement>) => {
     const halt = () => {
       e.preventDefault()
       e.stopPropagation()
@@ -193,9 +193,8 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               >
                 <Tooltip
                   arrow
-                  title={`When this is enabled, some part of this phrase is unsaved.${
-                    clean ? "" : " Click to save."
-                  }`}
+                  title={`When this is enabled, some part of this phrase is unsaved.${clean ? "" : " Click to save."
+                    }`}
                 >
                   <span>
                     <IconButton
@@ -779,7 +778,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
   const dontRepeatSearch = urlSearch && url === urlSearch.url
   const linkHandler = useCallback(() => {
     if (url) {
-      ;(async () => {
+      ; (async () => {
         let [tab] = await chrome.tabs.query({
           active: true,
           lastFocusedWindow: true,
