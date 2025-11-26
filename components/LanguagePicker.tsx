@@ -1,5 +1,4 @@
 import {
-  Box,
   Chip,
   IconButton,
   Menu,
@@ -26,7 +25,7 @@ export const LanguagePicker: React.FC<Props> = ({
   onAdd,
 }) => {
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
-    React.useState<null | HTMLElement>(null)
+    React.useState<null | SVGSVGElement>(null)
   const languageMenuAnchor = useRef<SVGSVGElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   return (
@@ -40,7 +39,7 @@ export const LanguagePicker: React.FC<Props> = ({
         spacing={1}
         sx={{ width: "100%", flexWrap: "wrap", rowGap: 1 }}
         onClick={() =>
-          setLanguageMenuAnchorEl(languageMenuAnchor.current as any)
+          setLanguageMenuAnchorEl(languageMenuAnchor.current as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         }
       >
         {!languageIds.length && <FauxPlaceholder>Languages</FauxPlaceholder>}
@@ -62,7 +61,7 @@ export const LanguagePicker: React.FC<Props> = ({
         <IconButton
           color="primary"
           size="small"
-          onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget)}
+          onClick={(e) => setLanguageMenuAnchorEl(e.currentTarget as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
         >
           <LanguageIcon fontSize="inherit" ref={languageMenuAnchor} />
         </IconButton>

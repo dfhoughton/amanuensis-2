@@ -15,5 +15,5 @@ export function useEnsureConfiguration(
         dispatch({ action: "config", config: c ?? {} })
       })
       .catch(errorHandler(dispatch))
-  }, [])
+  }, [state.config, dispatch])
 }

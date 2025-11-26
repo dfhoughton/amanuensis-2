@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
   exhaustiveGuard,
@@ -171,13 +171,15 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     similaritySearchResults,
     urlSearchResults,
     searchTab,
+    dispatch,
+    fs, ss, us, state.config?.distanceMetric, state.freeSearch, state.similaritySearch, state.urlSearch
   ])
   const [languages, setLanguages] = useState<Language[]>([])
   useEffect(() => {
     perhapsStaleLanguages()
       .then((languages) => setLanguages(languages))
       .catch(errorHandler(dispatch))
-  }, [])
+  }, [dispatch])
   // we need related phrases for the link widgets
   useEffect(() => {
     if (!phrase) return
@@ -191,7 +193,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
-  }, [phrase?.relations])
+  }, [phrase?.relations, dispatch, phrase])
   return (
     <>
       <TabContext value={searchTab}>
@@ -273,10 +275,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
     knownTags()
       .then((tags) => setTags(sortTags(tags)))
       .catch(errorHandler(dispatch))
-  }, [])
-  const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
+  }, [dispatch])
+  const [_languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
-  const languageMenuOpen = Boolean(languageMenuAnchorEl)
   return (
     <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
       <TextSearchWidget
@@ -588,7 +589,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
     languages: [],
     limit: defaultMaxSimilarPhrases,
   }
-  const { phrase, languages: langs, limit } = search
+  const { phrase, languages: langs } = search
   const [metricMenuAnchorEl, setMetricMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
   const metricMenuAnchor = useRef<SVGSVGElement>(null)
@@ -642,7 +643,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                   searchResults,
                 })
               )
-              .then(errorHandler(dispatch))
+              .catch(errorHandler(dispatch))
           }}
           onAdd={(l) => () => {
             const languageIds = [...(langs ?? []), l.id!]
@@ -659,7 +660,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                   searchResults,
                 })
               )
-              .then(errorHandler(dispatch))
+              .catch(errorHandler(dispatch))
           }}
         />
       </Grid>
@@ -857,7 +858,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
     fontWeight: 800,
     cursor: "pointer",
   }
-  if (checked) (sx as any).bgcolor = "primary.main"
+  if (checked) (sx as any).bgcolor = "primary.main" // eslint-disable-line @typescript-eslint/no-explicit-any
   return (
     <Tooltip arrow title={explanation} enterDelay={1000}>
       <Avatar
@@ -922,7 +923,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                   )
                   .catch(errorHandler(dispatch))
               } else if (state.searchTab === SearchTabs.Page) {
-                const s: UrlSearch = { ...state.urlSearch, page: p } as any
+                const s: UrlSearch = { ...state.urlSearch, page: p } as UrlSearch
                 phrasesOnPage(s).then((results) =>
                   dispatch({
                     action: "urlSearch",
@@ -934,7 +935,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                 const s: SimilaritySearch = {
                   ...state.similaritySearch,
                   page: p,
-                } as any
+                } as SimilaritySearch
                 similaritySearch(s)
                   .then((results) =>
                     dispatch({
@@ -1129,13 +1130,13 @@ const MergeModal: React.FC<MergeModalProps> = ({
 }) => {
   // in the case of an unsaved phrase, we want to switch which is from and which is to
   if (to && to.id === undefined) [f, to] = [to, f]
-  const emptyPhrase = {
+  const emptyPhrase = useMemo(() => ({
     lemma: "",
     tags: [],
     citations: [],
     updatedAt: new Date(),
     createdAt: new Date(),
-  }
+  }), [])
   const [merged, setMerged] = useState<Phrase>({ ...(to ?? emptyPhrase) })
   const [from, setFrom] = useState<Phrase>({ ...(f ?? emptyPhrase) })
   const [tags, setTags] = useState<Tag[]>([])
@@ -1145,7 +1146,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
     knownTags()
       .then((tags) => setTags(tags))
       .catch(errorHandler(dispatch))
-  }, [f, to])
+  }, [f, to, dispatch, emptyPhrase])
   const closeAll = () => {
     close()
     setMerged(emptyPhrase)
@@ -1246,7 +1247,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
               >
                 <Grid width={1}>
                   <Box>
-                    {from.tags?.map((t, i) => {
+                    {from.tags?.map((t) => {
                       const tag = tags.find((tag) => tag.id === t)!
                       const common = merged.tags!.some((o) => o === t)
                       return (
@@ -1278,7 +1279,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
                 </Grid>
                 <Grid width={1}>
                   <Box>
-                    {merged.tags!.map((t, i) => {
+                    {merged.tags!.map((t) => {
                       const tag = tags.find((tag) => tag.id === t)!
                       return (
                         <TagChip

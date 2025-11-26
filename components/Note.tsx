@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material"
 import Grid from "@mui/material/Grid2"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
   Citation,
@@ -27,7 +27,6 @@ import {
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import debounce from "lodash/debounce"
-import isEqual from "lodash/isEqual"
 import { Save, Language as LanguageIcon } from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
@@ -47,7 +46,7 @@ import {
 import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
-import { bell, diff, isEqualIgnoring } from "../util/general"
+import { bell, isEqualIgnoring } from "../util/general"
 
 type NoteProps = {
   state: AppState
@@ -65,13 +64,13 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
         setCurrentLanguage(languages.find((l) => l.id === phrase?.languageId))
       })
       .catch(errorHandler(dispatch))
-  }, [state.languageId])
+  }, [state.languageId, dispatch, phrase?.languageId])
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
       .then((tags) => setTags(sortTags(tags)))
       .catch(errorHandler(dispatch))
-  }, [])
+  }, [dispatch])
   useEffect(() => {
     if (!phrase) return
     if (phrase.relations) {
@@ -84,7 +83,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
-  }, [phrase?.relations])
+  }, [phrase?.relations, dispatch, phrase])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
   const lemmaRef = useRef<HTMLInputElement>(null)
@@ -645,7 +644,7 @@ const ClickableText: React.FC<ClickableTextProps> = ({
         setWordMap(map)
       })
       .catch(errorHandler(dispatch))
-  }, [text])
+  }, [text, language, dispatch])
   return (
     <>
       {words.map((w, i) => (
@@ -776,7 +775,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     []
   )
   const dontRepeatSearch = urlSearch && url === urlSearch.url
-  const linkHandler = useCallback(() => {
+  const linkHandler = () => {
     if (url) {
       ; (async () => {
         let [tab] = await chrome.tabs.query({
@@ -800,7 +799,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
                 action: "goto",
                 citation: citation,
               },
-              (response) => {
+              (_response) => {
                 if (!dontRepeatSearch) {
                   phrasesOnPage({ url })
                     .then((searchResults) => {
@@ -823,11 +822,11 @@ const CitationLink: React.FC<CitationLinkProps> = ({
     } else {
       dispatch({
         action: "message",
-        messageLevel: "warning" as any,
+        messageLevel: "warning",
         message: "This citation has no recorded URL.",
       })
     }
-  }, [phrase, i])
+  }
   if (!url)
     return (
       <Typography sx={sx}>

@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from "react"
+import React, { ReactNode, useEffect, useState } from "react"
 import {
   AppState,
   Language,
@@ -76,8 +76,8 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         dispatch({ action: "config", config: c ?? {} })
       })
       .catch(errorHandler(dispatch))
-  }, [])
-  const maxSimilarPhrasesHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  }, [dispatch])
+  const maxSimilarPhrasesHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
       ...config,
     }
@@ -87,8 +87,8 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         dispatch({ action: "config", config: c })
       })
       .catch(errorHandler(dispatch))
-  }, [])
-  const autoGraduateHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  }
+  const autoGraduateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
       ...config,
     }
@@ -98,8 +98,8 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         dispatch({ action: "config", config: c })
       })
       .catch(errorHandler(dispatch))
-  }, [])
-  const distanceMetricHandler = useCallback((e: SelectChangeEvent) => {
+  }
+  const distanceMetricHandler = (e: SelectChangeEvent) => {
     const c: ConfigurationType = {
       ...config,
     }
@@ -109,7 +109,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         dispatch({ action: "distanceMetric", config: c })
       })
       .catch(errorHandler(dispatch))
-  }, [])
+  }
   return (
     <>
       <Stack
@@ -215,7 +215,7 @@ export const Languages: React.FC<LanguagesProps> = ({
         setLanguages(langs)
       })
       .catch(errorHandler(dispatch))
-  }, [version])
+  }, [version, dispatch])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
@@ -692,7 +692,9 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
               console.error("" + error)
             }
           }}
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            e.preventDefault()
             hiddenFilePicker.current?.click()
           }}
         >
@@ -723,9 +725,7 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
             color="primary"
             disabled={file == null}
             onClick={() => {
-              importDb(file!, (total, completed) =>
-                console.log(`completed ${completed} of ${total}`)
-              )
+              importDb(file!)
                 .then(() => {
                   dispatch({
                     action: "message",

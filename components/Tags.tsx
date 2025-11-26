@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react"
-import { AppState, AppTabs, Language, Tag } from "../types/common"
+import React, { useCallback, useEffect, useState } from "react"
+import { AppTabs, Language, Tag } from "../types/common"
 import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
@@ -31,15 +31,13 @@ import { LanguageChip } from "./LanguageChip"
 import { LanguagePicker } from "./LanguagePicker"
 
 type TagsProps = {
-  state: AppState
   dispatch: React.Dispatch<Action>
 }
 
-export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
+export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
   const [tags, setTags] = useState<Tag[] | undefined>()
   const [openAddTagModal, setOpenAddTagModal] = useState(false)
   const [version, setVersion] = useState(0)
-  const { config = {} } = state
   useEffect(() => {
     knownTags()
       .then((tags) => {
@@ -49,7 +47,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
         setTags(tags)
       })
       .catch(errorHandler(dispatch))
-  }, [version])
+  }, [version, dispatch])
   const bumpVersion = () => setVersion(version + 1)
   const [modalTag, setModalTag] = useState<Tag>({ name: "" })
   const [languages, setLanguages] = useState<Language[]>([])
@@ -57,7 +55,7 @@ export const Tags: React.FC<TagsProps> = ({ state, dispatch }) => {
     perhapsStaleLanguages()
       .then((languages) => setLanguages(languages))
       .catch(errorHandler(dispatch))
-  }, [])
+  }, [dispatch])
   return (
     <Box sx={{ minHeight: "400px" }}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -247,20 +245,20 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   languages,
   dispatch,
 }) => {
-  const [languageIds, setLanguageIds] = useState<number[]>()
+  const [_languageIds, setLanguageIds] = useState<number[]>()
   useEffect(() => {
     setLanguageIds([...(tag.languages ?? [])])
-  }, [tag.id])
-  const unique = (tag: Tag) =>
-    !tags.some((t) => t.id !== tag.id && t.name === tag.name)
+  }, [tag.id, tag.languages])
+  const unique = useCallback((tag: Tag) =>
+    !tags.some((t) => t.id !== tag.id && t.name === tag.name), [tags])
   const error = !unique(tag)
-  const tagHasUniqueName = (tag: Tag) =>
-    !!(tag.name && /\S/.test(tag.name) && unique(tag))
+  const tagHasUniqueName = useCallback((tag: Tag) =>
+    !!(tag.name && /\S/.test(tag.name) && unique(tag)), [unique])
   const [submissible, setSubmissible] = useState(false)
   // we have just the one modal, so we have to reset this each time we pop it open with a different tag
   useEffect(() => {
     setSubmissible(tagHasUniqueName(tag))
-  }, [tag.name, tag.id])
+  }, [tag.name, tag.id, tag, tagHasUniqueName])
   const handleLabelChange: (e: React.ChangeEvent<HTMLInputElement>) => void =
     debounce((e) => {
       setTag({ ...tag, name: e.target.value })

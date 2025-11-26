@@ -56,7 +56,7 @@ export const SpacedRepetitionQuiz: React.FC<QuizProps> = ({
   // set up initial quiz state
   const [quiz, setQuiz] = useState<DailyQuiz>()
   const [version, setVersion] = useState(1)
-  const bumpVersion = useCallback(() => setVersion(version + 1), [setVersion])
+  const bumpVersion = () => setVersion(version + 1)
   useEnsureConfiguration(state, dispatch)
   useEffect(() => {
     if (state.config) {
@@ -171,18 +171,18 @@ const QuizCard: React.FC<QuizCardProps> = ({
         quiz.summary(quizzingOnLemmas).then((s) => setSummary(s))
       })
       .catch(errorHandler(dispatch))
-  }, [quiz, quizzingOnLemmas])
+  }, [quiz, quizzingOnLemmas, dispatch])
   // reveal the first card on mount
   useEffect(() => {
     nextCard()
-  }, [quiz])
+  }, [quiz, nextCard])
   useEffect(() => {
     if (!(quiz.empty(quizzingOnLemmas) || card)) {
       newPhraseCount(quizzingOnLemmas)
         .then((n) => setNewCount(n))
         .catch(errorHandler(dispatch))
     }
-  }, [quiz, quizzingOnLemmas, card])
+  }, [quiz, quizzingOnLemmas, card, dispatch])
   const topic = card?.phrase[quizzingOnLemmas ? "lemma" : "note"]
   const newCard = !!card && quiz.newCard(card, quizzingOnLemmas)
   const newQuiz = !(quiz.empty(quizzingOnLemmas) || card)
@@ -252,9 +252,8 @@ const QuizCard: React.FC<QuizCardProps> = ({
         }}
       >
         <Stack
-          className={`inner ${flipped ? "flip" : ""} ${
-            changingCards ? "hide" : ""
-          }`}
+          className={`inner ${flipped ? "flip" : ""} ${changingCards ? "hide" : ""
+            }`}
         >
           <Stack className="face" spacing={2}>
             {/** nothing to quiz on */}
@@ -414,10 +413,9 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
           if (graduated)
             dispatch({
               action: "message",
-              message: `The ${quizzingOnLemmas ? "lemma" : "gloss"} of the “${
-                card.phrase.lemma
-              }” will not appear in future quizzes.`,
-              messageLevel: "success" as any,
+              message: `The ${quizzingOnLemmas ? "lemma" : "gloss"} of the “${card.phrase.lemma
+                }” will not appear in future quizzes.`,
+              messageLevel: "success",
             })
           setCard(newCard)
           setIntervals(intervals)
@@ -506,12 +504,10 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
                   handleSave(true, () =>
                     dispatch({
                       action: "message",
-                      messageLevel: "info" as any,
-                      message: `Your recall of the ${
-                        quizzingOnLemmas ? "gloss" : "lemma"
-                      } of “${
-                        quizzingOnLemmas ? card.phrase.lemma : card.phrase.note
-                      }” has been marked as good.`,
+                      messageLevel: "info",
+                      message: `Your recall of the ${quizzingOnLemmas ? "gloss" : "lemma"
+                        } of “${quizzingOnLemmas ? card.phrase.lemma : card.phrase.note
+                        }” has been marked as good.`,
                     })
                   )
                 }}

@@ -1,5 +1,4 @@
 import { AlertColor, AlertPropsColorOverrides } from "@mui/material"
-import { OverridableStringUnion } from "@material-ui/types"
 import { DistanceMetric } from "../util/similarity_sorter"
 import { QuizSignature } from "../util/spaced_repetition"
 

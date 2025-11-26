@@ -5,10 +5,10 @@ import isObject from "lodash/isObject"
 import { wsrx } from "./string"
 import { isEqual } from "lodash"
 
-export function uniq<T>(things: T[], by?: (t: T) => any): T[] {
+export function uniq<T>(things: T[], by?: (t: T) => any): T[] { // eslint-disable-line @typescript-eslint/no-explicit-any
   const ar: T[] = []
   by ??= (t: T) => t
-  const seen = new Set<any>()
+  const seen = new Set<any>() // eslint-disable-line @typescript-eslint/no-explicit-any
   for (const t of things) {
     const b = by(t)
     if (seen.has(b)) continue
@@ -20,14 +20,14 @@ export function uniq<T>(things: T[], by?: (t: T) => any): T[] {
 
 export function deepClone<T>(obj: T): T {
   if (isArray(obj)) {
-    return (obj as Array<any>).map(deepClone) as T
+    return (obj as Array<any>).map(deepClone) as T // eslint-disable-line @typescript-eslint/no-explicit-any
   }
   // special case for dates
   if (Object.prototype.toString.call(obj) === "[object Date]") {
-    return new Date((obj as any).getTime()) as T
+    return new Date((obj as Date).getTime()) as T
   }
   if (isObject(obj)) {
-    const t: any = {}
+    const t: Record<string, any> = {} // eslint-disable-line @typescript-eslint/no-explicit-any
     for (const [k, v] of Object.entries(obj as object)) {
       t[k] = deepClone(v)
     }
@@ -64,7 +64,7 @@ export function matcher(
 }
 
 // create a visual representation of the difference between two objects for debugging
-export function diff(a: any, b: any): any {
+export function diff(a: any, b: any): any { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!isEqual(a, b)) {
     if (typeof a == typeof b) {
       if (isObject(a) && isObject(b)) {
@@ -74,13 +74,13 @@ export function diff(a: any, b: any): any {
           for (const k of Object.keys(obj)) keys.add(k)
         }
         for (const k of [...keys].sort()) {
-          const d2 = diff((a as Record<string, any>)[k], (b as Record<string, any>)[k])
-          if (d2) (d as Record<string, any>)[k] = d2
+          const d2 = diff((a as Record<string, any>)[k], (b as Record<string, any>)[k]) // eslint-disable-line @typescript-eslint/no-explicit-any
+          if (d2) (d as Record<string, any>)[k] = d2 // eslint-disable-line @typescript-eslint/no-explicit-any
         }
         return d
       } else if (isArray(a) && isArray(b)) {
         const lim = a.length > b.length ? a.length : b.length
-        const d: any[] = []
+        const d: any[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
         for (let i = 0; i < lim; i++) {
           const d2 = diff(a[i], b[i])
           d.push(d2 ?? null)
@@ -96,7 +96,7 @@ export function diff(a: any, b: any): any {
 }
 
 // compare two objects ignoring certain keys
-export function isEqualIgnoring(a?: Record<string, any>, b?: Record<string, any>, ...keys: string[]) {
+export function isEqualIgnoring(a?: Record<string, any>, b?: Record<string, any>, ...keys: string[]) { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!(a || b)) return true
   if (!a || !b) return false
   a = { ...a }
@@ -113,10 +113,10 @@ export function isEqualIgnoring(a?: Record<string, any>, b?: Record<string, any>
 
 // remove differences between two objects which consist of one having an undefined
 // value for a property and the other having a null value
-function deleteNullProperties(a: Record<string, any>, b: Record<string, any>) {
+function deleteNullProperties(a: Record<string, any>, b: Record<string, any>) { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (isArray(a)) {
     if (b) {
-      for (let i = 0; i < a.length && i < (b as any).length; i++) {
+      for (let i = 0; i < a.length && i < (b as Array<any>).length; i++) { // eslint-disable-line @typescript-eslint/no-explicit-any
         deleteNullProperties(a[i], b[i])
       }
     }
@@ -140,11 +140,11 @@ function deleteNullProperties(a: Record<string, any>, b: Record<string, any>) {
   }
 }
 
-function empty(obj: any): boolean {
+function empty(obj: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
   return obj === null || isArray(obj) && obj.length === 0 || isObject(obj) && Object.keys(obj).length === 0
 }
 
-function nullifyNullish(obj: Record<string, any> | Array<any>) {
+function nullifyNullish(obj: Record<string, any> | Array<any>) { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (isArray(obj)) {
     for (let i = 0; i < obj.length; i++) {
       const o = obj[i]
@@ -208,6 +208,6 @@ export function shuffle<T>(array: T[]): void {
   for (let i = 0; i < array.length; i++) {
     const j = Math.floor(array.length * Math.random())
     if (j === i) continue
-    ;[array[i], array[j]] = [array[j], array[i]]
+      ;[array[i], array[j]] = [array[j], array[i]]
   }
 }

@@ -41,7 +41,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
             sx={{ width: "100%", flexWrap: "wrap", rowGap: 1 }}
             onClick={() => {
               if (menuAnchor.current)
-                setAddTagMenuAnchorEl(menuAnchor.current as any)
+                setAddTagMenuAnchorEl(menuAnchor.current as any) // eslint-disable-line @typescript-eslint/no-explicit-any
             }}
           >
             {!presentTags?.length && <FauxPlaceholder>Tags</FauxPlaceholder>}

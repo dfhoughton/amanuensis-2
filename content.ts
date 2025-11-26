@@ -127,27 +127,33 @@ chrome.runtime.onMessage.addListener(function (
 ) {
   switch (request.action) {
     case "goto":
-      const { citation } = request
-      const magic = magicUrl(citation)
-      if (magic) {
-        sendResponse({ action: "goingTo", url: magic })
-        window.location.assign(magic)
-      } else {
-        sendResponse({ action: "error", message: "received no URL" })
+      {
+        const { citation } = request
+        const magic = magicUrl(citation)
+        if (magic) {
+          sendResponse({ action: "goingTo", url: magic })
+          window.location.assign(magic)
+        } else {
+          sendResponse({ action: "error", message: "received no URL" })
+        }
       }
       break
     case "help": // load documentation into current tab
-      const { anchor } = request
-      window.location.assign(`${amanuensisUrl}${anchor ? `#${anchor}` : ""}`)
+      {
+        const { anchor } = request
+        window.location.assign(`${amanuensisUrl}${anchor ? `#${anchor}` : ""}`)
+      }
       break
     case "getSelection":
-      const selection = wrapSelection()
-      if (selection) {
-        selection.title = getTitle()
-        selection.url = document.URL
-        sendResponse({ action: "selection", selection })
-      } else {
-        sendResponse({ action: "noSelection", url: window.location.href })
+      {
+        const selection = wrapSelection()
+        if (selection) {
+          selection.title = getTitle()
+          selection.url = document.URL
+          sendResponse({ action: "selection", selection })
+        } else {
+          sendResponse({ action: "noSelection", url: window.location.href })
+        }
       }
       break
     default:

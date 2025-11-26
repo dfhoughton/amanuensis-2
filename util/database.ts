@@ -1,4 +1,4 @@
-import BaseDexie, { Collection, Table } from "dexie"
+import BaseDexie, { Table } from "dexie"
 import {
   Citation,
   Configuration,
@@ -71,8 +71,8 @@ type DexieTable = PhraseTable &
   TagTable &
   RelationTable &
   TrialTable
-type Dexie<T extends any = DexieTable> = BaseDexie & T
-const db = new BaseDexie("amanuensis") as Dexie
+type Dexie<T extends DexieTable> = BaseDexie & T
+const db = new BaseDexie("amanuensis") as Dexie<DexieTable>
 const schema = Object.assign(
   {},
   phrasesSchema,
@@ -573,7 +573,9 @@ export async function phraseSearch(
     db.phrases,
     db.tags,
     async () => {
-      let scope: Collection<Phrase, any, Phrase>
+      let scope = languages.length
+        ? db.phrases.where("languageId").anyOf(languages)
+        : db.phrases.toCollection()
       if (languages.length) {
         scope = db.phrases.where("languageId").anyOf(languages)
       } else {
@@ -622,8 +624,8 @@ export async function phraseSearch(
         sort.type === SortType.Lemma
           ? "lemma"
           : sort.type === SortType.Creation
-          ? "created_at"
-          : "updated_at"
+            ? "created_at"
+            : "updated_at"
       const offset = (page - 1) * pageSize
       const rs: Phrase[] = await scope
         .sortBy(sortKey)
@@ -648,12 +650,9 @@ export async function exportDb() {
   return exportDB(db)
 }
 
-export async function importDb(
-  file: File,
-  progressCallback?: (total: number, completed: number) => void
-) {
+export async function importDb(file: File) {
   const blob = await renameDb(file)
-  const tmp = (await BaseDexie.import(blob)) as Dexie
+  const tmp = (await BaseDexie.import(blob)) as Dexie<DexieTable>
   const languageMap = await mergeLanguages(tmp)
   const tagMap = await importTags(tmp)
   await importPhrases(tmp, languageMap, tagMap)
@@ -716,22 +715,22 @@ async function importPhrases(
 // import the tags from tmp, dealing with name collisions and returning a map from old tag ids to new
 async function importTags(tmp: Dexie<DexieTable>) {
   const tagMap = new Map() as Map<number, number>
-  ;(await tmp.tags.toArray()).forEach(async (t) => {
-    let name = t.name
-    let disambiguator = 1
-    while (true) {
-      const nameInUse = await db.tags.get({ name })
-      if (nameInUse) {
-        name = `${t.name} (${disambiguator++})`
-      } else {
-        const oldId = t.id!
-        delete t.id
-        const id = (await db.tags.put({ ...t, name })) as number
-        tagMap.set(oldId, id)
-        break
+    ; (await tmp.tags.toArray()).forEach(async (t) => {
+      let name = t.name
+      let disambiguator = 1
+      while (true) {
+        const nameInUse = await db.tags.get({ name })
+        if (nameInUse) {
+          name = `${t.name} (${disambiguator++})`
+        } else {
+          const oldId = t.id!
+          delete t.id
+          const id = (await db.tags.put({ ...t, name })) as number
+          tagMap.set(oldId, id)
+          break
+        }
       }
-    }
-  })
+    })
   return tagMap
 }
 
@@ -739,10 +738,10 @@ async function importTags(tmp: Dexie<DexieTable>) {
 async function mergeLanguages(tmp: Dexie<DexieTable>) {
   const newLanguages: Map<string, Language> = new Map()
   const oldLanguages: Map<string, Language> = new Map()
-  ;(await tmp.languages.toArray()).forEach((l) =>
-    newLanguages.set(l.locale!, l)
-  )
-  ;(await db.languages.toArray()).forEach((l) => oldLanguages.set(l.locale!, l))
+    ; (await tmp.languages.toArray()).forEach((l) =>
+      newLanguages.set(l.locale!, l)
+    )
+    ; (await db.languages.toArray()).forEach((l) => oldLanguages.set(l.locale!, l))
   const languageMap: Map<number, number> = new Map() // map new language ids to old language ids
   db.transaction("rw", db.languages, async () => {
     for (const [locale, newLang] of newLanguages) {

@@ -350,7 +350,7 @@ export function reducer(state: AppState, action: Action): AppState {
 }
 
 export function errorHandler(dispatch: React.Dispatch<Action>) {
-  return (e: Error) => {
+  return (e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     console.error(e)
     const message = e.message ?? `${e}`
     const messageLevel: MessageLevel = "error" as never // unclear why typescript requires this

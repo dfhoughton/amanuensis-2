@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */ // to silence warnings about console and process
+
 import * as esbuild from 'esbuild'
 import { transformAsync } from '@babel/core'
 import reactCompiler from 'babel-plugin-react-compiler'

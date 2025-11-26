@@ -7,8 +7,8 @@ import {
   ThemeProvider,
 } from "@mui/material"
 import React, { useEffect, useReducer } from "react"
-import { Action, errorHandler, reducer } from "../util/reducer"
-import { AppState, AppTabs } from "../types/common"
+import { errorHandler, reducer } from "../util/reducer"
+import { AppTabs } from "../types/common"
 import { theme } from "../util/theme"
 import Tab from "@mui/material/Tab"
 import TabContext from "@mui/lab/TabContext"
@@ -77,7 +77,7 @@ const App: React.FC = () => {
               <SpacedRepetitionQuiz state={state} dispatch={dispatch} />
             </TabPanel>
             <TabPanel value={AppTabs.Tags}>
-              <Tags state={state} dispatch={dispatch} />
+              <Tags dispatch={dispatch} />
             </TabPanel>
             <TabPanel value={AppTabs.Configuration}>
               <Configuration state={state} dispatch={dispatch} />

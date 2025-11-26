@@ -33,7 +33,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
     chrome.runtime.onMessage.addListener(
       (
         message: MessageFromBackgroundToPopup,
-        sender,
+        _sender,
         _sendResponse: (m: MessageFromPopupToBackground) => void
       ) => {
         switch (message.action) {
@@ -46,7 +46,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
           case "reloaded":
             dispatch({
               action: "message",
-              messageLevel: "info" as any,
+              messageLevel: "info",
               message: `The active tab has reloaded.`,
             })
             break
@@ -63,5 +63,5 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
         return true
       }
     )
-  }, [])
+  }, [dispatch])
 }
