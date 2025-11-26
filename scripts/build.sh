@@ -2,25 +2,23 @@
 
 echo 'building extension...'
 
-TARGET="es2024"
-
 rm -rf dist/*
 mkdir -p dist/images
 
 cp manifest.json dist/
-cp assets/* dist/
+# Only copy assets if they exist
+if [ -n "$(ls -A assets 2>/dev/null)" ]; then
+  cp assets/* dist/
+fi
 cp popup.html dist/
 cp images/* dist/images/
-esbuild content.ts --bundle $BUILD_ARG --outfile=dist/content.js --target=$TARGET
-esbuild background.ts --bundle $BUILD_ARG --outfile=dist/background.js --target=$TARGET
-esbuild foreground.tsx --bundle $BUILD_ARG --outfile=dist/foreground.js --target=$TARGET
+
+# Use the esbuild config with React Compiler integration
+node scripts/esbuild.config.mjs
 
 echo 'done'
 
-# esbuild app/javascript/*.* --bundle --sourcemap --minify --outdir=app/assets/builds
-
-# cp -r build/* dist
-
-# mv dist/index.html dist/popup.html
-# cp src/background.js dist/
-# cp src/content.js dist/
+# Old esbuild commands (replaced by config file):
+# esbuild content.ts --bundle $BUILD_ARG --outfile=dist/content.js --target=$TARGET
+# esbuild background.ts --bundle $BUILD_ARG --outfile=dist/background.js --target=$TARGET
+# esbuild foreground.tsx --bundle $BUILD_ARG --outfile=dist/foreground.js --target=$TARGET

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["chrome"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
