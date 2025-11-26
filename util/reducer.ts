@@ -72,7 +72,6 @@ export type Action =
   | { action: "saveQuizState"; quizzingOnLemmas: boolean }
 
 export function reducer(state: AppState, action: Action): AppState {
-  let ci: number | undefined // citationIndex
   switch (action.action) {
     case "phraseSelected":
       {
@@ -124,7 +123,7 @@ export function reducer(state: AppState, action: Action): AppState {
             )
           )
         } else {
-          console.error("could not sind tab to handle action", action)
+          console.error("could not send tab to handle action", action)
         }
       })()
       return state
@@ -138,14 +137,16 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         message: action.message,
-        messageLevel: "error" as any,
+        messageLevel: "error",
       }
     case "tab":
       return { ...state, tab: action.tab }
     case "config":
-      const { config } = action
-      setConfiguration(config)
-      return { ...state, config }
+      {
+        const { config } = action
+        setConfiguration(config)
+        return { ...state, config }
+      }
     case "distanceMetric": // config change that also requires redoing similarity search results
       setConfiguration(action.config)
       return {
@@ -154,104 +155,114 @@ export function reducer(state: AppState, action: Action): AppState {
         similaritySearchResults: undefined,
       }
     case "phrase": // unsaved change to phrase
-      ci = action.citationIndex ?? state.citationIndex
       return {
         ...state,
         phrase: action.phrase,
-        citationIndex: ci,
+        citationIndex: action.citationIndex ?? state.citationIndex,
         searchResults: undefined,
       }
     case "phraseSaved":
-      const { history: h = [] } = state
-      if (action.newPhrase) {
-        h.push(state.phrase?.id!)
+      {
+        const { history = [] } = state
+        if (action.newPhrase && state.phrase) {
+          history.push(state.phrase.id!)
+        }
+        return { ...state, priorPhrase: { ...state.phrase! }, history }
       }
-      return { ...state, priorPhrase: { ...state.phrase! }, history: h }
     case "citationSelected":
       return { ...state, citationIndex: action.citationIndex }
     case "search":
-      let { search, searchResults: freeSearchResults, tab } = action
-      tab ??= state.tab
-      return {
-        ...state,
-        freeSearch: search,
-        freeSearchResults,
-        searchResults: freeSearchResults,
-        tab,
-        searchTab: SearchTabs.Free,
+      {
+        const { search, searchResults: freeSearchResults } = action
+        let { tab } = action
+        tab ??= state.tab
+        return {
+          ...state,
+          freeSearch: search,
+          freeSearchResults,
+          searchResults: freeSearchResults,
+          tab,
+          searchTab: SearchTabs.Free,
+        }
       }
     case "similaritySearch":
-      let {
-        search: similaritySearch,
-        searchResults: similaritySearchResults,
-        tab: appTabb,
-      } = action
-      appTabb ??= state.tab
-      return {
-        ...state,
-        similaritySearch,
-        similaritySearchResults,
-        searchResults: similaritySearchResults,
-        tab: appTabb,
-        searchTab: SearchTabs.Similar,
+      {
+        const {
+          search: similaritySearch,
+          searchResults: similaritySearchResults,
+        } = action
+        let { tab } = action
+        tab ??= state.tab
+        return {
+          ...state,
+          similaritySearch,
+          similaritySearchResults,
+          searchResults: similaritySearchResults,
+          tab,
+          searchTab: SearchTabs.Similar,
+        }
       }
     case "urlSearch":
-      let {
-        search: urlSearch,
-        searchResults: urlSearchResults,
-        tab: appTabbb,
-      } = action
-      appTabbb ??= state.tab
-      return {
-        ...state,
-        urlSearch,
-        urlSearchResults,
-        searchResults: urlSearchResults,
-        tab: appTabbb,
-        searchTab: SearchTabs.Page,
+      {
+        const {
+          search: urlSearch,
+          searchResults: urlSearchResults,
+        } = action
+        let { tab } = action
+        tab ??= state.tab
+        return {
+          ...state,
+          urlSearch,
+          urlSearchResults,
+          searchResults: urlSearchResults,
+          tab,
+          searchTab: SearchTabs.Page,
+        }
       }
     case "switchSearch":
-      const nowFree = state.searchTab === SearchTabs.Similar
-      let sr: SearchResults | undefined
-      switch (action.tab) {
-        case SearchTabs.Free:
-          sr = state.freeSearchResults
-          break
-        case SearchTabs.Similar:
-          sr = state.similaritySearchResults
-          break
-        case SearchTabs.Page:
-          sr = state.urlSearchResults
-          break
-        default:
-          throw `we never get here`
-      }
-      return {
-        ...state,
-        searchTab: action.tab,
-        searchResults: sr ?? {
-          page: 1,
-          pageSize: 10,
-          phrases: [],
-          selected: -1,
-          pages: 0,
-          total: 0,
-        },
+      {
+        let sr: SearchResults | undefined
+        switch (action.tab) {
+          case SearchTabs.Free:
+            sr = state.freeSearchResults
+            break
+          case SearchTabs.Similar:
+            sr = state.similaritySearchResults
+            break
+          case SearchTabs.Page:
+            sr = state.urlSearchResults
+            break
+          default:
+            throw `we never get here`
+        }
+        return {
+          ...state,
+          searchTab: action.tab,
+          searchResults: sr ?? {
+            page: 1,
+            pageSize: 10,
+            phrases: [],
+            selected: -1,
+            pages: 0,
+            total: 0,
+          },
+        }
       }
     case "selectResult":
-      let { searchResults: results } = state
-      results ??= {
-        selected: -1,
-        phrases: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-        pages: 0,
+      {
+        let { searchResults: results } = state
+        results ??= {
+          selected: -1,
+          phrases: [],
+          total: 0,
+          page: 1,
+          pageSize: 10,
+          pages: 0,
+        }
+        const { selected } = action
+        const selectedPhrase = results!.phrases[selected]
+        return changeNote(selectedPhrase, selectCitation(selectedPhrase.citations), state)
       }
-      const { selected } = action
-      const selectedPhrase = results!.phrases[selected]
-      ci = selectCitation(selectedPhrase.citations)
-      return changeNote(selectedPhrase, ci, state)
     case "goto":
       return changeNote(action.phrase, action.citationIndex, state)
     case "noSelection":
@@ -263,10 +274,12 @@ export function reducer(state: AppState, action: Action): AppState {
         searchTab: SearchTabs.Page,
       }
     case "changeLanguage":
-      const { phrase: changeLanguagePhrase } = state
-      return {
-        ...state,
-        phrase: { ...changeLanguagePhrase!, languageId: action.language.id },
+      {
+        const { phrase } = state
+        return {
+          ...state,
+          phrase: { ...phrase!, languageId: action.language.id },
+        }
       }
     case "merged":
       // one phrase has been merged into another
@@ -289,17 +302,19 @@ export function reducer(state: AppState, action: Action): AppState {
         similaritySearchResults: undefined,
       }
     case "phraseDeleted":
-      const deletedStatePhrase = action.phrase.id === state.phrase?.id
-      const newPhrase = deletedStatePhrase ? undefined : state.phrase
-      const newPriorPhrase = deletedStatePhrase ? undefined : state.priorPhrase
-      return {
-        ...state,
-        // we may have deleted the selected phrase
-        phrase: newPhrase,
-        priorPhrase: newPriorPhrase,
-        // we must redo searches to purge the deleted phrase merged in
-        freeSearchResults: undefined,
-        similaritySearchResults: undefined,
+      {
+        const deletedStatePhrase = action.phrase.id === state.phrase?.id
+        const newPhrase = deletedStatePhrase ? undefined : state.phrase
+        const newPriorPhrase = deletedStatePhrase ? undefined : state.priorPhrase
+        return {
+          ...state,
+          // we may have deleted the selected phrase
+          phrase: newPhrase,
+          priorPhrase: newPriorPhrase,
+          // we must redo searches to purge the deleted phrase merged in
+          freeSearchResults: undefined,
+          similaritySearchResults: undefined,
+        }
       }
     case "relationsChanged": // we save relation ids in the database
       return {
@@ -335,7 +350,7 @@ export function reducer(state: AppState, action: Action): AppState {
 }
 
 export function errorHandler(dispatch: React.Dispatch<Action>) {
-  return (e: any) => {
+  return (e: Error) => {
     console.error(e)
     const message = e.message ?? `${e}`
     const messageLevel: MessageLevel = "error" as never // unclear why typescript requires this
