@@ -5,6 +5,11 @@ import { transformAsync } from '@babel/core'
 import reactCompiler from 'babel-plugin-react-compiler'
 import * as fs from 'fs'
 
+// Get build arguments from environment
+const buildArg = process.env.BUILD_ARG || ''
+const isMinify = buildArg.includes('--minify')
+const isSourcemap = buildArg.includes('--sourcemap')
+
 /**
  * esbuild plugin to integrate the React Compiler
  * This transforms React components using the React Compiler before bundling
@@ -19,7 +24,22 @@ const reactCompilerPlugin = {
             try {
                 const result = await transformAsync(source, {
                     filename: args.path,
-                    plugins: [reactCompiler],
+                    presets: [
+                        // TypeScript preset must come first to strip types
+                        ['@babel/preset-typescript', {
+                            isTSX: true,
+                            allExtensions: true
+                        }],
+                        // React preset to handle JSX
+                        ['@babel/preset-react', {
+                            runtime: 'automatic', // Use the new JSX transform
+                            development: !isMinify,
+                        }],
+                    ],
+                    plugins: [
+                        // React Compiler runs after presets
+                        reactCompiler,
+                    ],
                     sourceMaps: true,
                 })
 
@@ -29,7 +49,7 @@ const reactCompilerPlugin = {
 
                 return {
                     contents: result.code,
-                    loader: 'tsx',
+                    loader: 'js', // Output is now plain JS after Babel transformation
                 }
             } catch (error) {
                 // If React Compiler fails, fall back to original source
@@ -40,11 +60,9 @@ const reactCompilerPlugin = {
     },
 }
 
-// Get build arguments from environment
-const buildArg = process.env.BUILD_ARG || ''
-const isMinify = buildArg.includes('--minify')
-const isSourcemap = buildArg.includes('--sourcemap')
+
 const target = 'es2024'
+
 
 const commonConfig = {
     bundle: true,
