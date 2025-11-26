@@ -10,20 +10,20 @@ export type MessageFromBackgroundToPopup =
   | { action: "reloaded"; url?: string }
   | { action: "open" }
   | {
-      action: "selection"
-      selection: Citation
-      source: { title?: string; url?: string }
-    }
+    action: "selection"
+    selection: Citation
+    source: { title?: string; url?: string }
+  }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | { action: "locale"; locale: string }
   | { action: "goingTo"; url: string }
   | Extract<
-      MessageFromContentToBackground,
-      | { action: "error" }
-      | { action: "noSelection" }
-      | { action: "highlight" }
-      | { action: "goingTo" }
-    >
+    MessageFromContentToBackground,
+    | { action: "error" }
+    | { action: "noSelection" }
+    | { action: "highlight" }
+    | { action: "goingTo" }
+  >
 
 export type MessageFromBackgroundToContent =
   | { action: "getSelection" }
@@ -45,7 +45,3 @@ export type MessageFromPopupToBackground =
   | { action: "open" }
   | { action: "goto"; citation: Citation }
   | { action: "help"; anchor?: string } // load amanuensis github page into active tab
-
-export const handleMessageFromBackgroundToPopup = (
-  msg: MessageFromBackgroundToPopup
-) => {}

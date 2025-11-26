@@ -144,20 +144,20 @@ export class DailyQuiz {
         sameDate(this.now, this.config[quizType].startTime)
       )
     ) {
-      const q = (this.config[quizType] = await makeQuiz(
+      this.config[quizType] = await makeQuiz(
         MAX_NEW_PHRASES_PER_QUIZ,
         quizzingOnLemmas
-      ))
+      )
       void (await setConfiguration(this.config))
     }
     return this.config[quizType]
   }
   // replace the current quiz signature of quizzingOnLemmas type in the configuration
   async newQuiz(quizzingOnLemmas: boolean): Promise<void> {
-    const q = (this.config[this.quizKey(quizzingOnLemmas)] = await makeQuiz(
+    this.config[this.quizKey(quizzingOnLemmas)] = await makeQuiz(
       MAX_NEW_PHRASES_PER_QUIZ,
       quizzingOnLemmas
-    ))
+    )
     void (await setConfiguration(this.config))
   }
   async nextCard(quizzingOnLemmas: boolean): Promise<PreparedTrial | null> {
@@ -200,7 +200,7 @@ export class DailyQuiz {
     let interval: number
     if (previous?.length) {
       previous = lastN(previous, 4)
-      let [[t0], ...rest] = previous.map((n, i) => [n, i] as [Date, number])
+      let [[t0], ...rest] = previous.map((n, i) => [n, i] as [Date, number]) // eslint-disable-line prefer-const
       if (rest.length) {
         let sum = 0,
           denominator = 0
@@ -265,13 +265,13 @@ export class DailyQuiz {
         outcome === "done" ||
         (autoGraduateCount &&
           countDone(trialTimes.times.map(([_default, o]) => o)) >=
-            autoGraduateCount)
+          autoGraduateCount)
       ) {
         graduated = true
         trialTimes.done = true
       }
 
-      signature && signature.index++
+      if (signature) signature.index++
     }
     void (await saveTrial(t))
     void (await setConfiguration(this.config))

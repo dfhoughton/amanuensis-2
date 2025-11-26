@@ -10,7 +10,8 @@ function enc(s: string): string {
 function fragment(c: Citation, budget: number): string | undefined {
   if (budget < 1) return
   const directive = ":~:text="
-  let { before, after, phrase } = c
+  let { before, after } = c
+  const { phrase } = c
   // trim things a bit to accommodate changing text
   before =
     squish(before ?? "")

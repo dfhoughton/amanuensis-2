@@ -334,7 +334,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             languageIds={search.languages ?? []}
             languages={languages!}
             onDelete={(lang) => () => {
-              let languages = (search.languages ?? []).filter(
+              const languages = (search.languages ?? []).filter(
                 (la) => la !== lang.id
               )
               const s = { ...search, languages, page: 1 }

@@ -440,7 +440,7 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
     : () => handleSave(false)
   const special =
     outcome === "again" || outcome === "tomorrow" || outcome === "done"
-  let description = special ? <>&nbsp;</> : describeTimeInterval(interval, true)
+  const description = special ? <>&nbsp;</> : describeTimeInterval(interval, true)
   let tt
   if (special) {
     switch (outcome) {

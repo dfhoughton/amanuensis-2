@@ -28,7 +28,7 @@ export function deepClone<T>(obj: T): T {
   }
   if (isObject(obj)) {
     const t: any = {}
-    for (const [k, v] of Object.entries(obj as Object)) {
+    for (const [k, v] of Object.entries(obj as object)) {
       t[k] = deepClone(v)
     }
     return t as T

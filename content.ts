@@ -70,11 +70,11 @@ function wrapSelection(): Citation | undefined {
     return
   }
   phrase = squish(phrase)!
-  let anchor = describeSelectionNode(
+  const anchor = describeSelectionNode(
     selection.anchorNode!,
     selection.anchorOffset
   )
-  let focus = describeSelectionNode(selection.focusNode!, selection.focusOffset)
+  const focus = describeSelectionNode(selection.focusNode!, selection.focusOffset)
   const ap = anchor.parent || anchor.node,
     fp = focus.parent || focus.node
   const parent = commonParent(ap, fp)

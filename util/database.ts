@@ -440,7 +440,7 @@ export function addLanguage(
 }
 
 // count the number of phrases all of whose citations have the given locale
-export function countPhrasesWithLocale(locale: string): Promise<Number> {
+export function countPhrasesWithLocale(locale: string): Promise<number> {
   return db.transaction("r", db.phrases, async () => {
     return db.phrases
       .filter((p) => every(p.citations, (c) => c.locale === locale))
@@ -704,7 +704,7 @@ async function importPhrases(
   }
   // now restore the relations
   const relations = await tmp.relations.toArray()
-  for (let { p1: p1id, p2: p2id } of relations) {
+  for (const { p1: p1id, p2: p2id } of relations) {
     if (!phraseNumberMap.has(p1id)) continue
     if (!phraseNumberMap.has(p2id)) continue
     const p1 = phraseMap.get(phraseNumberMap.get(p1id)!)!
@@ -867,7 +867,7 @@ export async function howTheQuizIsGoingSoFar(
       // we might have trials, but not for this type of quiz
       if (previous?.times.length) {
         // reduce it to just today's trials
-        let times = previous.times.filter(([time, outcome]) => {
+        const times = previous.times.filter(([time, outcome]) => {
           const usableTime = time > startTime
           const usableOutcome = outcome !== "first"
           return usableTime && usableOutcome

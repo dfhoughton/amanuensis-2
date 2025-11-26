@@ -26,10 +26,10 @@ export type Action =
   | { action: "language"; language: Language }
   | { action: "phraseSelected"; phrase: [Phrase, Phrase[]] }
   | {
-      action: "message"
-      message?: string // undefined message hides notification
-      messageLevel?: MessageLevel
-    }
+    action: "message"
+    message?: string // undefined message hides notification
+    messageLevel?: MessageLevel
+  }
   | { action: "error"; message: string }
   | { action: "config"; config: Configuration }
   | { action: "distanceMetric"; config: Configuration }
@@ -39,23 +39,23 @@ export type Action =
   | { action: "tab"; tab: AppTabs }
   | { action: "goto"; phrase: Phrase; citationIndex: number }
   | {
-      action: "search"
-      search: FreeFormSearch
-      searchResults: SearchResults
-      tab?: AppTabs
-    }
+    action: "search"
+    search: FreeFormSearch
+    searchResults: SearchResults
+    tab?: AppTabs
+  }
   | {
-      action: "similaritySearch"
-      search: SimilaritySearch
-      searchResults: SearchResults
-      tab?: AppTabs
-    }
+    action: "similaritySearch"
+    search: SimilaritySearch
+    searchResults: SearchResults
+    tab?: AppTabs
+  }
   | {
-      action: "urlSearch"
-      search: UrlSearch
-      searchResults: SearchResults
-      tab?: AppTabs
-    }
+    action: "urlSearch"
+    search: UrlSearch
+    searchResults: SearchResults
+    tab?: AppTabs
+  }
   | { action: "switchSearch"; tab: SearchTabs }
   | { action: "selectResult"; selected: number } // when a result is clicked in search
   | { action: "noSelection"; url: string } // when popup is opened with nothing highlighted
@@ -65,9 +65,9 @@ export type Action =
   | { action: "changeLanguage"; language: Language } // change the language the phrase is assigned to
   | { action: "relationsChanged"; relations: number[]; message?: string }
   | {
-      action: "relatedPhrasesChanged"
-      relatedPhrases: Map<number, [number, Phrase]>
-    }
+    action: "relatedPhrasesChanged"
+    relatedPhrases: Map<number, [number, Phrase]>
+  }
   | { action: "relationClicked"; phrase: Phrase }
   | { action: "saveQuizState"; quizzingOnLemmas: boolean }
 
@@ -75,43 +75,43 @@ export function reducer(state: AppState, action: Action): AppState {
   let ci: number | undefined // citationIndex
   switch (action.action) {
     case "phraseSelected":
-      const {
-        phrase: [phrase, others],
-      } = action
-      const { citations } = phrase
-      // phrase arrives with dates serialized; must fix
-      for (const c of citations) {
-        if (typeof c.when === "string") c.when = new Date(c.when)
-      }
-      let { languageId } = state
-      languageId ??= phrase.languageId
-      const languages = languageId === undefined ? [] : [languageId]
-      let maybeMeld,
-        message,
-        messageLevel,
-        searchTab = SearchTabs.Similar
-      if (others.length) {
-        maybeMeld = others
-        message = `There ${
-          others.length === 1
+      {
+        const {
+          phrase: [phrase, others],
+        } = action
+        const { citations } = phrase
+        // phrase arrives with dates serialized; must fix
+        for (const c of citations) {
+          if (typeof c.when === "string") c.when = new Date(c.when)
+        }
+        let { languageId } = state
+        languageId ??= phrase.languageId
+        let maybeMeld,
+          message,
+          messageLevel,
+          searchTab = SearchTabs.Similar
+        if (others.length) {
+          maybeMeld = others
+          message = `There ${others.length === 1
             ? "is a phrase"
             : `are ${others.length} other phrases`
-        } you may wish to attach this citation to. See the search tab.`
-        messageLevel = "info" as MessageLevel
-        searchTab = SearchTabs.Similar
-      }
-      const cidx = selectCitation(citations)
-      return {
-        ...changeNote(phrase, cidx, state),
-        priorPhrase: undefined,
-        maybeMeld,
-        message,
-        messageLevel,
-        languageId,
-        searchTab,
+            } you may wish to attach this citation to. See the search tab.`
+          messageLevel = "info" as MessageLevel
+          searchTab = SearchTabs.Similar
+        }
+        const cidx = selectCitation(citations)
+        return {
+          ...changeNote(phrase, cidx, state),
+          priorPhrase: undefined,
+          maybeMeld,
+          message,
+          messageLevel,
+          languageId,
+          searchTab,
+        }
       }
     case "select":
-      ;(async () => {
+      ; (async () => {
         const [tab] = await chrome.tabs.query({
           active: true,
           lastFocusedWindow: true,

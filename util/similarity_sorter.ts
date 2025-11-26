@@ -51,7 +51,7 @@ export class SimilaritySorter {
     let d = this.metric(this.key, p.lemma)
     for (const c of p.citations) {
       const d2 = this.metric(this.key, c.phrase)
-      if (d2 < d) d == d2
+      if (d2 < d) d = d2
     }
     const item: [Phrase, number] = [p, d]
     if (this.store.length) {
