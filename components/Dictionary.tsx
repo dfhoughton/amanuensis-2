@@ -268,8 +268,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   dispatch,
 }) => {
   const { freeSearch: search = { ...searchDefaults } } = state
-  const lemmaRef = useRef<HTMLInputElement>(undefined)
-  const freeTextRef = useRef<HTMLInputElement>(undefined)
+  const lemmaRef = useRef<HTMLInputElement>(null)
+  const freeTextRef = useRef<HTMLInputElement>(null)
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
@@ -278,6 +278,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
   }, [dispatch])
   const [_languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
+  const handleClear = () => {
+    if (lemmaRef.current) lemmaRef.current.value = ""
+    if (freeTextRef.current) freeTextRef.current.value = ""
+    phraseSearch({})
+      .then((searchResults) =>
+        dispatch({
+          action: "search",
+          search: {},
+          searchResults,
+        })
+      )
+      .catch(errorHandler(dispatch))
+  }
   return (
     <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
       <TextSearchWidget
@@ -374,7 +387,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <SortWidget state={state} search={search} dispatch={dispatch} />
         </Grid>
         <Grid size={1}>
-          <ClearWidget dispatch={dispatch} refs={[lemmaRef, freeTextRef]} />
+          <ClearWidget onClear={handleClear} />
         </Grid>
       </Grid>
     </Stack>
@@ -382,28 +395,14 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }
 
 type ClearWidgetProps = {
-  dispatch: React.Dispatch<Action>
-  refs: React.MutableRefObject<HTMLInputElement | undefined>[]
+  onClear: () => void
 }
-const ClearWidget: React.FC<ClearWidgetProps> = ({ dispatch, refs }) => (
+const ClearWidget: React.FC<ClearWidgetProps> = ({ onClear }) => (
   <Tooltip arrow title="clear search form">
     <IconButton
       color="primary"
       size="small"
-      onClick={() => {
-        for (const r of refs) {
-          r.current!.value = ""
-        }
-        phraseSearch({})
-          .then((searchResults) =>
-            dispatch({
-              action: "search",
-              search: {},
-              searchResults,
-            })
-          )
-          .catch(errorHandler(dispatch))
-      }}
+      onClick={onClear}
     >
       <ClearIcon fontSize="inherit" />
     </IconButton>
@@ -728,7 +727,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
 type TextSearchWidgetProps = {
   placeholder: string
   field: "lemma" | "text"
-  textRef: React.MutableRefObject<HTMLInputElement | undefined>
+  textRef: React.Ref<HTMLInputElement>
   search: FreeFormSearch
   searchResults: SearchResults
   dispatch: React.Dispatch<Action>

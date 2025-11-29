@@ -273,7 +273,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             }
             variant="standard"
             hiddenLabel
-            placeholder="Lemma Note"
+            placeholder="Gloss"
             defaultValue={phrase.note}
             inputRef={noteRef}
             sx={{ width: "100%", pb: 1 }}

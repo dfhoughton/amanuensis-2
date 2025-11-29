@@ -508,7 +508,7 @@
       <figure id="note-figure">
         <img src="images/note.png" alt="the parts of a note" />
         <figcaption>
-          A note: 1) lemma; 2) save icon; 3) language; 4) lemma note; 5)
+          A note: 1) lemma; 2) save icon; 3) language; 4) gloss; 5)
           elaboration; 6) tags; 7) links; 8) citation title; 9) citation date;
           10) citation URL; 11) citation; 12) citation note; 13) citation tags
         </figcaption>
@@ -571,15 +571,15 @@
         will attempt to map Google's guess onto these languages. The language
         selector allows you to edit this guess when Amanuensis gets it wrong.
       </p>
-      <h4>lemma note</h4>
+      <h4>gloss</h4>
       <p>
         This is where you write things that are true for all uses of the
         phrase. Typically, this is the phrase's definition.
       </p>
       <p>
-        The note should be <i>short</i>. It is used in
-        <a href="#quiz">quizzes</a>, where it is referred to as the <a
-          href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>. Long notes make for ugly flip
+        The gloss should be <i>short</i>, like the word <a href="https://en.wiktionary.org/wiki/gloss#Noun_2">gloss</a>
+        itself. It is used in
+        <a href="#quiz">quizzes</a>. Long notes make for ugly flip
         cards. Save rambling for the <a href="#elaboration">elaboration</a>.
       </p>
       <h4 id="elaboration">elaboration</h4>
@@ -590,7 +590,7 @@
       </p>
       <p>
         The flashcards in the <a href="#quiz">quizzes</a> contain the lemma
-        and language on one side and the lemma note/gloss and tags on the other. Any
+        and language on one side and the gloss and tags on the other. Any
         elaboration is excluded.
       </p>
       <figure id="tag-figure">
@@ -616,7 +616,11 @@
         <a href="#note-figure">the figure</a>, the motivation for linking the
         two notes was that they both contain <i>vallat</i>. You might link
         notes because they are synonyms or antonyms, or for any reason
-        whatsoever.
+        whatsoever.<span class="fn">In the first version of Amanuensis, links were were categorized &mdash; synonyms,
+          antonyms, etc. This was cumbersome, and didn't work well for non-symmetric relations. In a part-whole
+          relation, for instance, you needed to specify which side was the whole and which the part. In this iteration I
+          dropped all that complexity. I figure these are your own notes. You'll remember how two related phrases are
+          related.</span>
       </p>
       <p>Clicking on a link takes you to the note linked.</p>
       <p>
@@ -657,7 +661,7 @@
       </p>
       <p>
         You only have these options for the currently displayed citation.
-        Click on another to display it. 5 in
+        Click on another to display it. (5) in
         <a href="#citation-figure">the figure</a> is a non-selected citation.
         For non-selected citations only the form, any note for that citation,
         and the date it was recorded are displayed.
@@ -725,7 +729,7 @@
         search has a form (2). Every search results in zero or more notes (3).
       </p>
       <p>
-        Each note in turn is represented by its lemma (4), its lemma note (5),
+        Each note in turn is represented by its lemma (4), its gloss (5),
         its language (6), and some actions one may take: merge the note with
         the current note &mdash; the note currently displayed in the
         <a href="#note">note tab</a> &mdash; (7), link the note to the current
@@ -740,7 +744,7 @@
       <figure id="results-figure">
         <img src="images/result.png" alt="a search result" />
         <figcaption>
-          A search result: 1) lemma; 2) lemma note; 3) locale; 4) merge; 5)
+          A search result: 1) lemma; 2) gloss; 3) locale; 4) merge; 5)
           link; 6) delete
         </figcaption>
       </figure>
@@ -751,7 +755,7 @@
         <a href="#results-figure">the figure</a> for a sample search result.
       </p>
       <p>
-        In addition to the lemma, lemma note, and locale, each results
+        In addition to the lemma, gloss, and locale, each results
         provides a number of actions one may take: merge this note with the
         note currently displayed in the <a href="#note">note tab</a>, link it
         to that note, or delete it from the database. The more destructive of
@@ -774,7 +778,7 @@
       <p>
         There are two areas that allow you to search text, the lemma area and
         the free text area. The first searches only lemmas. The second
-        searches lemmas, notes, citations &mdash; the phrases themselves and
+        searches lemmas, glosses, citations &mdash; the phrases themselves and
         the context before and after &mdash; and citation notes.
       </p>
       <p>
