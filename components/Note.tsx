@@ -83,7 +83,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
-  }, [phrase?.relations, dispatch, phrase])
+  }, [phrase?.relations, dispatch, phrase?.id])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
   const lemmaRef = useRef<HTMLInputElement>(null)

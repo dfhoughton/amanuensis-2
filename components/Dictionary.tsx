@@ -193,7 +193,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
-  }, [phrase?.relations, dispatch, phrase])
+  }, [phrase?.relations, dispatch, phrase?.id])
   return (
     <>
       <TabContext value={searchTab}>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { AppState, exhaustiveGuard } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
@@ -11,7 +11,6 @@ import {
   LinearProgress,
   Link,
   Modal,
-  Skeleton,
   Stack,
   Tab,
   Tooltip,
@@ -27,7 +26,6 @@ import {
   PreparedTrial,
   Summary,
 } from "../util/spaced_repetition"
-import { useEnsureConfiguration } from "../hooks/configuration"
 import TabContext from "@mui/lab/TabContext"
 import TabList from "@mui/lab/TabList"
 import TabPanel from "@mui/lab/TabPanel"
@@ -54,27 +52,13 @@ export const SpacedRepetitionQuiz: React.FC<QuizProps> = ({
   dispatch,
 }) => {
   // set up initial quiz state
-  const [quiz, setQuiz] = useState<DailyQuiz>()
-  const [version, setVersion] = useState(1)
-  const bumpVersion = () => setVersion(version + 1)
-  useEnsureConfiguration(state, dispatch)
-  useEffect(() => {
-    if (state.config) {
-      setQuiz(new DailyQuiz(state.config))
-    }
-  }, [state.config, version])
+  const quiz = useMemo(() => new DailyQuiz(state.config!), [state.config])
   return (
-    <>
-      {!!quiz && (
-        <QuizTabs
-          quiz={quiz!}
-          state={state}
-          dispatch={dispatch}
-          bumpVersion={bumpVersion}
-        />
-      )}
-      {!quiz && <SkeletonCard />}
-    </>
+    <QuizTabs
+      quiz={quiz}
+      state={state}
+      dispatch={dispatch}
+    />
   )
 }
 
@@ -82,14 +66,12 @@ type QuizTabsProps = {
   quiz: DailyQuiz
   state: AppState
   dispatch: React.Dispatch<Action>
-  bumpVersion: VoidFunction
 }
 
 const QuizTabs: React.FC<QuizTabsProps> = ({
   quiz,
   state,
   dispatch,
-  bumpVersion,
 }) => {
   return (
     <Stack sx={{ p: 0, justifyContent: "space-between" }}>
@@ -112,7 +94,6 @@ const QuizTabs: React.FC<QuizTabsProps> = ({
             quiz={quiz}
             state={state}
             dispatch={dispatch}
-            bumpVersion={bumpVersion}
             quizzingOnLemmas={true}
           />
         </TabPanel>
@@ -121,7 +102,6 @@ const QuizTabs: React.FC<QuizTabsProps> = ({
             quiz={quiz}
             state={state}
             dispatch={dispatch}
-            bumpVersion={bumpVersion}
             quizzingOnLemmas={false}
           />
         </TabPanel>
@@ -135,7 +115,6 @@ type QuizCardProps = {
   quizzingOnLemmas: boolean
   state: AppState
   dispatch: React.Dispatch<Action>
-  bumpVersion: VoidFunction
 }
 
 const QuizCard: React.FC<QuizCardProps> = ({
@@ -143,7 +122,6 @@ const QuizCard: React.FC<QuizCardProps> = ({
   quizzingOnLemmas,
   state,
   dispatch,
-  bumpVersion,
 }) => {
   const [flipped, setFlipped] = useState(false)
   const [changingCards, setChangingCards] = useState(false)
@@ -285,7 +263,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
                 onClick={async () => {
                   void (await quiz
                     .newQuiz(quizzingOnLemmas)
-                    .then(bumpVersion)
+                    .then(nextCard)
                     .catch(errorHandler(dispatch)))
                 }}
               >
@@ -555,16 +533,6 @@ const IconForOutcome: React.FC<{
     default:
       exhaustiveGuard(outcome)
   }
-}
-
-const SkeletonCard: React.FC = () => {
-  return (
-    <>
-      <Skeleton />
-      <Skeleton />
-      <Skeleton />
-    </>
-  )
 }
 
 const SummarizeQuiz: React.FC<{ summary: Summary }> = ({ summary }) => {

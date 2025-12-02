@@ -11,7 +11,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
     chrome.runtime.sendMessage(
       { action: "open" } as MessageFromPopupToBackground,
       (response: MessageFromBackgroundToPopup) => {
-        switch (response.action) {
+        switch (response?.action) {
           case "error":
           case "noSelection":
           case "phraseSelected":
@@ -24,7 +24,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
             )
             dispatch({
               action: "error",
-              message: `Unhandled message from background to popup; type: ${response.action}`,
+              message: `Unhandled message from background to popup; type: ${response?.action}`,
             })
         }
       }

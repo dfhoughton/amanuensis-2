@@ -245,20 +245,13 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   languages,
   dispatch,
 }) => {
-  const [_languageIds, setLanguageIds] = useState<number[]>()
-  useEffect(() => {
-    setLanguageIds([...(tag.languages ?? [])])
-  }, [tag.id, tag.languages])
+  const [_languageIds, setLanguageIds] = useState<number[]>(tag.languages ?? [])
   const unique = useCallback((tag: Tag) =>
     !tags.some((t) => t.id !== tag.id && t.name === tag.name), [tags])
   const error = !unique(tag)
   const tagHasUniqueName = useCallback((tag: Tag) =>
     !!(tag.name && /\S/.test(tag.name) && unique(tag)), [unique])
-  const [submissible, setSubmissible] = useState(false)
-  // we have just the one modal, so we have to reset this each time we pop it open with a different tag
-  useEffect(() => {
-    setSubmissible(tagHasUniqueName(tag))
-  }, [tag.name, tag.id, tag, tagHasUniqueName])
+  const [submissible, setSubmissible] = useState(!open) // initially false
   const handleLabelChange: (e: React.ChangeEvent<HTMLInputElement>) => void =
     debounce((e) => {
       setTag({ ...tag, name: e.target.value })

@@ -53,7 +53,7 @@ const App: React.FC = () => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Container sx={{ width, px: 2 }}>
-          <TabContext value={state.tab}>
+          {state.config && <TabContext value={state.tab}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <TabList
                 onChange={(_e, tab) => {
@@ -82,7 +82,7 @@ const App: React.FC = () => {
             <TabPanel value={AppTabs.Configuration}>
               <Configuration state={state} dispatch={dispatch} />
             </TabPanel>
-          </TabContext>
+          </TabContext>}
           <Snackbar
             open={!!state.message}
             autoHideDuration={5000}
