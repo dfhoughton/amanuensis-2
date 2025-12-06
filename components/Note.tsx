@@ -63,13 +63,13 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
         setLanguages(languages)
         setCurrentLanguage(languages.find((l) => l.id === phrase?.languageId))
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining languages for note"))
   }, [state.languageId, dispatch, phrase?.languageId])
   const [tags, setTags] = useState<Tag[] | undefined>()
   useEffect(() => {
     knownTags()
       .then((tags) => setTags(sortTags(tags)))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining tags for note"))
   }, [dispatch])
   useEffect(() => {
     if (!phrase?.id) return
@@ -79,7 +79,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
           relatedPhrases.delete(phrase.id!)
           dispatch({ action: "relatedPhrasesChanged", relatedPhrases })
         })
-        .catch(errorHandler(dispatch))
+        .catch(errorHandler(dispatch, "obtaining related phrases for note"))
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
@@ -120,7 +120,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     const newPhrase = phrase?.id === undefined
     savePhrase(phrase!)
       .then((_p) => dispatch({ action: "phraseSaved", newPhrase }))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "saving phrase"))
   }
   const back = () => {
     const { history = [] } = state
@@ -136,7 +136,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             citationIndex: selectCitation(p.citations),
           })
         })
-        .catch(errorHandler(dispatch))
+        .catch(errorHandler(dispatch, "going back"))
     } else {
       bell()
     }
@@ -349,7 +349,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                                 relations,
                               })
                             })
-                            .catch(errorHandler(dispatch))
+                            .catch(errorHandler(dispatch, "deleting relation after clicking delete icon"))
                         }}
                       />
                     </Tooltip>
@@ -628,7 +628,7 @@ const ClickableText: React.FC<ClickableTextProps> = ({
         setWords(parts)
         setWordMap(map)
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "splitting text for clickable text"))
   }, [text, language, dispatch])
   return (
     <>
@@ -786,7 +786,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
                         searchResults,
                       })
                     })
-                    .catch(errorHandler(dispatch))
+                    .catch(errorHandler(dispatch, "searching for phrases on page after clicking citation link"))
                 }
               }
             )

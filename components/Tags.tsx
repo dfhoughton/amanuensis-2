@@ -46,7 +46,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
         tags = sortTags(tags)
         setTags(tags)
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining known tags for tags page"))
   }, [version, dispatch])
   const bumpVersion = () => setVersion(version + 1)
   const [modalTag, setModalTag] = useState<Tag>({ name: "" })
@@ -54,7 +54,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
   useEffect(() => {
     perhapsStaleLanguages()
       .then((languages) => setLanguages(languages))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining languages for tags"))
   }, [dispatch])
   return (
     <Box sx={{ minHeight: "400px" }}>
@@ -121,7 +121,7 @@ export const tagSearch =
           tab: AppTabs.Dictionary,
         })
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "searching for phrases after clicking tag"))
   }
 
 export type TagRowProps = {
@@ -213,7 +213,7 @@ export const TagRow: React.FC<TagRowProps> = ({
                       message: `${verb} affected by the deletion of tag "${tag.name}".`,
                     })
                   })
-                  .catch(errorHandler(dispatch))
+                  .catch(errorHandler(dispatch, "deleting tag after clicking delete icon"))
               }}
             >
               <DeleteIcon fontSize="inherit" />
@@ -263,7 +263,7 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
         setOpen(false)
         bumpVersion()
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "saving tag after clicking save button in modal"))
   return (
     <Modal
       open={open}

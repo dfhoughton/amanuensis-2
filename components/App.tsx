@@ -39,7 +39,7 @@ const App: React.FC = () => {
       .then((c) => {
         dispatch({ action: "config", config: c ?? {} })
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining configuration for app"))
   }, [])
   return (
     <ErrorBoundary

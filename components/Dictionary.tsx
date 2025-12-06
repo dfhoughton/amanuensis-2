@@ -116,7 +116,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
             setFs(search)
             dispatch({ action: "search", searchResults, search })
           })
-          .catch(errorHandler(dispatch))
+          .catch(errorHandler(dispatch, "searching for phrase"))
       }
     } else if (searchTab == SearchTabs.Similar) {
       const search = {
@@ -139,7 +139,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
               search,
             })
           })
-          .catch(errorHandler(dispatch))
+          .catch(errorHandler(dispatch, "searching for similar phrases"))
       }
     } else {
       const search = state.urlSearch ?? uSearch
@@ -159,7 +159,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
               search,
             })
           })
-          .catch(errorHandler(dispatch))
+          .catch(errorHandler(dispatch, "searching for phrases on page"))
       }
     }
   }, [
@@ -178,7 +178,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   useEffect(() => {
     perhapsStaleLanguages()
       .then((languages) => setLanguages(languages))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining available languages"))
   }, [dispatch])
   // we need related phrases for the link widgets
   useEffect(() => {
@@ -189,11 +189,11 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
           relatedPhrases.delete(phrase.id!)
           dispatch({ action: "relatedPhrasesChanged", relatedPhrases })
         })
-        .catch(errorHandler(dispatch))
+        .catch(errorHandler(dispatch, `obtaining related phrases for phrase ${phrase.lemma} (${phrase.id})`))
     } else {
       dispatch({ action: "relatedPhrasesChanged", relatedPhrases: new Map() })
     }
-  }, [phrase?.relations, dispatch, phrase?.id])
+  }, [phrase?.relations, dispatch, phrase?.id, phrase?.lemma])
   return (
     <>
       <TabContext value={searchTab}>
@@ -274,7 +274,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   useEffect(() => {
     knownTags()
       .then((tags) => setTags(sortTags(tags)))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining available tags for general search"))
   }, [dispatch])
   const [_languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
@@ -289,7 +289,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           searchResults,
         })
       )
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "clearing general search"))
   }
   return (
     <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
@@ -326,7 +326,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after adding tag"))
             }}
             removeTag={(t) => {
               const tags = search.tags!.filter((tag) => tag !== t.id)
@@ -339,7 +339,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after removing tag"))
             }}
           />
         </Grid>
@@ -360,7 +360,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after removing language"))
             }}
             onAdd={(l) => () => {
               let languages = search.languages ?? []
@@ -379,7 +379,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
                   })
                   setLanguageMenuAnchorEl(null)
                 })
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after adding language"))
             }}
           />
         </Grid>
@@ -479,7 +479,7 @@ const SortWidget: React.FC<SortWidgetProps> = ({ state, search, dispatch }) => {
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after sorting"))
             }}
           >
             {description}
@@ -564,7 +564,7 @@ const UrlSearchForm: React.FC<UrlSearchFormProps> = ({ state, dispatch }) => {
                 searchResults,
               })
             )
-            .catch(errorHandler(dispatch))
+            .catch(errorHandler(dispatch, "searching for phrases on page"))
         }, 500) as React.ChangeEventHandler<HTMLInputElement>
       }
     />
@@ -618,7 +618,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for similar phrases after editing phrase"))
             }, 500) as React.ChangeEventHandler<HTMLInputElement>
           }
         />
@@ -642,7 +642,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                   searchResults,
                 })
               )
-              .catch(errorHandler(dispatch))
+              .catch(errorHandler(dispatch, "searching for similar phrases after removing language"))
           }}
           onAdd={(l) => () => {
             const languageIds = [...(langs ?? []), l.id!]
@@ -659,7 +659,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                   searchResults,
                 })
               )
-              .catch(errorHandler(dispatch))
+              .catch(errorHandler(dispatch, "searching for similar phrases after adding language"))
           }}
         />
       </Grid>
@@ -705,7 +705,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
                         searchResults,
                       })
                     )
-                    .then(errorHandler(dispatch))
+                    .catch(errorHandler(dispatch, "searching for similar phrases after changing metric"))
                   const config = state.config ?? {}
                   dispatch({
                     action: "distanceMetric",
@@ -763,7 +763,7 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
                     searchResults,
                   })
                 )
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "searching for phrases after editing text"))
             }, 500) as React.ChangeEventHandler<HTMLInputElement>
           }
           variant="standard"
@@ -870,7 +870,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
               .then((searchResults) =>
                 dispatch({ action: "search", search, searchResults })
               )
-              .catch(errorHandler(dispatch))
+              .catch(errorHandler(dispatch, "searching for phrases after clicking boolean bubble"))
           } else {
             dispatch({ action: "search", search, searchResults })
           }
@@ -920,7 +920,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                       searchResults: results,
                     })
                   )
-                  .catch(errorHandler(dispatch))
+                  .catch(errorHandler(dispatch, "searching for phrases after clicking pagination"))
               } else if (state.searchTab === SearchTabs.Page) {
                 const s: UrlSearch = { ...state.urlSearch, page: p } as UrlSearch
                 phrasesOnPage(s).then((results) =>
@@ -943,7 +943,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                       searchResults: results,
                     })
                   )
-                  .catch(errorHandler(dispatch))
+                  .catch(errorHandler(dispatch, "searching for phrases after clicking pagination"))
               }
             }}
           />
@@ -1065,7 +1065,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                                       } is now linked to ${p.lemma}`,
                                   })
                                 })
-                                .catch(errorHandler(dispatch))
+                                .catch(errorHandler(dispatch, "creating relation after clicking link icon"))
                             }
                         }
                       />
@@ -1106,7 +1106,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
               setDeletedPhrase(undefined)
               dispatch({ action: "phraseDeleted", phrase: deletedPhrase! })
             })
-            .catch(errorHandler(dispatch))
+            .catch(errorHandler(dispatch, "deleting phrase after clicking ok button in confirmation modal"))
         }}
       >
         This action is irreversible!
@@ -1144,7 +1144,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
     setMerged({ ...(to ?? emptyPhrase) })
     knownTags()
       .then((tags) => setTags(tags))
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "obtaining tags for merge modal"))
   }, [f, to, dispatch, emptyPhrase])
   const closeAll = () => {
     close()
@@ -1313,7 +1313,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
                   dispatch({ action: "merged", phrase })
                   closeAll()
                 })
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "merging phrases after clicking merge button"))
             }}
           >
             Merge
