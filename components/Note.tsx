@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material"
 import Grid from "@mui/material/Grid2"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
   Citation,
@@ -72,7 +72,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       .catch(errorHandler(dispatch))
   }, [dispatch])
   useEffect(() => {
-    if (!phrase) return
+    if (!phrase?.id) return
     if (phrase.relations) {
       phrasesForRelations(phrase.relations)
         .then((relatedPhrases) => {
@@ -91,6 +91,11 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   // on phrase change, focus the note element; the chief purpose of this is to get the keypress handler to work
   useEffect(() => noteRef?.current?.focus(), [phrase?.id])
   const elaborationRef = useRef<HTMLInputElement>(null)
+  const setPhraseRefs = useCallback((phrase: Phrase) => {
+    lemmaRef.current!.value = phrase.lemma
+    noteRef.current!.value = phrase.note ?? ""
+    elaborationRef.current!.value = phrase.elaboration ?? ""
+  }, [lemmaRef, noteRef, elaborationRef])
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
@@ -124,9 +129,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       getPhrase(history[history.length - 1])
         .then((p) => {
           if (!p) return
-          lemmaRef.current!.value = p.lemma
-          noteRef.current!.value = p.note ?? ""
-          elaborationRef.current!.value = p.elaboration ?? ""
+          setPhraseRefs(p)
           dispatch({
             action: "goto",
             phrase: p,
@@ -333,9 +336,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                         onClick={() => {
                           // todo: add confirmation modal to protect unsaved state
                           dispatch({ action: "relationClicked", phrase: p })
-                          lemmaRef.current!.value = p.lemma
-                          noteRef.current!.value = p.note ?? ""
-                          elaborationRef.current!.value = p.elaboration ?? ""
+                          setPhraseRefs(p)
                         }}
                         onDelete={() => {
                           deleteRelation(rid)
@@ -365,11 +366,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               chosen={state.citationIndex === i}
               onlyCitation={(phrase?.citations.length ?? 0) < 2}
               currentLanguage={currentLanguage}
-              lemmaRef={lemmaRef as React.MutableRefObject<HTMLInputElement>}
-              noteRef={noteRef as React.MutableRefObject<HTMLInputElement>}
-              elaborationRef={
-                elaborationRef as React.MutableRefObject<HTMLInputElement>
-              }
+              setPhraseRefs={setPhraseRefs}
               state={state}
               dispatch={dispatch}
             />
@@ -387,9 +384,7 @@ type CitationInBriefProps = {
   chosen: boolean
   tags: Tag[] | undefined
   onlyCitation: boolean
-  lemmaRef: React.MutableRefObject<HTMLInputElement>
-  noteRef: React.MutableRefObject<HTMLInputElement>
-  elaborationRef: React.MutableRefObject<HTMLInputElement>
+  setPhraseRefs: (phrase: Phrase) => void
   currentLanguage: Language | undefined
   state: AppState
   dispatch: React.Dispatch<Action>
@@ -401,9 +396,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   tags,
   chosen,
   onlyCitation,
-  lemmaRef,
-  noteRef,
-  elaborationRef,
+  setPhraseRefs,
   currentLanguage,
   state,
   dispatch,
@@ -518,9 +511,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
             <ClickableText
               text={before}
               language={currentLanguage}
-              lemmaRef={lemmaRef}
-              noteRef={noteRef}
-              elaborationRef={elaborationRef}
+              setPhraseRefs={setPhraseRefs}
               dispatch={dispatch}
             />
           )}
@@ -530,9 +521,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
             <ClickableText
               text={after}
               language={currentLanguage}
-              lemmaRef={lemmaRef}
-              noteRef={noteRef}
-              elaborationRef={elaborationRef}
+              setPhraseRefs={setPhraseRefs}
               dispatch={dispatch}
             />
           )}
@@ -619,9 +608,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
 type ClickableTextProps = {
   text: string
   language: Language
-  lemmaRef: React.MutableRefObject<HTMLInputElement>
-  noteRef: React.MutableRefObject<HTMLInputElement>
-  elaborationRef: React.MutableRefObject<HTMLInputElement>
+  setPhraseRefs: (phrase: Phrase) => void
   dispatch: React.Dispatch<Action>
 }
 
@@ -630,9 +617,7 @@ type ClickableTextProps = {
 const ClickableText: React.FC<ClickableTextProps> = ({
   text,
   language,
-  lemmaRef,
-  noteRef,
-  elaborationRef,
+  setPhraseRefs,
   dispatch,
 }) => {
   const [words, setWords] = useState<string[]>([text])
@@ -653,9 +638,7 @@ const ClickableText: React.FC<ClickableTextProps> = ({
           word={w}
           wordMap={wordMap}
           language={language}
-          lemmaRef={lemmaRef}
-          noteRef={noteRef}
-          elaborationRef={elaborationRef}
+          setPhraseRefs={setPhraseRefs}
           dispatch={dispatch}
         />
       ))}
@@ -667,9 +650,7 @@ type ClickableWordProps = {
   word: string
   wordMap: Map<string, Phrase>
   language: Language
-  lemmaRef: React.MutableRefObject<HTMLInputElement>
-  noteRef: React.MutableRefObject<HTMLInputElement>
-  elaborationRef: React.MutableRefObject<HTMLInputElement>
+  setPhraseRefs: (phrase: Phrase) => void
   dispatch: React.Dispatch<Action>
 }
 
@@ -678,9 +659,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
   word,
   wordMap,
   language,
-  lemmaRef,
-  noteRef,
-  elaborationRef,
+  setPhraseRefs,
   dispatch,
 }) => {
   const phrase = wordMap.get(word.toLocaleLowerCase(language.locale))
@@ -707,9 +686,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
         onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
-          lemmaRef.current!.value = phrase.lemma
-          noteRef.current!.value = phrase.note ?? ""
-          elaborationRef.current!.value = phrase.elaboration ?? ""
+          setPhraseRefs(phrase)
           dispatch({
             action: "goto",
             phrase,

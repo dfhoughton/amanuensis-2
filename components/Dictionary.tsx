@@ -182,7 +182,7 @@ export const Dictionary: React.FC<DictionaryProps> = ({ state, dispatch }) => {
   }, [dispatch])
   // we need related phrases for the link widgets
   useEffect(() => {
-    if (!phrase) return
+    if (!phrase?.id) return
     if (phrase.relations) {
       phrasesForRelations(phrase.relations)
         .then((relatedPhrases) => {
