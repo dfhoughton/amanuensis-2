@@ -361,14 +361,15 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
             languageIds={tag.languages ?? []}
             onAdd={(l: Language) => () => {
               if (!tag.languages!.some((lang) => lang === l.id)) {
-                tag.languages = [...tag.languages!, l.id!]
-                setLanguageIds(tag.languages)
+                const languages = [...tag.languages!, l.id!]
+                setTag({ ...tag, languages })
+                setLanguageIds(languages)
               }
             }}
             onDelete={(l: Language) => () => {
-              const langs = tag.languages!.filter((lang) => lang !== l.id)
-              tag.languages = langs
-              setLanguageIds(langs)
+              const languages = tag.languages!.filter((lang) => lang !== l.id)
+              setTag({ ...tag, languages })
+              setLanguageIds(languages)
             }}
           />
           <Stack direction="row" sx={{ justifyContent: "space-between" }}>
