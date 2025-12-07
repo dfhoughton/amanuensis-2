@@ -43,7 +43,7 @@ import SortIcon from "@mui/icons-material/Sort"
 import ClearIcon from "@mui/icons-material/Clear"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid";
 import isEqual from "lodash/isEqual"
 import {
   createRelation,
