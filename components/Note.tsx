@@ -184,6 +184,13 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 defaultValue={phrase?.lemma}
                 sx={{ width: "100%", pn: 1 }}
                 inputRef={lemmaRef}
+                slotProps={{
+                  input: {
+                    style: {
+                      fontWeight: 700,
+                    },
+                  },
+                }}
               />
             </Grid>
             <Grid size={1}>
@@ -299,6 +306,13 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             defaultValue={phrase.elaboration}
             inputRef={elaborationRef}
             sx={{ width: "100%", pb: 1 }}
+            slotProps={{
+              input: {
+                style: {
+                  color: 'rgba(0, 0, 0, 0.6)',
+                },
+              },
+            }}
           />
           <TagWidget
             tags={tags}
@@ -545,6 +559,13 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           placeholder="Citation Note"
           defaultValue={citation.note}
           sx={{ width: "85%" }}
+          slotProps={{
+            input: {
+              style: {
+                color: "rgba(0, 0, 0, 0.6)",
+              },
+            },
+          }}
         />
         <TagWidget
           tags={tags}
