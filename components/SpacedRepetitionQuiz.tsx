@@ -148,7 +148,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
       .then(() => {
         quiz.summary(quizzingOnLemmas).then((s) => setSummary(s))
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored either getting next card or summary"))
   }, [quiz, quizzingOnLemmas, dispatch])
   // reveal the first card on mount
   useEffect(() => {
@@ -158,7 +158,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
     if (!(quiz.empty(quizzingOnLemmas) || card)) {
       newPhraseCount(quizzingOnLemmas)
         .then((n) => setNewCount(n))
-        .catch(errorHandler(dispatch))
+        .catch(errorHandler(dispatch, "setting new phrase count failed"))
     }
   }, [quiz, quizzingOnLemmas, card, dispatch])
   const topic = card?.phrase[quizzingOnLemmas ? "lemma" : "note"]
@@ -264,7 +264,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
                   void (await quiz
                     .newQuiz(quizzingOnLemmas)
                     .then(nextCard)
-                    .catch(errorHandler(dispatch)))
+                    .catch(errorHandler(dispatch, "errored either getting a new quiz or setting its first card")))
                 }}
               >
                 <Badge badgeContent={newCount} color="success">
@@ -406,9 +406,9 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
         quiz
           .summary(quizzingOnLemmas)
           .then((summary) => setSummary(summary))
-          .catch(errorHandler(dispatch))
+          .catch(errorHandler(dispatch, "errored getting new summary for display"))
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored recording trial"))
   }
   const maybeAutoGraduate = success && outcome === "good"
   const handler = maybeAutoGraduate

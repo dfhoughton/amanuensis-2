@@ -58,17 +58,17 @@ export const BigLanguageChip: React.FC<BigLanguageChipProps> = ({
 // for creating a click handler for tags that runs a tag search
 export const languageSearch =
   (lang: Language, dispatch: React.Dispatch<Action>) =>
-  (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const s = { languages: [lang.id!] }
-    phraseSearch(s)
-      .then((searchResults) => {
-        dispatch({
-          action: "search",
-          search: s,
-          searchResults,
-          tab: AppTabs.Dictionary,
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      const s = { languages: [lang.id!] }
+      phraseSearch(s)
+        .then((searchResults) => {
+          dispatch({
+            action: "search",
+            search: s,
+            searchResults,
+            tab: AppTabs.Dictionary,
+          })
         })
-      })
-      .catch(errorHandler(dispatch))
-  }
+        .catch(errorHandler(dispatch, "errored upon initiating a language search"))
+    }

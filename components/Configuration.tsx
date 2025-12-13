@@ -70,13 +70,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
 }) => {
   const [version, setVersion] = useState(0)
   const { config } = state
-  useEffect(() => {
-    configuration()
-      .then((c) => {
-        dispatch({ action: "config", config: c ?? {} })
-      })
-      .catch(errorHandler(dispatch))
-  }, [dispatch])
   const maxSimilarPhrasesHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
       ...config,
@@ -86,7 +79,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       .then(() => {
         dispatch({ action: "config", config: c })
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored upon saving configuration change when setting max similar phrases"))
   }
   const autoGraduateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
@@ -97,7 +90,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       .then(() => {
         dispatch({ action: "config", config: c })
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored when saving auto-graduate count"))
   }
   const distanceMetricHandler = (e: SelectChangeEvent) => {
     const c: ConfigurationType = {
@@ -108,7 +101,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       .then(() => {
         dispatch({ action: "distanceMetric", config: c })
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored when saving distance metric"))
   }
   return (
     <>
@@ -214,7 +207,7 @@ export const Languages: React.FC<LanguagesProps> = ({
       .then((langs) => {
         setLanguages(langs)
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored when loading languages"))
   }, [version, dispatch])
   const [languageMenuAnchorEl, setLanguageMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
@@ -231,14 +224,14 @@ export const Languages: React.FC<LanguagesProps> = ({
         if (c === 0) {
           addLanguage(languageName, locale, false)
             .then(() => setVersion(version + 1))
-            .catch(errorHandler(dispatch))
+            .catch(errorHandler(dispatch, "errored when adding language"))
         } else {
           setName(languageName)
           setLocale(locale)
           setOpenAddLanguageModal(true)
         }
       })
-      .catch(errorHandler(dispatch))
+      .catch(errorHandler(dispatch, "errored when counting phrases for language"))
     setLanguageMenuAnchorEl(null)
   }
   const deleteLanguage = (language: Language) => () => {
@@ -323,7 +316,7 @@ export const Languages: React.FC<LanguagesProps> = ({
                           tab: AppTabs.Dictionary,
                         })
                       })
-                      .catch(errorHandler(dispatch))
+                      .catch(errorHandler(dispatch, "errored when initiating a language search"))
                   }}
                 >
                   {l.name}
@@ -428,7 +421,7 @@ const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
               setOpen(false)
               addLanguage(name!, locale!, true)
                 .then(() => setVersion(version + 1))
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "errored when adding language and moving notes to this language"))
             }}
           >
             Move
@@ -440,7 +433,7 @@ const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
               setOpen(false)
               addLanguage(name!, locale!, false)
                 .then(() => setVersion(version + 1))
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "errored when adding language and leaving notes in their original language"))
             }}
           >
             Leave
@@ -507,7 +500,7 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
               setLanguage(undefined)
               removeLanguage(language!, true)
                 .then(() => setVersion(version + 1))
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "errored when removing language and moving notes to unknown language"))
             }}
           >
             Move
@@ -519,7 +512,7 @@ const RemoveLanguageModal: React.FC<RemoveLanguageModalProps> = ({
               setLanguage(undefined)
               removeLanguage(language!, false)
                 .then(() => setVersion(version + 1))
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "errored when removing language and deleting notes"))
             }}
           >
             Delete
@@ -606,7 +599,7 @@ export const DbActions: React.FC<DbActionProps> = ({
               setVersion(version + 1)
               dispatch({ action: "phrasesDeleted" })
             })
-            .catch(errorHandler(dispatch))
+            .catch(errorHandler(dispatch, "errored when clearing database"))
         }}
         setOpen={setClearDbModalOpen}
       >
@@ -734,7 +727,7 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
                   setVersion(version + 1)
                   setOpen(false)
                 })
-                .catch(errorHandler(dispatch))
+                .catch(errorHandler(dispatch, "errored when importing database"))
             }}
           >
             Import

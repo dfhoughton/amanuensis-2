@@ -309,7 +309,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
             slotProps={{
               input: {
                 style: {
-                  color: 'rgba(0, 0, 0, 0.6)',
+                  fontWeight: 300,
                 },
               },
             }}
@@ -562,7 +562,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           slotProps={{
             input: {
               style: {
-                color: "rgba(0, 0, 0, 0.6)",
+                fontWeight: 300,
               },
             },
           }}
