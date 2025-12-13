@@ -6,6 +6,7 @@ import {
   Button,
   Divider,
   IconButton,
+  Link,
   Modal,
   Stack,
   TextField,
@@ -17,6 +18,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import {
@@ -62,18 +64,47 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
         <Typography variant="h5" component="h1">
           Tags
         </Typography>
-        <Tooltip arrow title="Create a tag">
-          <IconButton
-            color="primary"
-            size="small"
-            onClick={() => {
-              setModalTag({ name: "", languages: [] })
-              setOpenAddTagModal(true)
+        <Stack direction="row" spacing={1} alignItems="flex-end">
+          <Tooltip arrow title="Create a tag">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => {
+                setModalTag({ name: "", languages: [] })
+                setOpenAddTagModal(true)
+              }}
+            >
+              <AddIcon fontSize="medium" />
+            </IconButton>
+          </Tooltip>
+          <Link
+            sx={{ cursor: "pointer" }}
+            onClick={async () => {
+              let [tab] = await chrome.tabs.query({
+                active: true,
+                lastFocusedWindow: true,
+              })
+              if (tab === undefined) {
+                // try a different query
+                const tabs = await chrome.tabs.query({
+                  active: true,
+                  currentWindow: true,
+                })
+                if (tabs.length === 1) tab = tabs[0]
+              }
+              if (tab?.id) {
+                chrome.tabs.sendMessage(tab.id, {
+                  action: "help",
+                  anchor: "tags",
+                })
+              }
             }}
           >
-            <AddIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+            <Tooltip title="go to the Amanuensis documentation concerning tags">
+              <HelpOutlineIcon />
+            </Tooltip>
+          </Link>
+        </Stack>
       </Stack>
       <Stack spacing={0.75} sx={{ mt: 2 }}>
         {tags

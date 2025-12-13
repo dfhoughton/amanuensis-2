@@ -32,7 +32,6 @@ import {
 } from "@mui/material"
 import {
   addLanguage,
-  configuration,
   countPhrasesWithLocale,
   exportDb,
   importDb,
@@ -131,11 +130,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             if (tab?.id) {
               chrome.tabs.sendMessage(tab.id, {
                 action: "help",
+                anchor: "configuration",
               })
             }
           }}
         >
-          <Tooltip title="go to the Amanuensis documentation">
+          <Tooltip title="go to the Amanuensis documentation concerning configuration">
             <HelpOutlineIcon />
           </Tooltip>
         </Link>
