@@ -11,6 +11,14 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
     chrome.runtime.sendMessage(
       { action: "open" } as MessageFromPopupToBackground,
       (response: MessageFromBackgroundToPopup) => {
+        if (response == null) {
+          console.error("received null response from background to popup; location 1")
+          dispatch({
+            action: "error",
+            message: "Received null response from background to popup",
+          })
+          return
+        }
         switch (response?.action) {
           case "error":
           case "noSelection":
@@ -36,6 +44,14 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
         _sender,
         _sendResponse: (m: MessageFromPopupToBackground) => void
       ) => {
+        if (message == null) {
+          console.error("received null message from background to popup; location 2")
+          dispatch({
+            action: "error",
+            message: "Received null message from background to popup",
+          })
+          return
+        }
         switch (message.action) {
           case "open":
             console.log('content script has loaded after navigation change')

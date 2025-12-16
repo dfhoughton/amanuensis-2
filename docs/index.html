@@ -536,12 +536,11 @@
         Click this to save the note. When you begin a note by highlighting
         some text and opening Amanuensis, it is not yet saved. If any part of
         the note is unsaved, the save icon will be enabled. If it is disabled
-        &mdash; gray &mdash; there is nothing to save.<span class="fn">I considered autosaving notes: every time you
-          make any edit it is
-          saved, perhaps after a short debounce period, maybe 400
-          milliseconds, so you aren't saving after every keypress. It is easy
-          to start notes accidentally, though. You have something highlighted
-          on the page. You forget about it. You open Amanuensis. Amanuensis
+        &mdash; gray &mdash; there is nothing to save.<span class="fn">I considered autosaving notes &mdash; every time
+          you make any edit it is saved, perhaps after a short debounce period,
+          maybe 400 milliseconds, so you aren't saving after every keypress. It
+          is easy to start notes accidentally, though. You have something
+          highlighted on the page. You forget about it. You open Amanuensis. Amanuensis
           begins an unwanted note. If you're autosaving, you now have to
           delete this. If you only autosave after the first save, that's
           complicated and hence fragile, and you need the save button anyway.
@@ -1323,7 +1322,7 @@
         bottomTag.scrollIntoView({ behavior: "smooth" })
       }
       bottomTag.onclick = (e) => {
-        highlight(n)
+        highlight(n.parentElement)
         storeHistory("#" + topTagId)
         topTag.scrollIntoView({ behavior: "smooth", block: "center" })
       }
