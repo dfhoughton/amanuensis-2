@@ -280,13 +280,13 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   const unique = useCallback((tag: Tag) =>
     !tags.some((t) => t.id !== tag.id && t.name === tag.name), [tags])
   const error = !unique(tag)
-  const tagHasUniqueName = useCallback((tag: Tag) =>
-    !!(tag.name && /\S/.test(tag.name) && unique(tag)), [unique])
+  const tagHasUniqueName = useCallback((tag: Tag) => !!tag.name && /\S/.test(tag.name) && unique(tag), [unique])
   const [submissible, setSubmissible] = useState(!open) // initially false
   const handleLabelChange: (e: React.ChangeEvent<HTMLInputElement>) => void =
     debounce((e) => {
-      setTag({ ...tag, name: e.target.value })
-      setSubmissible(tagHasUniqueName(e.target.value))
+      const newTag = { ...tag, name: e.target.value }
+      setTag(newTag)
+      setSubmissible(tagHasUniqueName(newTag))
     }, 250)
   const save = () =>
     saveTag(tag)
