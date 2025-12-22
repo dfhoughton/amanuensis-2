@@ -62,7 +62,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
           </Stack>
           {(!presentTags || tags.length > presentTags.length) && (
             <>
-              <Tooltip arrow title="Add a tag">
+              <Tooltip enterDelay={200} arrow title="Add a tag">
                 <IconButton
                   color="primary"
                   size="small"

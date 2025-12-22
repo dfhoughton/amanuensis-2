@@ -435,7 +435,7 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
   }
   return (
     <>
-      <Tooltip title={tt} arrow placement="top">
+      <Tooltip enterDelay={200} title={tt} arrow placement="top">
         <Stack sx={{ alignItems: "center", justifyContent: "center" }}>
           <IconButton onClick={handler}>
             <IconForOutcome outcome={outcome} success={success} />
@@ -619,7 +619,7 @@ const QuizCardHeader: React.FC = () => {
           }
         }}
       >
-        <Tooltip title="go to the Amanuensis documentation for the spaced repetition quiz">
+        <Tooltip enterDelay={200} arrow title="go to the Amanuensis documentation for the spaced repetition quiz">
           <HelpOutlineIcon />
         </Tooltip>
       </Link>

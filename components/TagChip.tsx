@@ -35,7 +35,7 @@ export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
     />
   )
   return description ? (
-    <Tooltip arrow title={description} enterDelay={500}>
+    <Tooltip enterDelay={200} arrow title={description}>
       {chip}
     </Tooltip>
   ) : (

@@ -665,7 +665,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
       </Grid>
       <Grid size={1}>
         <DistanceMetricDot metric={metric}>
-          <Tooltip arrow title={`Similarity metric: ${metric}`}>
+          <Tooltip enterDelay={200} arrow title={`Similarity metric: ${metric}`}>
             <IconButton
               color="primary"
               size="small"
@@ -870,7 +870,7 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
               .then((searchResults) =>
                 dispatch({ action: "search", search, searchResults })
               )
-              .catch(errorHandler(dispatch, "searching for phrases after clicking boolean bubble"))
+              .catch(errorHandler(dispatch, `searching for phrases after clicking ${letter} boolean bubble`))
           } else {
             dispatch({ action: "search", search, searchResults })
           }

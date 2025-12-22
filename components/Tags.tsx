@@ -65,7 +65,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
           Tags
         </Typography>
         <Stack direction="row" spacing={1} alignItems="flex-end">
-          <Tooltip arrow title="Create a tag">
+          <Tooltip enterDelay={200} arrow title="Create a tag">
             <IconButton
               color="primary"
               size="small"
@@ -100,7 +100,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
               }
             }}
           >
-            <Tooltip title="go to the Amanuensis documentation concerning tags">
+            <Tooltip enterDelay={200} arrow title="go to the Amanuensis documentation concerning tags">
               <HelpOutlineIcon />
             </Tooltip>
           </Link>
@@ -195,7 +195,7 @@ export const TagRow: React.FC<TagRowProps> = ({
               }
             />
           )}
-          <Tooltip arrow title="edit tag">
+          <Tooltip enterDelay={200} arrow title="edit tag">
             <IconButton
               color="primary"
               size="small"
@@ -208,7 +208,7 @@ export const TagRow: React.FC<TagRowProps> = ({
               <EditIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
-          <Tooltip arrow title="duplicate tag colors">
+          <Tooltip enterDelay={200} arrow title="duplicate tag colors">
             <IconButton
               color="primary"
               size="small"
@@ -225,7 +225,7 @@ export const TagRow: React.FC<TagRowProps> = ({
               <ContentCopyIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
-          <Tooltip arrow title="delete tag">
+          <Tooltip enterDelay={200} arrow title="delete tag">
             <IconButton
               color="primary"
               size="small"

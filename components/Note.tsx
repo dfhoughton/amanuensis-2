@@ -201,6 +201,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 }}
               >
                 <Tooltip
+                  enterDelay={200}
                   arrow
                   title={`When this is enabled, some part of this phrase is unsaved.${clean ? "" : " Click to save."
                     }`}
@@ -218,7 +219,11 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 </Tooltip>
                 {languages.length > 1 && (
                   <>
-                    <Tooltip arrow title="Change language assignment for note">
+                    <Tooltip
+                      enterDelay={200}
+                      arrow
+                      title="Change language assignment for note"
+                    >
                       <Badge
                         badgeContent={
                           currentLanguage?.locale === "und"
@@ -342,7 +347,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                 .sort((a, b) => (a[1][1].lemma < b[1][1].lemma ? -1 : 1)) // put them in alphabetical order
                 .map(([pid, [rid, p]]) => {
                   return (
-                    <Tooltip key={pid} arrow title={p.note!}>
+                    <Tooltip key={pid} enterDelay={200} arrow title={p.note!}>
                       <Chip
                         label={p.lemma}
                         size="small"
@@ -455,7 +460,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                 }}
               >
                 <MenuItem>
-                  <Tooltip title="The canonical citation is the one shown by default">
+                  <Tooltip enterDelay={200} arrow title="The canonical citation is the one shown by default">
                     <Button
                       color="secondary"
                       size="small"
@@ -687,6 +692,7 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
   if (!phrase) return <>{word}</>
   return (
     <Tooltip
+      enterDelay={200}
       arrow
       title={phrase.note}
       placement="bottom"
@@ -740,7 +746,7 @@ const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
       </Typography>
     )
   return (
-    <Tooltip arrow title={citation.title}>
+    <Tooltip enterDelay={200} arrow title={citation.title}>
       <Typography sx={sx}>{citation.title}</Typography>
     </Tooltip>
   )
@@ -832,7 +838,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
       </Typography>
     )
   return (
-    <Tooltip arrow title={url}>
+    <Tooltip enterDelay={200} arrow title={url}>
       <Link
         sx={{ cursor: "pointer", overflow: "hidden" }}
         onClick={linkHandler}
@@ -863,7 +869,7 @@ const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
       sx={{ justifyContent: "space-between", m: 1 }}
     >
       <Title citation={citation} />
-      <Tooltip arrow title={citation.when.toLocaleTimeString()}>
+      <Tooltip enterDelay={200} arrow title={citation.when.toLocaleTimeString()}>
         <Box sx={{ fontSize: "small", color: "grey" }}>
           {citation.when.toLocaleDateString()}
         </Box>

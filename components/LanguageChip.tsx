@@ -11,7 +11,7 @@ type Props = {
 
 /** a little bubble containing a locale */
 export const LanguageChip: React.FC<Props> = ({ title, locale }) => (
-  <Tooltip arrow title={title}>
+  <Tooltip enterDelay={200} arrow title={title}>
     <Avatar
       sx={{
         width: "20px",
@@ -37,7 +37,7 @@ export const BigLanguageChip: React.FC<BigLanguageChipProps> = ({
   dispatch,
 }) => (
   <Box onClick={languageSearch(language, dispatch)}>
-    <Tooltip arrow title={language.name}>
+    <Tooltip enterDelay={200} arrow title={language.name}>
       <Avatar
         sx={{
           cursor: "pointer",

@@ -135,7 +135,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             }
           }}
         >
-          <Tooltip title="go to the Amanuensis documentation concerning configuration">
+          <Tooltip arrow title="go to the Amanuensis documentation concerning configuration">
             <HelpOutlineIcon />
           </Tooltip>
         </Link>

@@ -57,7 +57,7 @@ export const LanguagePicker: React.FC<Props> = ({
               />
             ))}
       </Stack>
-      <Tooltip arrow title="Filter by language">
+      <Tooltip enterDelay={200} arrow title="Filter by language">
         <IconButton
           color="primary"
           size="small"
