@@ -746,7 +746,7 @@ const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
       </Typography>
     )
   return (
-    <Tooltip enterDelay={200} arrow title={citation.title}>
+    <Tooltip enterDelay={500} arrow title={citation.title}>
       <Typography sx={sx}>{citation.title}</Typography>
     </Tooltip>
   )
@@ -838,7 +838,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
       </Typography>
     )
   return (
-    <Tooltip enterDelay={200} arrow title={url}>
+    <Tooltip enterDelay={500} arrow title={url}>
       <Link
         sx={{ cursor: "pointer", overflow: "hidden" }}
         onClick={linkHandler}
@@ -869,7 +869,7 @@ const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
       sx={{ justifyContent: "space-between", m: 1 }}
     >
       <Title citation={citation} />
-      <Tooltip enterDelay={200} arrow title={citation.when.toLocaleTimeString()}>
+      <Tooltip enterDelay={500} arrow title={citation.when.toLocaleTimeString()}>
         <Box sx={{ fontSize: "small", color: "grey" }}>
           {citation.when.toLocaleDateString()}
         </Box>
