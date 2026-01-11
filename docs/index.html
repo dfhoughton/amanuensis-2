@@ -263,6 +263,11 @@
       }
     }
 
+    figure.full-width {
+      float: none;
+      max-width: 100%;
+    }
+
     .fade {
       opacity: 25%;
     }
@@ -329,7 +334,7 @@
         <h1>Amanuensis</h1>
         A language learning assistant.
       </div>
-      <img src="images/oofla.svg" width="128px" alt="Amanuensis logo -- Oofla the Gloofoo" />
+      <img src="images/oofla.svg" width="128px" alt="Amanuensis logo -- Oofla the Gloofoo" title="Oofla the Gloofoo" />
     </header>
     <nav class="side">
       <h2>Contents</h2>
@@ -345,12 +350,16 @@
         particular citations. You can link notes together, edit them, merge
         them, search for them, export them, or import them from an export.
       </p>
+      <figure class="full-width" id="example-figure">
+        <img src="images/example.png" alt="what Amanuensis looks like in use" />
+        <figcaption>
+          Amanuensis in use.
+        </figcaption>
+      </figure>
       <p>
         In principal, you can use Amanuensis to take any sort of note. It was
-        designed, however, with language learning in mind.
-      </p>
-      <p>
-        Every time you make a note in Amanuensis you cue up a question in two
+        designed, however, with language learning in mind. Every time you make a note in Amanuensis you cue up a
+        question in two
         <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
         flashcard <a href="#quiz">quizzes</a>, à la
         <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form
@@ -419,6 +428,16 @@
         The whole web holds when individual unconnected facts would have
         fallen away.
       </p>
+      <h3>Caveats</h3>
+      <p>I have not tested Amanuensis on a right-to-left language like Arabic or Hebrew.</p>
+      <p>I have not attempted to internationalize Amanuensis, ironically. That's work that seems vast and un-fun, and
+        the thing that has driven development up to this point has been the fun. Just writing this documentation is
+        arduous enough. It's difficult to imagine writing different versions for different languages and inserting an
+        <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">i18n</a> layer into the code and
+        so forth.
+      </p>
+      <p>There is just one person writing and maintaining this code. Though I use Amanuensis daily, there are corners,
+        such as the importing and exporting functionality, that are neglected.</p>
       <h3>Future</h3>
       <p>
         I have written Amanuensis because it is the language learning tool I
@@ -493,7 +512,9 @@
         and select the dist directory, which will have the output of the build
         scripts in it.<span class="fn">This is, in fact, how I work on Amanuensis.</span>
       </p>
-      </h2>
+      <h3>Non-Chrome Versions</h3>
+      <p>I realize not everyone can or wants to use Chrome. I intend to make Firefox and Safari versions at some point.
+        It is a question of the extent to which their API differs and figure out how those extension stores work.</p>
       <h2>Amuensis's Bits and Pieces</h2>
       <h3>Design Constraints</h3>
       <p>
