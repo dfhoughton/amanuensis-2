@@ -1008,19 +1008,23 @@ export async function splitText(
     .where("languageId")
     .equals(language.id!)
     .each((p) => {
-      // once all lookups are accounted for, blast through the rest of the scan
-      // we'll have to change this once we have homonym handling in place
-      if (map.size === lookups.length) return
+      // lemmas override anything already in the map
+      // this way we can have enties for both "tapa" and "tapaan", a form of "tapa", and provide the
+      // note for the latter when appropriate even if the "tapa" note has a "tapaan" citation
       if (testPhrase(p.lemma)) {
         for (const word of findMatches(p.lemma))
           map.set(word.toLocaleLowerCase(language.locale), p)
         return
       }
+      const normalizedLemma = p.lemma.toLocaleLowerCase(language.locale)
       for (const c of p.citations) {
-        if (c.phrase === p.lemma) continue // we've done this one already
+        if (c.phrase.toLocaleLowerCase(language.locale) === normalizedLemma) continue // we've done this one already
         if (testPhrase(c.phrase)) {
-          for (const word of findMatches(c.phrase))
-            map.set(word.toLocaleLowerCase(language.locale), p)
+          for (const word of findMatches(c.phrase)) {
+            // citations only fill in blanks in the map
+            const key = word.toLocaleLowerCase(language.locale)
+            if (!map.has(key)) map.set(key, p)
+          }
           return
         }
       }
