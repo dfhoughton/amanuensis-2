@@ -11,14 +11,11 @@ import {
   Badge,
   Box,
   Button,
-  FormControl,
   IconButton,
-  InputLabel,
   Link,
   Menu,
   MenuItem,
   Modal,
-  Select,
   SelectChangeEvent,
   Stack,
   Table,
@@ -141,24 +138,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         </Link>
       </Stack>
       <Stack spacing={2} sx={{ alignItems: "flex-start", mt: 3 }}>
-        <FormControl fullWidth>
-          <InputLabel id="metric-select-label">
-            String Distance Metric
-          </InputLabel>
-          <Select
-            labelId="metric-select-label"
-            id="thing-select"
-            value={config?.distanceMetric ?? defaultDistanceMetric}
-            label="String Distance Metric"
-            onChange={distanceMetricHandler}
-          >
-            {Object.values(DistanceMetric).map((metric) => (
-              <MenuItem key={metric} value={metric}>
-                <DistanceMetricDot metric={metric} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
         <TextField
           label="Max Similar Phrases"
           type="number"
