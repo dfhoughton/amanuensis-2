@@ -48,7 +48,6 @@ import FileDownload from "@mui/icons-material/FileDownload"
 import FileUpload from "@mui/icons-material/FileUpload"
 import { languageList } from "../util/languages"
 import {
-  defaultDistanceMetric,
   defaultMaxSimilarPhrases,
   DistanceMetric,
 } from "../util/similarity_sorter"
