@@ -91,6 +91,15 @@
       margin-left: 2px;
     }
 
+    dl {
+      margin-left: 1rem;
+
+      dt {
+        color: var(--secondary-dark);
+        font-weight: 600;
+      }
+    }
+
     code {
       background-color: bisque;
     }
@@ -692,8 +701,8 @@
       <p>
         The citation context is shown for the displayed citation. Its parts
         are enumerated in <a href="#note-figure">the figure</a>. These are the
-        title (7), the date the citation was recorded (8), the URL (9), and
-        the phrase itself and its surrounding text (10).
+        title (8), the date the citation was recorded (9), the URL (10), and
+        the phrase itself and its surrounding text (11).
       </p>
       <p>
         The title, date, and URL are displayed in abbreviation. If you hover
@@ -748,20 +757,8 @@
         <a href="#dictionary-figure">the figure</a>, there are three manners
         in which one may browse the dictionary (1): ad hoc search, by
         similarity to the current citation, and by page (URL). Every manner of
-        search has a form (2). Every search results in zero or more notes (3).
-      </p>
-      <p>
-        Each note in turn is represented by its lemma (4), its gloss (5),
-        its language (6), and some actions one may take: merge the note with
-        the current note &mdash; the note currently displayed in the
-        <a href="#note">note tab</a> &mdash; (7), link the note to the current
-        note (8), or delete the note (9).
-      </p>
-      <p>
-        If you click on a note in the dictionary, this will take you to the
-        <a href="#note">note tab</a>, where the note will be displayed. It is
-        now the current note, the note to which other notes displayed in the
-        dictionary may be merged or linked.
+        search has a form to receive the search parameters(2). Changing these parameters will cause Amanuensis to
+        execute a new search. Every search results in zero or more notes (3).
       </p>
       <figure id="results-figure">
         <img src="images/result.png" alt="a search result" />
@@ -770,19 +767,20 @@
           link; 6) delete
         </figcaption>
       </figure>
-      <h4>search results</h4>
       <p>
-        Every search produces some number of search results. These are basically
-        abbreviated notes. One may click on them to view them in full. See
-        <a href="#results-figure">the figure</a> for a sample search result.
-      </p>
-      <p>
-        In addition to the lemma, gloss, and locale, each results
-        provides a number of actions one may take: merge this note with the
-        note currently displayed in the <a href="#note">note tab</a>, link it
-        to that note, or delete it from the database. The more destructive of
+        Each note in the search results (<a href="#results-figure">the figure</a>) is in turn represented by its lemma
+        (1), its gloss (2), its language (3), and some actions one may take: merge the note with
+        the current note &mdash; the note currently displayed in the
+        <a href="#note">note tab</a> &mdash; (4), link the note to the current
+        note (5), or delete the note (6). The more destructive of
         these actions, merging and deletion, require confirmation and, in the
         case of merging, possible editing to complete.
+      </p>
+      <p>
+        If you click on a note in the dictionary, this will take you to the
+        <a href="#note">note tab</a>, where the note will be displayed. It is
+        now the current note, the note to which other notes displayed in the
+        dictionary may be merged or linked.
       </p>
       <figure id="search-figure">
         <img src="images/search.png" alt="the free search form" />
@@ -791,7 +789,7 @@
           5) fuzzy match; 6) case-insensitive; 7) sort order; 8) clear form
         </figcaption>
       </figure>
-      <h4>search</h4>
+      <h4>free-form search</h4>
       <p>
         The search tab labeled simply "search" is the most flexible, and
         consequently the most complex. See
@@ -871,20 +869,45 @@
       </figure>
       <p>
         Amanuensis must apply a string similarity metric to do a phrase
-        similarity search. There are many of these with different virtues and
-        flaws. Some work better than others for a given language. For this
-        reason, the simularity metric is
-        <a href="#distance-metrics" title="how to configure the string similarity metric">configurable</a> and
-        selectable in the similar phrase search form (<a href="#similarity-metric-figure">the figure</a>). Each of the
-        metrics is marked with a distinctive color so you can see what metric is in use when the dropdown is not open.
+        similarity search. Because words can be similar in different ways, Amanuensis provides four metrics (<a
+          href="#similarity-metric-figure">the figure</a>). They are
+      </p>
+      <dl>
+        <dt>Jaro-Winkler</dt>
+        <dd><a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro-Winkler</a> prioritizes changes
+          at the <b>beginning</b> of the word. Jaro-Winkler will find <i>cat</i> more
+          similar to <i>cats</i> than <i>scat</i>. Because most languages prefer suffixes to prefixes for inflectional
+          changes like the <i>-s</i> that marks <i>cats</i> as plural, Jaro-Winkler is generally a pretty good default.
+          There are languages, though, like the Bantu languages, that use inflectional prefixes &mdash; <i>watu</i> is
+          the plural of <i>mtu</i>, &ldquo;person&rdquo;. For these see reverse Jaro-Winkler.</dd>
+        <dt>longest common substring</dt>
+        <dd>If you're dealing with compounds or phrases, not inflection, you want to prioritize phrases that embed other
+          phrases. For these, <a href="https://en.wikipedia.org/wiki/Longest_common_subsequence">longest common
+            substring</a> is your friend.</dd>
+        <dt>Levenshtein</dt>
+        <dd>The <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a> algorithm measures the
+          number of edits required to convert one phrase into another. The
+          beginning and end don't matter. Similar sequences don't matter. Levenshtein tends to consider words of similar
+          length to be more similar because more edits are required to add or subtract letters to change a phrase's
+          length. The Levenshtein similarity metric is probably the least useful, but it may turn up easily confused
+          words.</dd>
+        <dt>reverse Jaro-Winkler</dt>
+        <dd>Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It considers changes at the <b>end</b> of the
+          words more important. It will find <i>scat</i> to be more similar to <i>cat</i> than <i>cats</i>. This
+          similarity metric may be useful for Bantu languages that use inflectional prefixes. It is also useful for
+          finding words with similar suffixes.</dd>
+      </dl>
+      <p>
+        Each of the metrics is marked with a distinctive color so you can see what metric is in use when the dropdown is
+        not open.
       </p>
       <p>
         One could in principle rank all notes for their similarity to a given
         phrase. In practice, however, there is little value in looking too far
         down the list. For this reason, the maximum number of results
         displayed in a similarity search is
-        <a href="#max-similars" title="how to configure the maximum number of similar phrases displayed">configurable as
-          well</a>.
+        <a href="#max-similars"
+          title="how to configure the maximum number of similar phrases displayed">configurable</a>.
       </p>
       <figure id="on-page-figure">
         <img src="images/on-page.png" alt="form for searching for notes at a given URL" />
