@@ -67,7 +67,7 @@ export const LanguagePicker: React.FC<Props> = ({
         </IconButton>
       </Tooltip>
       <Menu
-        MenuListProps={{ dense: true }}
+        slotProps={{ list: { dense: true } }}
         anchorEl={languageMenuAnchorEl}
         open={languageMenuOpen}
         onClose={() => setLanguageMenuAnchorEl(null)}

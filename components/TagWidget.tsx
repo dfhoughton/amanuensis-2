@@ -72,7 +72,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                 </IconButton>
               </Tooltip>
               <Menu
-                MenuListProps={{ dense: true }}
+                slotProps={{ list: { dense: true } }}
                 anchorEl={addTagMenuAnchorEl}
                 open={addTagMenuOpen}
                 onClose={() => setAddTagMenuAnchorEl(null)}

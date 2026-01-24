@@ -245,7 +245,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                       </Badge>
                     </Tooltip>
                     <Menu
-                      MenuListProps={{ dense: true }}
+                      slotProps={{ list: { dense: true } }}
                       anchorEl={languageMenuAnchorEl}
                       open={languageMenuOpen}
                       onClose={() => setLanguageMenuAnchorEl(null)}
@@ -448,7 +448,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                 <MoreVertIcon fontSize="inherit" />
               </IconButton>
               <Menu
-                MenuListProps={{ dense: true }}
+                slotProps={{ list: { dense: true } }}
                 anchorEl={moreMenuAnchorEl}
                 open={Boolean(moreMenuAnchorEl)}
                 onClose={() => setMoreMenuAnchorEl(null)}

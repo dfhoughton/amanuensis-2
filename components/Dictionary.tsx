@@ -453,7 +453,7 @@ const SortWidget: React.FC<SortWidgetProps> = ({ state, search, dispatch }) => {
         </IconButton>
       </Tooltip>
       <Menu
-        MenuListProps={{ dense: true }}
+        slotProps={{ list: { dense: true } }}
         anchorEl={sortMenuAnchorEl}
         open={sortMenuOpen}
         onClose={() => setSortMenuAnchorEl(null)}
@@ -676,7 +676,7 @@ const SimilaritySearchForm: React.FC<SimilaritySearchFormProps> = ({
           </Tooltip>
         </DistanceMetricDot>
         <Menu
-          MenuListProps={{ dense: true }}
+          slotProps={{ list: { dense: true } }}
           anchorEl={metricMenuAnchorEl}
           open={metricMenuOpen}
           onClose={() => setMetricMenuAnchorEl(null)}

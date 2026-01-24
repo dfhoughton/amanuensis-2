@@ -16,7 +16,7 @@ import {
   Menu,
   MenuItem,
   Modal,
-  SelectChangeEvent,
+  Slider,
   Stack,
   Table,
   TableBody,
@@ -53,6 +53,7 @@ import {
 } from "../util/similarity_sorter"
 import { DEFAULT_AUTO_GRADUATE_COUNT } from "../util/spaced_repetition"
 import { theme } from "../util/theme"
+import { AutoStories, Quiz, Storage, SentimentSatisfiedAlt, SentimentVeryDissatisfied } from "@mui/icons-material"
 
 type ConfigurationProps = {
   state: AppState
@@ -87,16 +88,16 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       })
       .catch(errorHandler(dispatch, "errored when saving auto-graduate count"))
   }
-  const distanceMetricHandler = (e: SelectChangeEvent) => {
+  const scalingFactorHandler = (_e: Event, value: number | number[]) => {
     const c: ConfigurationType = {
       ...config,
     }
-    c.distanceMetric = e.target.value as DistanceMetric
+    c.quizScalingFactor = value as number
     setConfiguration(c)
       .then(() => {
-        dispatch({ action: "distanceMetric", config: c })
+        dispatch({ action: "config", config: c })
       })
-      .catch(errorHandler(dispatch, "errored when saving distance metric"))
+      .catch(errorHandler(dispatch, "errored when saving scaling factor"))
   }
   return (
     <>
@@ -137,6 +138,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         </Link>
       </Stack>
       <Stack spacing={2} sx={{ alignItems: "flex-start", mt: 3 }}>
+        <Typography variant="h6" component="h2" sx={{ pb: 1 }}>Dictionary <AutoStories fontSize="small" sx={{ ml: 1, color: "gray" }} /></Typography>
         <TextField
           label="Max Similar Phrases"
           type="number"
@@ -145,6 +147,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
           onChange={maxSimilarPhrasesHandler}
         />
+        <Typography variant="h6" component="h2" sx={{ py: 1 }}>Quiz <Tooltip arrow title="go to the Amanuensis documentation concerning configuration"><Quiz fontSize="small" sx={{ ml: 1, color: "gray" }} /></Tooltip></Typography>
         <TextField
           label="Auto-graduate Count"
           type="number"
@@ -153,6 +156,28 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           value={state.config?.autoGraduateCount ?? DEFAULT_AUTO_GRADUATE_COUNT}
           onChange={autoGraduateHandler}
         />
+        <Box sx={{ width: "100%" }}>
+          <Typography sx={{ mb: 1, fontSize: "smaller" }}>Memory Challenge</Typography>
+          <Stack spacing={2} direction="row" sx={{ width: "100%", alignItems: "center" }}>
+            <Tooltip arrow enterDelay={200} title="Minimal challenge. Your memory fades quickly. You will review phrases more often.">
+              <SentimentSatisfiedAlt sx={{ color: "gray" }} />
+            </Tooltip>
+            <Slider
+              aria-label="Quiz Scaling Factor"
+              size="small"
+              marks={[{ value: 1.0, label: "OK" }]}
+              value={state.config?.quizScalingFactor ?? 1.0}
+              min={0.1}
+              max={1.9}
+              step={0.05}
+              onChange={scalingFactorHandler}
+            />
+            <Tooltip arrow enterDelay={200} title="Maximal challenge. Your memory is super-human. You will review phrases less often.">
+              <SentimentVeryDissatisfied sx={{ color: "gray" }} />
+            </Tooltip>
+          </Stack>
+        </Box>
+        <Typography variant="h6" component="h2" sx={{ pt: 1 }}>Database <Storage fontSize="small" sx={{ ml: 1, color: "gray" }} /></Typography>
         <DbActions
           dispatch={dispatch}
           version={version}
@@ -232,7 +257,7 @@ export const Languages: React.FC<LanguagesProps> = ({
             arrow
             title="You may categorize notes by language. Notes within the same language may be merged. Within a language there may be only one note per lemma."
           >
-            <LanguageIcon fontSize="small" />
+            <LanguageIcon fontSize="small" sx={{ ml: 1, color: "gray" }} />
           </Tooltip>
         </Typography>
         <IconButton
@@ -243,7 +268,7 @@ export const Languages: React.FC<LanguagesProps> = ({
           <AddIcon fontSize="small" />
         </IconButton>
         <Menu
-          MenuListProps={{ dense: true }}
+          slotProps={{ list: { dense: true } }}
           anchorEl={languageMenuAnchorEl}
           open={languageMenuOpen}
           onClose={() => setLanguageMenuAnchorEl(null)}
