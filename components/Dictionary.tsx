@@ -961,7 +961,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
           const selected = p.id === phrase?.id
           const unmergeable = selected || !phrase
           const linked = !!phrase?.relatedPhrases?.has(p.id!)
-          const unlinkable = unmergeable || linked
+          const unlinkable = unmergeable || linked || !phrase.id // you can't link to an unsaved phrase
           const lang = languages?.find((l) => l.id === p.languageId)
           return (
             <Box
@@ -1041,14 +1041,14 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                         color={
                           linked
                             ? "success"
-                            : unmergeable
+                            : unlinkable
                               ? "disabled"
                               : "primary"
                         }
                         fontSize="inherit"
                         sx={iconStyle}
                         onClick={
-                          selected || !phrase
+                          unlinkable
                             ? undefined
                             : (e) => {
                               e.stopPropagation()
