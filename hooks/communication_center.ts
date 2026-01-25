@@ -5,6 +5,8 @@ import {
   MessageFromPopupToBackground,
 } from "../util/switchboard"
 
+const unstableConnection = "Amanuensis may have difficulty communicating with the active tab. It may help to reload the page."
+
 // send initial request for selected text and start listening
 export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
   useEffect(() => {
@@ -15,7 +17,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
           console.error("received null response from background to popup; location 1")
           dispatch({
             action: "error",
-            message: "Received null response from background to popup",
+            message: unstableConnection,
           })
           return
         }
@@ -48,7 +50,7 @@ export const useCommunicationCenter = (dispatch: React.Dispatch<Action>) => {
           console.error("received null message from background to popup; location 2")
           dispatch({
             action: "error",
-            message: "Received null message from background to popup",
+            message: unstableConnection,
           })
           return
         }

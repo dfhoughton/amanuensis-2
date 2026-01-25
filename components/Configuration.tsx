@@ -138,7 +138,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         </Link>
       </Stack>
       <Stack spacing={2} sx={{ alignItems: "flex-start", mt: 3 }}>
-        <Typography variant="h6" component="h2" sx={{ pb: 1 }}>Dictionary <AutoStories fontSize="small" sx={{ ml: 1, color: "gray" }} /></Typography>
+        <Typography variant="h6" component="h2" sx={{ pb: 1 }}>
+          Dictionary
+          <Tooltip arrow title="customize dictionary searches; see the Amanuensis documentation for more information">
+            <AutoStories fontSize="small" sx={{ ml: 1, color: "gray" }} />
+          </Tooltip>
+        </Typography>
         <TextField
           label="Max Similar Phrases"
           type="number"
@@ -147,7 +152,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           value={state.config?.maxSimilarPhrases ?? defaultMaxSimilarPhrases}
           onChange={maxSimilarPhrasesHandler}
         />
-        <Typography variant="h6" component="h2" sx={{ py: 1 }}>Quiz <Tooltip arrow title="go to the Amanuensis documentation concerning configuration"><Quiz fontSize="small" sx={{ ml: 1, color: "gray" }} /></Tooltip></Typography>
+        <Typography variant="h6" component="h2" sx={{ py: 1 }}>
+          Quiz
+          <Tooltip arrow title="customize spaced repetition quizzes; see the Amanuensis documentation for more information">
+            <Quiz fontSize="small" sx={{ ml: 1, color: "gray" }} />
+          </Tooltip>
+        </Typography>
         <TextField
           label="Auto-graduate Count"
           type="number"
@@ -177,7 +187,12 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             </Tooltip>
           </Stack>
         </Box>
-        <Typography variant="h6" component="h2" sx={{ pt: 1 }}>Database <Storage fontSize="small" sx={{ ml: 1, color: "gray" }} /></Typography>
+        <Typography variant="h6" component="h2" sx={{ pt: 1 }}>
+          Database
+          <Tooltip arrow title="manage all your stored notes; see the Amanuensis documentation for more information">
+            <Storage fontSize="small" sx={{ ml: 1, color: "gray" }} />
+          </Tooltip>
+        </Typography>
         <DbActions
           dispatch={dispatch}
           version={version}

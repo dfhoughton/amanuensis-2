@@ -167,6 +167,9 @@ export type Configuration = {
   currentPhraseQuiz?: QuizSignature
   // the state of the last quiz started where the glosses were the questions
   currentGlossQuiz?: QuizSignature
+  // scaling factor used when determining when next to quiz a phrase; ranges from 0.1 to 1.9
+  // with 1.0 being the default
+  quizScalingFactor?: number
 }
 
 export type Language = {

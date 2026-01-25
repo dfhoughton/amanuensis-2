@@ -219,10 +219,22 @@ export class DailyQuiz {
     if (interval < oneDay) interval = oneDay
     // ratios borrowed by approximating what Anki seems to do
     const scalingFactor = this.config.quizScalingFactor ?? 1.0
-    rv.push(["bad", this.truncateToDay(interval)])
-    rv.push(["ok", this.truncateToDay(interval * (1 + 1.22 * scalingFactor))])
-    rv.push(["good", this.truncateToDay(interval * (1 + 0.3 * scalingFactor))])
-    rv.push(["done", this.truncateToDay(interval * (1 + 0.1 * scalingFactor))])
+    let bad = this.truncateToDay(interval)
+    let ok = this.truncateToDay(bad * (1 + 1.22 * scalingFactor))
+    if (ok === bad) ok += oneDay
+    let good = this.truncateToDay(ok * (1 + 0.3 * scalingFactor))
+    if (good >= oneMonth) {
+      // add some randomness to keep phrases from the same text from bunching together
+      const jitter = Math.floor(Math.random() * 5) - 2
+      good = good + jitter * oneDay
+    }
+    while (good <= ok) good += oneDay
+    let done = this.truncateToDay(good * (1 + 0.1 * scalingFactor))
+    if (done === good) done += oneDay
+    rv.push(["bad", bad])
+    rv.push(["ok", ok])
+    rv.push(["good", good])
+    rv.push(["done", done])
     return rv
   }
   // returns an interval that, when added to this.now, puts you at the beginning of the appropriate day
