@@ -887,10 +887,10 @@
         <dt>Levenshtein</dt>
         <dd>The <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a> algorithm measures the
           number of edits required to convert one phrase into another. The
-          beginning and end don't matter. Similar sequences don't matter. Levenshtein tends to consider words of similar
-          length to be more similar because more edits are required to add or subtract letters to change a phrase's
-          length. The Levenshtein similarity metric is probably the least useful, but it may turn up easily confused
-          words.</dd>
+          beginning and end don't have particular importance. Similar sequences don't have particular importance.
+          Levenshtein tends to consider words of similar length to be more similar because more edits are required to
+          add or subtract letters to change a phrase's length. The Levenshtein similarity metric is probably the least
+          useful, but it may turn up easily confused words.</dd>
         <dt>reverse Jaro-Winkler</dt>
         <dd>Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It considers changes at the <b>end</b> of the
           words more important. It will find <i>scat</i> to be more similar to <i>cat</i> than <i>cats</i>. This
@@ -923,6 +923,17 @@
         citations on a particular site, not just a particular page.
       </p>
       <h3 id="quiz">Spaced Repetition Quiz</h3>
+      <figure id="challenge-figure">
+        <img src="images/challenge.png" alt="the challenge side of a spaced repetition quiz card" />
+        <figcaption>
+          1) the lemma side of the card is the challenge; 2) gloss challenge &mdash; this is a separate quiz; 3) a link
+          to the spaced repetition documentation;
+          4) the lemma for which you challenged to provide the gloss and tags; 5) the green dot indicating this is the
+          first time this challenge has been presented in a quiz; 6) the language badge &mdash; the same form could
+          occur in multiple languages; 7) how many new &mdash; "green dot" &mdash; cards are in the quiz; how many old;
+          8) outcomes so far; 9) the progress bar
+        </figcaption>
+      </figure>
       <p>
         The idea behind
         <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
@@ -937,11 +948,34 @@
         predicting when a memory will face &mdash; how much space one should
         allow before repetition.
       </p>
-      <p>I have not made a deep study of this problem. Rather, I observed how <a
+      <p>
+        <b>Disclaimer</b>: I have not made a deep study of this problem. Rather, I observed how <a
           href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it, mixed this
         with what seemed sensible to me, and called it good. If you want a more state-of-the-art spaced repetition quiz,
         I liked Anki. There are other options. My aim in writing Amanuensis was to make a note taking app, not a
-        flashcard app. That being said, I'm quite pleased with Amanuensis's hacked together spaced repetition quiz.</p>
+        flashcard app. That being said, I'm quite pleased with Amanuensis's hacked together spaced repetition quiz.
+      </p>
+      <h4>The challenge side of the card</h4>
+      <p>
+        The challenge side of the card is the side that you are asked to
+        provide the answer to. In the case of a lemma quiz, this is the
+        <i>lemma</i> side. In the case of a gloss quiz, this is the <i>gloss</i>
+        side.
+      </p>
+      <h4>The answer side of the card</h4>
+      <figure id="response-figure">
+        <img src="images/response.png" alt="the answer side of a spaced repetition quiz card" />
+        <figcaption>
+          1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show again tomorrow"; 5) good, okay, and bad
+          outcomes; 6) "graduate" this card
+        </figcaption>
+      </figure>
+      <p>
+        The answer side of the card is the side that you are asked to
+        provide the answer to. In the case of a lemma quiz, this is the
+        <i>gloss</i> side. In the case of a gloss quiz, this is the <i>lemma</i>
+        side.
+      </p>
       <h3 id="tags">Tags</h3>
       <figure id="tags-figure">
         <img src="images/tags.png" alt="the tag tab" />
