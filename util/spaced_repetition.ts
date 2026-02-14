@@ -84,6 +84,8 @@ const oneDay = oneHour * 24 // the milliseconds in one day
 const oneWeek = oneDay * 7
 const oneMonth = oneDay * 31
 const maximumBadInterval = oneMonth * 1.5
+// interval at which point we start adding some randomness so phrases from the same citation aren't bunched up
+const scatterThreshold = oneWeek * 2
 
 export function describeTimeInterval(
   interval: number,
@@ -223,7 +225,7 @@ export class DailyQuiz {
     let ok = this.truncateToDay(bad * (1 + 1.22 * scalingFactor))
     if (ok === bad) ok += oneDay
     let good = this.truncateToDay(ok * (1 + 0.3 * scalingFactor))
-    if (good >= oneMonth) {
+    if (good >= scatterThreshold) {
       // add some randomness to keep phrases from the same text from bunching together
       const jitter = Math.floor(Math.random() * 5) - 2
       good = good + jitter * oneDay
