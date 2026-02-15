@@ -15,19 +15,25 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AppState,
+  AppTabs,
   Citation,
   Language,
   Phrase,
+  SimilaritySearch,
   Tag,
   UrlSearch,
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import debounce from "lodash/debounce"
-import { Save, Language as LanguageIcon } from "@mui/icons-material"
+import {
+  Save,
+  Language as LanguageIcon,
+  Search,
+} from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -42,11 +48,16 @@ import {
   splitText,
   phrasesOnPage,
   savePhrase,
+  similaritySearch,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
 import { FauxPlaceholder } from "./FauxPlaceholder"
 import { bell, isEqualIgnoring } from "../util/general"
+import {
+  defaultDistanceMetric,
+  defaultMaxSimilarPhrases,
+} from "../util/similarity_sorter"
 
 type NoteProps = {
   state: AppState
@@ -91,11 +102,14 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
   // on phrase change, focus the note element; the chief purpose of this is to get the keypress handler to work
   useEffect(() => noteRef?.current?.focus(), [phrase?.id])
   const elaborationRef = useRef<HTMLInputElement>(null)
-  const setPhraseRefs = useCallback((phrase: Phrase) => {
-    lemmaRef.current!.value = phrase.lemma
-    noteRef.current!.value = phrase.note ?? ""
-    elaborationRef.current!.value = phrase.elaboration ?? ""
-  }, [lemmaRef, noteRef, elaborationRef])
+  const setPhraseRefs = useCallback(
+    (phrase: Phrase) => {
+      lemmaRef.current!.value = phrase.lemma
+      noteRef.current!.value = phrase.note ?? ""
+      elaborationRef.current!.value = phrase.elaboration ?? ""
+    },
+    [lemmaRef, noteRef, elaborationRef],
+  )
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
@@ -106,7 +120,7 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     "relations",
     "relatedPhrases",
     "updatedAt",
-    "createdAt"
+    "createdAt",
   )
   const changeLanguage = (language: Language) => () => {
     setLanguageMenuAnchorEl(null)
@@ -361,14 +375,19 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
                           deleteRelation(rid)
                             .then(() => {
                               const relations = phrase.relations!.filter(
-                                (n) => n !== rid
+                                (n) => n !== rid,
                               )
                               dispatch({
                                 action: "relationsChanged",
                                 relations,
                               })
                             })
-                            .catch(errorHandler(dispatch, "deleting relation after clicking delete icon"))
+                            .catch(
+                              errorHandler(
+                                dispatch,
+                                "deleting relation after clicking delete icon",
+                              ),
+                            )
                         }}
                       />
                     </Tooltip>
@@ -422,6 +441,8 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
 }) => {
   const [moreMenuAnchorEl, setMoreMenuAnchorEl] =
     React.useState<null | HTMLElement>(null)
+  const [similaritySearching, setSimilaritySearching] =
+    React.useState<boolean>(false)
   const { before, after, phrase: w } = citation
   const separation = citationIndex === 0 ? 2 : 1
   const divider = <Divider sx={{ mt: separation, mb: separation }} />
@@ -460,7 +481,11 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                 }}
               >
                 <MenuItem>
-                  <Tooltip enterDelay={200} arrow title="The canonical citation is the one shown by default">
+                  <Tooltip
+                    enterDelay={200}
+                    arrow
+                    title="The canonical citation is the one shown by default"
+                  >
                     <Button
                       color="secondary"
                       size="small"
@@ -469,7 +494,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                       endIcon={<StarRateIcon fontSize="inherit" />}
                       onClick={() => {
                         const i = phrase.citations.findIndex(
-                          (c) => c === citation
+                          (c) => c === citation,
                         )
                         const citations = phrase.citations.map((c) => ({
                           ...c,
@@ -500,7 +525,7 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
                     endIcon={<DeleteIcon fontSize="inherit" />}
                     onClick={() => {
                       const i = phrase.citations.findIndex(
-                        (c) => c === citation
+                        (c) => c === citation,
                       )
                       const citations = phrase.citations
                       citations.splice(i, 1)
@@ -525,22 +550,32 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
           )}
         </Grid>
         <Box>
-          {!!before && !currentLanguage && <>before</>}
+          {!!currentLanguage && (
+            <SimilaritySearchWidget
+              similaritySearching={similaritySearching}
+              setSimilaritySearching={setSimilaritySearching}
+            />
+          )}
+          {!!before && !currentLanguage && <>{before}</>}
           {!!(before && currentLanguage) && (
             <ClickableText
               text={before}
+              similaritySearching={similaritySearching}
               language={currentLanguage}
               setPhraseRefs={setPhraseRefs}
+              state={state}
               dispatch={dispatch}
             />
           )}
           <b>{w}</b>
-          {!!after && !currentLanguage && <>after</>}
+          {!!after && !currentLanguage && <>{after}</>}
           {!!(after && currentLanguage) && (
             <ClickableText
               text={after}
+              similaritySearching={similaritySearching}
               language={currentLanguage}
               setPhraseRefs={setPhraseRefs}
+              state={state}
               dispatch={dispatch}
             />
           )}
@@ -631,11 +666,42 @@ const CitationInBrief: React.FC<CitationInBriefProps> = ({
   )
 }
 
+const SimilaritySearchWidget: React.FC<{
+  similaritySearching: boolean
+  setSimilaritySearching: (b: boolean) => void
+}> = ({ similaritySearching, setSimilaritySearching }) => {
+  const msg = `turn similarity search ${similaritySearching ? "off" : "on"}`
+  const sx: SxProps = similaritySearching
+    ? {
+      backgroundColor: "secondary.main",
+      color: "secondary.contrastText",
+      "&:hover": { color: "secondary.main" },
+    }
+    : {}
+  return (
+    <Tooltip title={msg} arrow enterDelay={200}>
+      <IconButton
+        size="small"
+        sx={{ float: "right", ...sx }}
+        onClick={() => {
+          console.log({ similaritySearching })
+          setSimilaritySearching(!similaritySearching)
+        }}
+        aria-label={msg}
+      >
+        <Search fontSize="inherit" />
+      </IconButton>
+    </Tooltip>
+  )
+}
+
 type ClickableTextProps = {
   text: string
   language: Language
   setPhraseRefs: (phrase: Phrase) => void
+  state: AppState
   dispatch: React.Dispatch<Action>
+  similaritySearching: boolean
 }
 
 // takes a block of text and replaces any words in the dictionary with links to
@@ -644,7 +710,9 @@ const ClickableText: React.FC<ClickableTextProps> = ({
   text,
   language,
   setPhraseRefs,
+  state,
   dispatch,
+  similaritySearching,
 }) => {
   const [words, setWords] = useState<string[]>([text])
   const [wordMap, setWordMap] = useState(new Map<string, Phrase>())
@@ -665,7 +733,9 @@ const ClickableText: React.FC<ClickableTextProps> = ({
           wordMap={wordMap}
           language={language}
           setPhraseRefs={setPhraseRefs}
+          state={state}
           dispatch={dispatch}
+          similaritySearching={similaritySearching}
         />
       ))}
     </>
@@ -677,7 +747,9 @@ type ClickableWordProps = {
   wordMap: Map<string, Phrase>
   language: Language
   setPhraseRefs: (phrase: Phrase) => void
+  state: AppState
   dispatch: React.Dispatch<Action>
+  similaritySearching: boolean
 }
 
 // a word which
@@ -686,10 +758,21 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
   wordMap,
   language,
   setPhraseRefs,
+  state,
   dispatch,
+  similaritySearching,
 }) => {
   const phrase = wordMap.get(word.toLocaleLowerCase(language.locale))
-  if (!phrase) return <>{word}</>
+  if (!phrase)
+    return (
+      <SearchableText
+        similaritySearching={similaritySearching}
+        word={word}
+        language={language}
+        state={state}
+        dispatch={dispatch}
+      />
+    )
   return (
     <Tooltip
       enterDelay={200}
@@ -728,6 +811,65 @@ const ClickableWord: React.FC<ClickableWordProps> = ({
         {word}
       </Link>
     </Tooltip>
+  )
+}
+
+type SearchableTextProps = {
+  word: string
+  similaritySearching: boolean
+  language: Language
+  state: AppState
+  dispatch: React.Dispatch<Action>
+}
+
+// break text up into bits that can be similarity-searched
+const SearchableText: React.FC<SearchableTextProps> = ({
+  word,
+  similaritySearching,
+  language,
+  state,
+  dispatch,
+}) => {
+  if (!similaritySearching) return <>{word}</>
+  return (
+    <>
+      {word.split(/([^\p{L}\p{N}_]*\s+[^\p{L}\p{N}_]*)/u).map((fragment, i) =>
+        i % 2 === 0 && fragment ? (
+          <Box
+            component="span"
+            sx={{ cursor: "zoom-in" }}
+            onClick={() => {
+              const search: SimilaritySearch = {
+                ...(state.similaritySearch ?? {
+                  limit: defaultMaxSimilarPhrases,
+                  metric: state.config?.distanceMetric ?? defaultDistanceMetric,
+                }),
+                phrase: fragment,
+              }
+              similaritySearch(search)
+                .then((searchResults) => {
+                  dispatch({
+                    action: "similaritySearch",
+                    searchResults,
+                    search,
+                  })
+                })
+                .then(() => {
+                  dispatch({
+                    action: "tab",
+                    tab: AppTabs.Dictionary,
+                  })
+                })
+                .catch(errorHandler(dispatch, `searching for similar phrases to "${fragment}"`))
+            }}
+          >
+            {fragment}
+          </Box>
+        ) : (
+          <>{fragment}</>
+        ),
+      )}
+    </>
   )
 }
 
@@ -776,7 +918,7 @@ const CitationLink: React.FC<CitationLinkProps> = ({
       overflow: "hidden",
       textOverflow: "ellipsis",
     }),
-    []
+    [],
   )
   const dontRepeatSearch = urlSearch && url === urlSearch.url
   const linkHandler = () => {
@@ -813,9 +955,14 @@ const CitationLink: React.FC<CitationLinkProps> = ({
                         searchResults,
                       })
                     })
-                    .catch(errorHandler(dispatch, "searching for phrases on page after clicking citation link"))
+                    .catch(
+                      errorHandler(
+                        dispatch,
+                        "searching for phrases on page after clicking citation link",
+                      ),
+                    )
                 }
-              }
+              },
             )
           }
         } else {
@@ -869,7 +1016,11 @@ const TitleDateAndUrl: React.FC<TitleDateAndUrlProps> = ({
       sx={{ justifyContent: "space-between", m: 1 }}
     >
       <Title citation={citation} />
-      <Tooltip enterDelay={500} arrow title={citation.when.toLocaleTimeString()}>
+      <Tooltip
+        enterDelay={500}
+        arrow
+        title={citation.when.toLocaleTimeString()}
+      >
         <Box sx={{ fontSize: "small", color: "grey" }}>
           {citation.when.toLocaleDateString()}
         </Box>
