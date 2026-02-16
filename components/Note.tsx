@@ -29,11 +29,7 @@ import {
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import debounce from "lodash/debounce"
-import {
-  Save,
-  Language as LanguageIcon,
-  Search,
-} from "@mui/icons-material"
+import { Save, Language as LanguageIcon, Search } from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -837,13 +833,17 @@ const SearchableText: React.FC<SearchableTextProps> = ({
         i % 2 === 0 && fragment ? (
           <Box
             component="span"
-            sx={{ cursor: "zoom-in" }}
+            sx={{
+              cursor:
+                'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" style="font-size: 20px;"><text y="15">🔍</text></svg>\'), auto',
+            }}
             onClick={() => {
               const search: SimilaritySearch = {
                 ...(state.similaritySearch ?? {
                   limit: defaultMaxSimilarPhrases,
                   metric: state.config?.distanceMetric ?? defaultDistanceMetric,
                 }),
+                languages: [language.id!],
                 phrase: fragment,
               }
               similaritySearch(search)
@@ -860,7 +860,12 @@ const SearchableText: React.FC<SearchableTextProps> = ({
                     tab: AppTabs.Dictionary,
                   })
                 })
-                .catch(errorHandler(dispatch, `searching for similar phrases to "${fragment}"`))
+                .catch(
+                  errorHandler(
+                    dispatch,
+                    `searching for similar phrases to "${fragment}"`,
+                  ),
+                )
             }}
           >
             {fragment}
