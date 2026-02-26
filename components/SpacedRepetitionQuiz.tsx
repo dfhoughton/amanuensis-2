@@ -227,6 +227,9 @@ const QuizCard: React.FC<QuizCardProps> = ({
             boxSizing: "border-box",
             borderRadius: 1,
           },
+          ".inner .content": {
+            overflow: "hidden",
+          }
         }}
       >
         <Stack
@@ -241,10 +244,10 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {/** something to quiz on and quiz is not yet over */}
             {!quiz.empty(quizzingOnLemmas) && !!card && (
               <>
-                {!newCard && <Typography>{topic}</Typography>}
+                {!newCard && <Typography className="content">{topic}</Typography>}
                 {newCard && (
                   <Badge variant="dot" color="success">
-                    <Typography>{topic}</Typography>
+                    <Typography className="content">{topic}</Typography>
                   </Badge>
                 )}
                 {!!card.language && (
@@ -277,6 +280,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {!!card?.phrase && (
               <>
                 <Link
+                  className="content"
                   onClick={() =>
                     dispatch({
                       action: "goto",
