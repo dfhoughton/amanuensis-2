@@ -314,6 +314,8 @@ export function reducer(state: AppState, action: Action): AppState {
           // we must redo searches to purge the deleted phrase merged in
           freeSearchResults: undefined,
           similaritySearchResults: undefined,
+          searchResults: undefined,
+          urlSearchResults: undefined,
         }
       }
     case "relationsChanged": // we save relation ids in the database
