@@ -210,9 +210,8 @@ export function reducer(state: AppState, action: Action): AppState {
         if (similaritySearch) {
           const { page = 1, pageSize = defaultMaxSimilarPhrases } = similaritySearch
           similaritySearch.limit = limit
-          if (page * pageSize > limit) {
-            similaritySearch.page = Math.ceil(limit / pageSize)
-          }
+          const maxPage = Math.ceil(limit / pageSize)
+          if (page > maxPage) similaritySearch.page = maxPage
           return {
             ...state,
             similaritySearch,

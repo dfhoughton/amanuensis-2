@@ -1,4 +1,4 @@
-import type {} from "@mui/lab/themeAugmentation"
+import type { } from "@mui/lab/themeAugmentation"
 import { createTheme } from "@mui/material"
 import { alpha } from "@mui/material/styles"
 

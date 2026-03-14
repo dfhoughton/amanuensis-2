@@ -1046,8 +1046,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                               : "primary"
                         }
                         fontSize="inherit"
-                        /** fix link style here */
-                        sx={iconStyle}
+                        sx={{ ...iconStyle, borderRadius: "50%", ...(linked ? { border: "1px solid green", borderColor: "success.main" } : {}) }}
                         onClick={
                           unlinkable
                             ? undefined
