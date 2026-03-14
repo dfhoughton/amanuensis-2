@@ -218,6 +218,32 @@
       }
     }
 
+    .return {
+      color: var(--secondary-dark);
+      background-color: var(--paper);
+      position: absolute;
+      bottom: -0.75rem;
+      right: -0.75rem;
+      z-index: 100;
+      cursor: pointer;
+      font-style: normal;
+      display: none;
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.25rem;
+      border: 2px solid var(--secondary-dark);
+
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: var(--secondary-color);
+        color: var(--paper);
+      }
+    }
+
+    .return.live {
+      display: inline;
+    }
+
     @keyframes fadeToTransparent {
       0% {
         background-color: var(--highlight-color);
@@ -230,7 +256,7 @@
 
     .highlighted {
       background-color: var(--highlight-color);
-      animation: fadeToTransparent 2s ease-out forwards;
+      animation: fadeToTransparent 3s ease-out forwards;
     }
 
     #footnotes {
@@ -266,6 +292,7 @@
       }
 
       figcaption {
+        position: relative;
         font-style: italic;
         font-size: small;
         margin-top: 0.5rem;
@@ -630,7 +657,7 @@
       </figure>
       <h4>tags</h4>
       <p>
-        <a href="#tags">Tags</a> represent frequently occurring, important
+        <a href="#tags">Tags</a> (<a href="#tag-figure">see figure</a>) represent frequently occurring, important
         bits of information. If you hover over a tag, the information it
         represents will appear as a tooltip. Click in the tag element, the
         area holding all the tags, element 6 in
@@ -1296,6 +1323,7 @@
       }
     }
     // make intra-document links smooth
+    let figAnchor = null
     document.querySelectorAll("a").forEach((a) => {
       const href = a.attributes.href?.value
       if (href && /^#[\w-]+$/.test(href)) {
@@ -1308,6 +1336,10 @@
             storeHistory(a.getAttribute("href"))
             if (target.nodeName === "FIGURE") {
               highlight(...Array.from(target.querySelectorAll("figcaption,.figure-label")))
+              // prepare the return link
+              figAnchor = a
+              document.querySelectorAll('.return.live').forEach((n) => n.classList.remove('live'))
+              target.querySelector('.return').classList.add('live')
             }
           }
         }
@@ -1428,6 +1460,17 @@
         caption.innerHTML = `[${figId}]`
         n.appendChild(caption)
       }
+      const returnLink = document.createElement("a")
+      returnLink.classList.add("return")
+      returnLink.innerHTML = "⬅"
+      returnLink.setAttribute('title', 'return to figure reference')
+      returnLink.onclick = (e) => {
+        returnLink.classList.remove('live')
+        highlight(figAnchor)
+        figAnchor.scrollIntoView({ behavior: "smooth", block: "center" })
+        figAnchor = null
+      }
+      caption.appendChild(returnLink)
       if (n.id) {
         document.querySelectorAll(`a[href="#${n.id}"]`).forEach((a) => {
           a.innerHTML = figId
