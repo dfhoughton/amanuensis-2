@@ -222,7 +222,7 @@
       color: var(--secondary-dark);
       background-color: var(--paper);
       position: absolute;
-      bottom: -0.75rem;
+      bottom: -0.7 5rem;
       right: -0.75rem;
       z-index: 100;
       cursor: pointer;
@@ -388,23 +388,20 @@
       </p>
       <figure class="full-width" id="example-figure">
         <img src="images/example.png" alt="what Amanuensis looks like in use" />
-        <figcaption>
-          Amanuensis in use.
-        </figcaption>
+        <figcaption>Amanuensis in use.</figcaption>
       </figure>
       <p>
         In principal, you can use Amanuensis to take any sort of note. It was
-        designed, however, with language learning in mind. Every time you make a note in Amanuensis you cue up a
-        question in two
+        designed, however, with language learning in mind. Every time you make
+        a note in Amanuensis you cue up a question in two
         <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
         flashcard <a href="#quiz">quizzes</a>, à la
-        <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form
-        (<a
+        <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form (<a
           href="https://en.wiktionary.org/wiki/lemma#English:_canonical_form_of_an_inflected_word">&ldquo;lemma&rdquo;</a>)
         to meaning (<a href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>) and a quiz from
-        meaning to form. You can take these quizzes daily or on whatever
-        schedule suits you. They will drum into your memory the facts you
-        annotate with notes.
+        meaning to form. You can take these quizzes daily
+        or on whatever schedule suits you. They will drum into your memory the
+        facts you annotate with notes.
       </p>
       <h3>Use</h3>
       <p>This is the general pattern of use:</p>
@@ -429,7 +426,8 @@
         You search, sorting for the most recently updated note. You click on
         the first note, then click on the URL. This takes you to the page,
         highlighting the phrase. You click on the search tab and see a list of
-        all the notes you took on the page. You resume reading the article and taking notes.
+        all the notes you took on the page. You resume reading the article and
+        taking notes.
       </p>
       <p>
         Once a day, more or less, you <a href="#quiz">quiz</a> yourself on
@@ -465,15 +463,24 @@
         fallen away.
       </p>
       <h3>Caveats</h3>
-      <p>I have not tested Amanuensis on a right-to-left language like Arabic or Hebrew.</p>
-      <p>I have not attempted to internationalize Amanuensis, ironically. That's work that seems vast and un-fun, and
-        the thing that has driven development up to this point has been the fun. Just writing this documentation is
-        arduous enough. It's difficult to imagine writing different versions for different languages and inserting an
-        <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">i18n</a> layer into the code and
-        so forth.
+      <p>
+        I have not tested Amanuensis on a right-to-left language like Arabic
+        or Hebrew.
       </p>
-      <p>There is just one person writing and maintaining this code. Though I use Amanuensis daily, there are corners,
-        such as the importing and exporting functionality, that are neglected.</p>
+      <p>
+        I have not attempted to internationalize Amanuensis, ironically.
+        That's work that seems vast and un-fun, and the thing that has driven
+        development up to this point has been the fun. Just writing this
+        documentation is arduous enough. It's difficult to imagine writing
+        different versions for different languages and inserting an
+        <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">i18n</a>
+        layer into the code and so forth.
+      </p>
+      <p>
+        There is just one person writing and maintaining this code. Though I
+        use Amanuensis daily, there are corners, such as the importing and
+        exporting functionality, that are neglected.
+      </p>
       <h3>Future</h3>
       <p>
         I have written Amanuensis because it is the language learning tool I
@@ -539,20 +546,22 @@
       </p>
       <p>
         To run the build script, you must have
-        <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a
-        terminal, cd
+        <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a terminal, cd
         to the install directory and run
         <code>npm run release-build</code> (or <code>npm run build</code> if
         you want to set breakpoints and inspect human-readable code).<span class="fn">This is, in fact, how I work on
-          Amanuensis.</span> Then go
-        to Window > Extensions, click the &ldquo;Load unpacked&rdquo; button,
-        and select the dist directory, which will have the output of the build
-        scripts in it.
+          Amanuensis.</span>
+        Then go to Window > Extensions, click the &ldquo;Load unpacked&rdquo;
+        button, and select the dist directory, which will have the output of
+        the build scripts in it.
       </p>
       <h3>Non-Chrome Versions</h3>
-      <p>I realize not everyone can or wants to use Chrome. I intend to make Firefox and Safari versions at some point.
-        It is a question of the extent to which their APIs differ from Chrome's and figure out how those extension
-        stores work.</p>
+      <p>
+        I realize not everyone can or wants to use Chrome. I intend to make
+        Firefox and Safari versions at some point. It is a question of the
+        extent to which their APIs differ from Chrome's and figure out how
+        those extension stores work.
+      </p>
       <h2>Amuensis's Bits and Pieces</h2>
       <h3>Design Constraints</h3>
       <p>
@@ -596,10 +605,11 @@
         some text and opening Amanuensis, it is not yet saved. If any part of
         the note is unsaved, the save icon will be enabled. If it is disabled
         &mdash; gray &mdash; there is nothing to save.<span class="fn">I considered autosaving notes &mdash; every time
-          you make any edit it is saved, perhaps after a short debounce period,
-          maybe 400 milliseconds, so you aren't saving after every keypress. It
-          is easy to start notes accidentally, though. You have something
-          highlighted on the page. You forget about it. You open Amanuensis. Amanuensis
+          you make any edit
+          it is saved, perhaps after a short debounce period, maybe 400
+          milliseconds, so you aren't saving after every keypress. It is easy
+          to start notes accidentally, though. You have something highlighted
+          on the page. You forget about it. You open Amanuensis. Amanuensis
           begins an unwanted note. If you're autosaving, you now have to
           delete this. If you only autosave after the first save, that's
           complicated and hence fragile, and you need the save button anyway.
@@ -635,10 +645,11 @@
         phrase. Typically, this is the phrase's definition.
       </p>
       <p>
-        The gloss should be <i>short</i>, like the word <a href="https://en.wiktionary.org/wiki/gloss#Noun_2">gloss</a>
+        The gloss should be <i>short</i>, like the word
+        <a href="https://en.wiktionary.org/wiki/gloss#Noun_2">gloss</a>
         itself. It is used in
-        <a href="#quiz">quizzes</a>. Long notes make for ugly flip
-        cards. Save rambling for the <a href="#elaboration">elaboration</a>.
+        <a href="#quiz">quizzes</a>. Long notes make for ugly flip cards. Save
+        rambling for the <a href="#elaboration">elaboration</a>.
       </p>
       <h4 id="elaboration">elaboration</h4>
       <p>
@@ -657,16 +668,20 @@
       </figure>
       <h4>tags</h4>
       <p>
-        <a href="#tags">Tags</a> (<a href="#tag-figure">see figure</a>) represent frequently occurring, important
-        bits of information. If you hover over a tag, the information it
-        represents will appear as a tooltip. Click in the tag element, the
-        area holding all the tags, element 6 in
-        <a href="#note-figure">the figure</a>, to add a tag.
+        <a href="#tags">Tags</a> (<a href="#tag-figure">see figure</a>)
+        represent frequently occurring, important bits of information. If you
+        hover over a tag, the information it represents will appear as a
+        tooltip. Click in the tag element, the area holding all the tags,
+        element 6 in <a href="#note-figure">the figure</a>, to add a tag.
       </p>
       <figure id="link-figure">
         <img src="images/link.png" alt="how to link one note to another" />
-        <figcaption>How to link one note to another. Note the color difference. The red link indicates a note not
-          already linked to the current note. The green link indicates one already linked.</figcaption>
+        <figcaption>
+          How to link one note to another. Note the color and shape
+          differences. The red link indicates a note not already linked to the
+          current note. The green link in a circle indicates one already
+          linked.
+        </figcaption>
       </figure>
       <h4>links</h4>
       <p>
@@ -674,11 +689,13 @@
         <a href="#note-figure">the figure</a>, the motivation for linking the
         two notes was that they both contain <i>vallat</i>. You might link
         notes because they are synonyms or antonyms, or for any reason
-        whatsoever.<span class="fn">In the first version of Amanuensis, links were were categorized &mdash; synonyms,
-          antonyms, etc. This was cumbersome and didn't work well for non-symmetric relations. In a part-whole
-          relation, for instance, you needed to specify which side was the whole and which the part. In this iteration I
-          dropped all that complexity. I figure these are your own notes. You'll remember how two related phrases are
-          related.</span>
+        whatsoever.<span class="fn">In the first version of Amanuensis, links were were categorized
+          &mdash; synonyms, antonyms, etc. This was cumbersome and didn't work
+          well for non-symmetric relations. In a part-whole relation, for
+          instance, you needed to specify which side was the whole and which
+          the part. In this iteration I dropped all that complexity. I figure
+          these are your own notes. You'll remember how two related phrases
+          are related.</span>
       </p>
       <p>Clicking on a link takes you to the note linked.</p>
       <p>
@@ -743,11 +760,16 @@
         the page has changed since you recorded the citation, highighting the
         original phrase in its original context may not be possible.
       </p>
-      <p>If visiting a citation involves changing the <a href="https://en.wikipedia.org/wiki/Domain_name">domain</a> of
-        the current tab, Amanuensis will likely close. This is a limitation of
-        its being a Chrome extension. If you reopen Amanuensis at this point,
-        it will open to the <a href="#citations-on-page-tab">citations on page tab</a>, which will allow you to find the
-        note you are interested in and continue from where you were when Amanuensis closed.</p>
+      <p>
+        If visiting a citation involves changing the
+        <a href="https://en.wikipedia.org/wiki/Domain_name">domain</a> of the
+        current tab, Amanuensis will likely close. This is a limitation of its
+        being a Chrome extension. If you reopen Amanuensis at this point, it
+        will open to the
+        <a href="#citations-on-page-tab">citations on page tab</a>, which will
+        allow you to find the note you are interested in and continue from
+        where you were when Amanuensis closed.
+      </p>
       <h5>citation note</h5>
       <p>
         Each citation has its own note in which you can record anything
@@ -767,9 +789,11 @@
       </figure>
       <p>
         I often use the citation note and tags to keep track of puzzles to
-        solve later. See <a href="#citation-note-and-tags">the figure</a>. Here I have added my &ldquo;?&rdquo; tag to
-        the citation to mark it as something about which I have an unanswered question. I can click on
-        the tag to search for all unanswered questions, or I can search for this tag in the dictionary tab.
+        solve later. See <a href="#citation-note-and-tags">the figure</a>.
+        Here I have added my &ldquo;?&rdquo; tag to the citation to mark it as
+        something about which I have an unanswered question. I can click on
+        the tag to search for all unanswered questions, or I can search for
+        this tag in the dictionary tab.
       </p>
       <h3 id="dictionary">Dictionary</h3>
       <figure id="dictionary-figure">
@@ -784,24 +808,26 @@
         <a href="#dictionary-figure">the figure</a>, there are three manners
         in which one may browse the dictionary (1): ad hoc search, by
         similarity to the current citation, and by page (URL). Every manner of
-        search has a form to receive the search parameters(2). Changing these parameters will cause Amanuensis to
-        execute a new search. Every search results in zero or more notes (3).
+        search has a form to receive the search parameters(2). Changing these
+        parameters will cause Amanuensis to execute a new search. Every search
+        results in zero or more notes (3).
       </p>
       <figure id="results-figure">
         <img src="images/result.png" alt="a search result" />
         <figcaption>
-          A search result: 1) lemma; 2) gloss; 3) locale; 4) merge; 5)
-          link; 6) delete
+          A search result: 1) lemma; 2) gloss; 3) locale; 4) merge; 5) link;
+          6) delete
         </figcaption>
       </figure>
       <p>
         Each note in the search results (<a href="#results-figure">the figure</a>) is in turn represented by its lemma
-        (1), its gloss (2), its language (3), and some actions one may take: merge the note with
-        the current note &mdash; the note currently displayed in the
+        (1), its gloss (2), its
+        language (3), and some actions one may take: merge the note with the
+        current note &mdash; the note currently displayed in the
         <a href="#note">note tab</a> &mdash; (4), link the note to the current
-        note (5), or delete the note (6). The more destructive of
-        these actions, merging and deletion, require confirmation and, in the
-        case of merging, possible editing to complete.
+        note (5), or delete the note (6). The more destructive of these
+        actions, merging and deletion, require confirmation and, in the case
+        of merging, possible editing to complete.
       </p>
       <p>
         If you click on a note in the dictionary, this will take you to the
@@ -823,15 +849,15 @@
         <a href="#search-figure">the figure</a>.
       </p>
       <p>
-        There are two areas that allow you to search text, the lemma area and
+        There are two areas that allow you to search text: the lemma area and
         the free text area. The first searches only lemmas. The second
         searches lemmas, glosses, citations &mdash; the phrases themselves and
         the context before and after &mdash; and citation notes.
       </p>
       <p>
         Both text searches allow you to specify whether it is a whole word
-        search (5), whether it is a fuzzy search (6), and whether it is
-        case-insensitive (7).
+        search (5 in <a href="#search-figure">the figure</a>), whether it is a
+        fuzzy search (6), and whether it is case-insensitive (7).
       </p>
       <p>
         A "whole word" search is a search where the first and last letters in
@@ -871,7 +897,10 @@
       </p>
       <figure id="similar-figure">
         <img src="images/similar.png" alt="form for search for similar phrases" />
-        <figcaption>The similar phrase search form: 1) form, 2) language(s), 3) string similarity metric</figcaption>
+        <figcaption>
+          The similar phrase search form: 1) form, 2) language(s), 3) string
+          similarity metric
+        </figcaption>
       </figure>
       <h4 id="similar">similar phrase</h4>
       <p>
@@ -883,7 +912,7 @@
       </p>
       <p>
         When you highlight some text and invoke Amanuensis, it creates a
-        provisional note, and searches for similar notes within
+        provisional note and searches for similar notes within
         <a href="#language">the language inferred by Chrome</a>. This
         facilitates merging the citation highlighted with an existing note
         immediately. The search is over all lemmas and citations. Because of
@@ -896,37 +925,54 @@
       </figure>
       <p>
         Amanuensis must apply a string similarity metric to do a phrase
-        similarity search. Because words can be similar in different ways, Amanuensis provides four metrics (<a
-          href="#similarity-metric-figure">the figure</a>). They are
+        similarity search. Because words can be similar in different ways,
+        Amanuensis provides four metrics (<a href="#similarity-metric-figure">the figure</a>). They are
       </p>
       <dl>
         <dt>Jaro-Winkler</dt>
-        <dd><a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro-Winkler</a> prioritizes changes
-          at the <b>beginning</b> of the word. Jaro-Winkler will find <i>cat</i> more
-          similar to <i>cats</i> than <i>scat</i>. Because most languages prefer suffixes to prefixes for inflectional
-          changes like the <i>-s</i> that marks <i>cats</i> as plural, Jaro-Winkler is generally a pretty good default.
-          There are languages, though, like the Bantu languages, that use inflectional prefixes &mdash; <i>watu</i> is
-          the plural of <i>mtu</i>, &ldquo;person&rdquo;. For these see reverse Jaro-Winkler.</dd>
+        <dd>
+          <a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro-Winkler</a>
+          prioritizes changes at the <b>beginning</b> of the word.
+          Jaro-Winkler will find <i>cat</i> more similar to <i>cats</i> than
+          <i>scat</i>. Because most languages prefer suffixes to prefixes for
+          inflectional changes like the <i>-s</i> that marks <i>cats</i> as
+          plural, Jaro-Winkler is generally a pretty good default. There are
+          languages, though, like the Bantu languages, that use inflectional
+          prefixes &mdash; <i>watu</i> is the plural of <i>mtu</i>,
+          &ldquo;person&rdquo; in Swahili. For these see reverse Jaro-Winkler.
+        </dd>
         <dt>longest common substring</dt>
-        <dd>If you're dealing with compounds or phrases, not inflection, you want to prioritize phrases that embed other
-          phrases. For these, <a href="https://en.wikipedia.org/wiki/Longest_common_subsequence">longest common
-            substring</a> is your friend.</dd>
+        <dd>
+          If you're dealing with compounds or phrases, not inflection, you
+          want to prioritize phrases that embed other phrases. For these,
+          <a href="https://en.wikipedia.org/wiki/Longest_common_subsequence">longest common substring</a>
+          is your friend.
+        </dd>
         <dt>Levenshtein</dt>
-        <dd>The <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a> algorithm measures the
-          number of edits required to convert one phrase into another. The
-          beginning and end don't have particular importance. Similar sequences don't have particular importance.
-          Levenshtein tends to consider words of similar length to be more similar because more edits are required to
-          add or subtract letters to change a phrase's length. The Levenshtein similarity metric is probably the least
-          useful, but it may turn up easily confused words.</dd>
+        <dd>
+          The
+          <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a>
+          algorithm measures the number of edits required to convert one
+          phrase into another. The beginning and end don't have particular
+          importance. Similar sequences don't have particular importance.
+          Levenshtein tends to consider words of similar length to be more
+          similar because more edits are required to add or subtract letters
+          to change a phrase's length. The Levenshtein similarity metric is
+          probably the least useful, but it may turn up easily confused words.
+        </dd>
         <dt>reverse Jaro-Winkler</dt>
-        <dd>Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It considers changes at the <b>end</b> of the
-          words more important. It will find <i>scat</i> to be more similar to <i>cat</i> than <i>cats</i>. This
-          similarity metric may be useful for Bantu languages that use inflectional prefixes. It is also useful for
-          finding words with similar suffixes.</dd>
+        <dd>
+          Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It
+          considers changes at the <b>end</b> of the words more important. It
+          will find <i>scat</i> to be more similar to <i>cat</i> than
+          <i>cats</i>. This similarity metric may be useful for Bantu
+          languages that use inflectional prefixes. It is also useful for
+          finding words with similar suffixes.
+        </dd>
       </dl>
       <p>
-        Each of the metrics is marked with a distinctive color so you can see what metric is in use when the dropdown is
-        not open.
+        Each of the metrics is marked with a distinctive color so you can see
+        what metric is in use when the dropdown is not open.
       </p>
       <p>
         One could in principle rank all notes for their similarity to a given
@@ -938,7 +984,9 @@
       </p>
       <figure id="on-page-figure">
         <img src="images/on-page.png" alt="form for searching for notes at a given URL" />
-        <figcaption>To search for the citations on a page, you search by URL.</figcaption>
+        <figcaption>
+          To search for the citations on a page, you search by URL.
+        </figcaption>
       </figure>
       <h4 id="citations-on-page-tab">citations on page</h4>
       <p>
@@ -953,11 +1001,13 @@
       <figure id="challenge-figure">
         <img src="images/challenge.png" alt="the challenge side of a spaced repetition quiz card" />
         <figcaption>
-          1) the lemma side of the card is the challenge; 2) gloss challenge &mdash; this is a separate quiz; 3) a link
-          to the spaced repetition documentation;
-          4) the lemma for which you challenged to provide the gloss and tags; 5) the green dot indicating this is the
-          first time this challenge has been presented in a quiz; 6) the language badge &mdash; the same form could
-          occur in multiple languages; 7) how many new &mdash; "green dot" &mdash; cards are in the quiz; how many old;
+          1) the lemma side of the card is the challenge; 2) gloss challenge
+          &mdash; this is a separate quiz; 3) a link to the spaced repetition
+          documentation; 4) the lemma for which you challenged to provide the
+          gloss and tags; 5) the green dot indicating this is the first time
+          this challenge has been presented in a quiz; 6) the language badge
+          &mdash; the same form could occur in multiple languages; 7) how many
+          new &mdash; "green dot" &mdash; cards are in the quiz; how many old;
           8) outcomes so far; 9) the progress bar
         </figcaption>
       </figure>
@@ -976,31 +1026,37 @@
         allow before repetition.
       </p>
       <p>
-        <b>Disclaimer</b>: I have not made a deep study of this problem. Rather, I observed how <a
-          href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it, mixed this
-        with what seemed sensible to me, and called it good. If you want a more state-of-the-art spaced repetition quiz,
-        I liked Anki. There are other options. My aim in writing Amanuensis was to make a note taking app, not a
-        flashcard app. That being said, I'm quite pleased with Amanuensis's hacked together spaced repetition quiz.
+        <b>Disclaimer</b>: I have not made a deep study of this problem.
+        Rather, I observed how
+        <a href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it,
+        mixed this with what seemed sensible to me, and called it good. If you
+        want a more state-of-the-art spaced repetition quiz, I liked Anki.
+        There are other options. My aim in writing Amanuensis was to make a
+        note taking app, not a flashcard app. That being said, I'm quite
+        pleased with Amanuensis's hacked together spaced repetition quiz.
       </p>
       <h4>The challenge side of the card</h4>
       <p>
         The challenge side of the card is the side that you are asked to
         provide the answer to. In the case of a lemma quiz, this is the
-        <i>lemma</i> side. In the case of a gloss quiz, this is the <i>gloss</i>
+        <i>lemma</i> side. In the case of a gloss quiz, this is the
+        <i>gloss</i>
         side.
       </p>
       <h4>The answer side of the card</h4>
       <figure id="response-figure">
         <img src="images/response.png" alt="the answer side of a spaced repetition quiz card" />
         <figcaption>
-          1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show again tomorrow"; 5) good, okay, and bad
-          outcomes; 6) "graduate" this card
+          1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show
+          again tomorrow"; 5) good, okay, and bad outcomes; 6) "graduate" this
+          card
         </figcaption>
       </figure>
       <p>
-        The answer side of the card is the side that you are asked to
-        provide the answer to. In the case of a lemma quiz, this is the
-        <i>gloss</i> side. In the case of a gloss quiz, this is the <i>lemma</i>
+        The answer side of the card is the side that you are asked to provide
+        the answer to. In the case of a lemma quiz, this is the
+        <i>gloss</i> side. In the case of a gloss quiz, this is the
+        <i>lemma</i>
         side.
       </p>
       <h3 id="tags">Tags</h3>
@@ -1335,11 +1391,17 @@
             highlight(target)
             storeHistory(a.getAttribute("href"))
             if (target.nodeName === "FIGURE") {
-              highlight(...Array.from(target.querySelectorAll("figcaption,.figure-label")))
+              highlight(
+                ...Array.from(
+                  target.querySelectorAll("figcaption,.figure-label"),
+                ),
+              )
               // prepare the return link
               figAnchor = a
-              document.querySelectorAll('.return.live').forEach((n) => n.classList.remove('live'))
-              target.querySelector('.return').classList.add('live')
+              document
+                .querySelectorAll(".return.live")
+                .forEach((n) => n.classList.remove("live"))
+              target.querySelector(".return").classList.add("live")
             }
           }
         }
@@ -1353,7 +1415,7 @@
     const idMap = new Map()
     document
       .querySelectorAll(
-        ".content h2, .content h3, .content h4, .content h5, .content h6"
+        ".content h2, .content h3, .content h4, .content h5, .content h6",
       )
       .forEach((n) => {
         let headerId
@@ -1463,9 +1525,9 @@
       const returnLink = document.createElement("a")
       returnLink.classList.add("return")
       returnLink.innerHTML = "⬅"
-      returnLink.setAttribute('title', 'return to figure reference')
+      returnLink.setAttribute("title", "return to figure reference")
       returnLink.onclick = (e) => {
-        returnLink.classList.remove('live')
+        returnLink.classList.remove("live")
         highlight(figAnchor)
         figAnchor.scrollIntoView({ behavior: "smooth", block: "center" })
         figAnchor = null
