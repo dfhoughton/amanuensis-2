@@ -70,11 +70,13 @@ export const Configuration: React.FC<ConfigurationProps> = ({
     const c: ConfigurationType = {
       ...config,
     }
-    c.maxSimilarPhrases = Number.parseInt(e.target.value)
+    const n = Number.parseInt(e.target.value)
+    c.maxSimilarPhrases = n
     setConfiguration(c)
       .then(() => {
         dispatch({ action: "config", config: c })
       })
+      .then(() => dispatch({ action: "maxSimilarPhrasesChanged", maxSimilarPhrases: n }))
       .catch(errorHandler(dispatch, "errored upon saving configuration change when setting max similar phrases"))
   }
   const autoGraduateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {

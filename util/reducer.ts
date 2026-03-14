@@ -50,6 +50,7 @@ export type Action =
     searchResults: SearchResults
     tab?: AppTabs
   }
+  | { action: "maxSimilarPhrasesChanged"; maxSimilarPhrases: number } // clear similarity search results
   | {
     action: "urlSearch"
     search: UrlSearch
@@ -200,6 +201,27 @@ export function reducer(state: AppState, action: Action): AppState {
           searchResults: similaritySearchResults,
           tab,
           searchTab: SearchTabs.Similar,
+        }
+      }
+    case "maxSimilarPhrasesChanged":
+      {
+        const { maxSimilarPhrases: limit } = action
+        const { similaritySearch } = state
+        if (similaritySearch) {
+          const { page = 1, pageSize = defaultMaxSimilarPhrases } = similaritySearch
+          similaritySearch.limit = limit
+          if (page * pageSize > limit) {
+            similaritySearch.page = Math.ceil(limit / pageSize)
+          }
+          return {
+            ...state,
+            similaritySearch,
+            similaritySearchResults: undefined,
+          }
+        }
+        return {
+          ...state,
+          similaritySearchResults: undefined,
         }
       }
     case "urlSearch":

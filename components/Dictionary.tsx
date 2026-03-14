@@ -1046,6 +1046,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
                               : "primary"
                         }
                         fontSize="inherit"
+                        /** fix link style here */
                         sx={iconStyle}
                         onClick={
                           unlinkable
