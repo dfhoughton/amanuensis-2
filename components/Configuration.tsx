@@ -346,7 +346,7 @@ export const Languages: React.FC<LanguagesProps> = ({
               <TableCell>
                 {Object.entries(l.locales).map(([k, v], i) => (
                   <span key={i}>
-                    <b>{k}</b> {v}{" "}
+                    <b>{k}</b>&nbsp;{v.toLocaleString()}{" "}
                   </span>
                 ))}
               </TableCell>

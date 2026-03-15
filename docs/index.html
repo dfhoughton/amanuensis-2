@@ -1001,12 +1001,11 @@
       <figure id="challenge-figure">
         <img src="images/challenge.png" alt="the challenge side of a spaced repetition quiz card" />
         <figcaption>
-          1) the lemma side of the card is the challenge; 2) gloss challenge
-          &mdash; this is a separate quiz; 3) a link to the spaced repetition
-          documentation; 4) the lemma for which you challenged to provide the
+          1) the lemma quiz tab; 2) gloss quiz tab; 3) a link to this
+          documentation; 4) the lemma for which you are challenged to provide the
           gloss and tags; 5) the green dot indicating this is the first time
           this challenge has been presented in a quiz; 6) the language badge
-          &mdash; the same form could occur in multiple languages; 7) how many
+          &mdash; the same lemma could occur in multiple languages; 7) how many
           new &mdash; "green dot" &mdash; cards are in the quiz; how many old;
           8) outcomes so far; 9) the progress bar
         </figcaption>
@@ -1048,7 +1047,7 @@
         <img src="images/response.png" alt="the answer side of a spaced repetition quiz card" />
         <figcaption>
           1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show
-          again tomorrow"; 5) good, okay, and bad outcomes; 6) "graduate" this
+          again tomorrow"; 5) bad, okay, and good outcomes; 6) "graduate" this
           card
         </figcaption>
       </figure>
@@ -1063,8 +1062,9 @@
       <figure id="tags-figure">
         <img src="images/tags.png" alt="the tag tab" />
         <figcaption>
-          The tag tab: 1) create a new tag; 2) the tag itself; 3) tag
-          contents; 4) tag locales; 5) edit; 6) duplicate; 7) delete
+          The tag tab: 1) create a new tag; 2) link to this documentation; 3)
+          the tag itself; 4) tag contents; 5) tag locales; 6) edit; 7)
+          duplicate; 8) delete
         </figcaption>
       </figure>
       <p>
@@ -1102,11 +1102,11 @@
         for prepositions. Perhaps you nave a category of tags that represent
         noun class &mdash; masculine versus feminine, animate versus
         inanimate, abstract versus concrete &mdash; and you wish to add a new
-        class. The class is represented stylistically. You part of speech
-        class might be purple text on a yellow background. Your noun class
-        might be red on pink. To create a new tag in an existing class, you
-        click the duplicate icon (6) and then add the tag, text, and perhaps
-        locales it pertains to.
+        noun class. The tag category is represented stylistically. Your part
+        of speech tag category might be purple text on a yellow background.
+        Your noun class tag category might be red on pink. To create a new tag
+        in an existing tag category, you click the duplicate icon (6) and then
+        add the tag, text, and perhaps locales it pertains to.
       </p>
       <p>
         When tags are listed, they are sorted primarily by category, in the
@@ -1144,61 +1144,30 @@
         In the tags tab, if a tag has a single locale, that locale is shown in
         the locales bubble. If it has more than one, the bubble contains an
         ellipsis. If you hove over a tag's locale bubble in the tags tab, all
-        its locales will appear in a tooltip. See (4) in
+        its locales will appear in a tooltip. See (5) in
         <a href="#tags-figure">the figure</a>.
       </p>
       <h3 id="configuration">Configuration</h3>
       <figure id="config-figure">
         <img src="images/configuration.png" alt="the configuration tab" />
         <figcaption>
-          The configuration tab: 1) link to documentation; 2) similarity
-          metric selector; 3) maximum similar phrase count; 4) clear database
-          button; 5) export database button; 6) import database button; 7)
-          language adder; 8) the unknown language; 9) locale tally
+          The configuration tab: 1) link to this documentation; 2) maximum similar
+          phrase count; 3) auto-graduate count 4) quiz memory challeng; 5)
+          clear database button; 6) export database button; 7) import database
+          button
+        </figcaption>
+      </figure>
+      <figure id="language-figure">
+        <img src="images/languages.png" alt="the languages subsection of the configuration tab" />
+        <figcaption>
+          The languages subsection of the configuration tab: 1) language
+          adder; 2)&nbsp;the unknown language; 3) locale tally
         </figcaption>
       </figure>
       <p>
         Amanuensis does not yet have many configurable parameters. Those that
         there are, together with some database actions, can be found on the
         configuration tab (<a href="#config-figure">the figure</a>).
-      </p>
-      <p>
-        The configuration tab is also where one can find the link to this
-        documentation &mdash; (1) in
-        <a href="#config-figure">the figure</a> &mdash; something which you
-        likely already know, since it's likely what has brought you to be
-        reading this text.
-      </p>
-      <h4 id="distance-metrics">string distance metrics</h4>
-      <p>
-        If you capture a citation of <i>cars</i>, you probably don't want it
-        to live in a separate note from a note on <i>car</i>, if any. You can
-        add the citation to the existing <i>car</i> by finding the note via
-        search and then clicking the merge button.
-      </p>
-      <p>
-        But how do you find the <i>car</i> note? Amanuensis provides a special
-        variety of search for this purpose: the
-        <a href="#similar">similarity search</a>. Similarity searches look for
-        notes whose lemma or citations are particularly similar to a given
-        phrase. For this they need a definition of similarity. These are the
-        <a href="https://en.wikipedia.org/wiki/String_metric">string distance metrics</a>.
-      </p>
-      <p>
-        The default string distance metric is called Jaro-Winkler. It is fast
-        and considers changes to the beginning of words to be more important
-        than changes to the end, so <i>cars</i> will be found to be more
-        similar than <i>scar</i> to <i>car</i>. This is just what you want for
-        suffixing languages like English, where grammatical markers tend to go
-        on the end of words. If you are working with a prefixing language like
-        Swahili, where <i>watu</i> is a form of the word <i>mtu</i>, this is
-        not so good.
-      </p>
-      <p>
-        If you find the similar words found by similarity search are not all
-        that similar, and in particular if you know that there's a similar
-        note but it's not finding it, you could try a different string
-        distance metric. Perhaps another will work better.
       </p>
       <h4 id="max-similars">max similar phrases</h4>
       <p>
@@ -1222,7 +1191,7 @@
       </p>
       <h5>clear</h5>
       <p>
-        The clear action &mdash; (4) in
+        The clear action &mdash; (5) in
         <a href="#config-figure">the figure</a> &mdash; allows you to reset
         Amanuensis to "factory settings". Once done one cannot restore the
         database unless you've exported the data, so a confirmation modal will
@@ -1231,7 +1200,7 @@
       </p>
       <h5>export</h5>
       <p>
-        The export database action &mdash; (5) in
+        The export database action &mdash; (6) in
         <a href="#config-figure">the figure</a> &mdash; dumps the entire
         contents of your Amanuensis database into a
         <a href="https://en.wikipedia.org/wiki/JSON" title="an explanation of javascript object notation">JSON file</a>.
@@ -1248,7 +1217,7 @@
       </p>
       <h5>import</h5>
       <p>
-        The import database action &mdash; (6) in
+        The import database action &mdash; (7) in
         <a href="#config-figure">the figure</a> &mdash; allows you to add the
         notes exported from a different instance of Amanuensis into your
         current one.
@@ -1262,8 +1231,8 @@
       <p>
         You do not need to use Amanuensis to study languages. You can use it
         simply as a note taking tool. Amanuensis begins configured to use only
-        one language, the "unknown" language &mdash; (8) in
-        <a href="#config-figure">the figure</a>. You do not need to configure
+        one language, the "unknown" language &mdash; (2) in
+        <a href="#language-figure">the figure</a>. You do not need to configure
         it further. If you create a note, it will begin and remain assigned to
         the unkown language.
       </p>
@@ -1276,8 +1245,8 @@
         appropriate to the language are offered.
       </p>
       <p>
-        To add a language, click the add-language icon &mdash; (7) in
-        <a href="#config-figure">the figure</a>. This will open a modal where
+        To add a language, click the add-language icon &mdash; (1) in
+        <a href="#language-figure">the figure</a>. This will open a modal where
         you can select a language with an
         <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
           title="the wikipedia page listing the ISO-639-1 language codes">ISO-639-1 language code</a>. At this time,
@@ -1298,10 +1267,10 @@
         language. You can correct this using the language picker widget
         &mdash; (3) in <a href="#note-figure">the figure</a>. Amanuensis will
         record this discrepancy and use it to improve its language assignment
-        for subsequent notes. In (9) in
-        <a href="#config-figure">the figure</a> you can see an instance of
+        for subsequent notes. In (3) in
+        <a href="#language-figure">the figure</a> you can see an instance of
         this: 4 notes on Finnish were guessed by Chrome to contain Estonian
-        (et).
+        (et); one was guessed to containg Swedish (sv).
       </p>
       <h2>Acknowledgements</h2>
       <p>
@@ -1367,7 +1336,7 @@
         clearInterval(highlightTimeout)
         highlightTimeout = setTimeout(() => {
           removeHighlights()
-        }, 2000)
+        }, 3000)
       }
     }
     // fiddle with history so the back button works as expected
