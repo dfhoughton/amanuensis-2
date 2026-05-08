@@ -12,7 +12,7 @@ export enum DistanceMetric {
 }
 
 export const defaultDistanceMetric: DistanceMetric = DistanceMetric.JaroWinkler
-export const defaultMaxSimilarPhrases = 10;
+export const defaultMaxSimilarPhrases = 50;
 
 const metric = (name: DistanceMetric): ((a: string, b: string) => number) => {
   switch (name) {
