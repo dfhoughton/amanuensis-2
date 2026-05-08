@@ -536,7 +536,7 @@ export async function similaritySearch(
     metric,
     languages = [],
     page = 1,
-    pageSize = defaultMaxSimilarPhrases,
+    pageSize = 10,
   } = search
   const rs = await db.transaction("r", db.phrases, async () => {
     if (!search.phrase) return []
