@@ -1,4 +1,4 @@
-import { alpha, Chip, Tooltip } from "@mui/material"
+import { alpha, Chip, Tooltip, TooltipProps } from "@mui/material"
 import React from "react"
 import { Tag } from "../types/common"
 
@@ -6,10 +6,16 @@ type Props = {
   tag: Tag
   onClick?: (e: React.MouseEvent) => void
   onDelete?: VoidFunction
+  arrowPosition?: TooltipProps["placement"]
 }
 
 /** A label with a question mark icon. If you click the icon, some collapsed explanatory text appears. */
-export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
+export const TagChip: React.FC<Props> = ({
+  tag,
+  onClick,
+  onDelete,
+  arrowPosition,
+}) => {
   // somehow sometimes the tag is undefined
   const {
     name = "",
@@ -25,9 +31,9 @@ export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
       sx={{
         color,
         backgroundColor: bgcolor,
-        '& .MuiChip-deleteIcon': {
-          color: alpha(color, 0.6)
-        }
+        "& .MuiChip-deleteIcon": {
+          color: alpha(color, 0.6),
+        },
       }}
       clickable={!!onClick}
       onClick={onClick}
@@ -35,7 +41,12 @@ export const TagChip: React.FC<Props> = ({ tag, onClick, onDelete }) => {
     />
   )
   return description ? (
-    <Tooltip enterDelay={200} arrow title={description}>
+    <Tooltip
+      enterDelay={200}
+      arrow
+      placement={arrowPosition}
+      title={description}
+    >
       {chip}
     </Tooltip>
   ) : (

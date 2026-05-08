@@ -95,7 +95,7 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
                   )
                   .map((t) => (
                     <MenuItem key={t.id!} onClick={() => addTag(t)}>
-                      <TagChip tag={t} />
+                      <TagChip tag={t} arrowPosition="left" />
                     </MenuItem>
                   ))}
               </Menu>
