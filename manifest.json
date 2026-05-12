@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "content_scripts": [
     {
+      "run_at": "document_end",
       "matches": ["https://*/*", "http://*/*"],
       "js": ["content.js"]
     }

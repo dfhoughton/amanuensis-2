@@ -13,7 +13,7 @@ function sendToContent(
 ) {
   chrome.tabs.query({ active: true }).then((tabs) => {
     if (tabs.length) {
-      const tab = tabs[0]
+      const tab = tabs.find((t) => t.id && t.url) ?? tabs[0]
       chrome.tabs.sendMessage(
         tab.id!,
         msg,
@@ -52,7 +52,7 @@ function sendToContent(
                         })
                     })
                     .catch((e) => {
-                      console.error(e)
+                      console.error('failed to obtain selected phrase', e)
                       sendResponse({ action: "error", message: e.message })
                     })
                 }
