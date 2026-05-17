@@ -53,13 +53,7 @@ export const SpacedRepetitionQuiz: React.FC<QuizProps> = ({
 }) => {
   // set up initial quiz state
   const quiz = useMemo(() => new DailyQuiz(state.config!), [state.config])
-  return (
-    <QuizTabs
-      quiz={quiz}
-      state={state}
-      dispatch={dispatch}
-    />
-  )
+  return <QuizTabs quiz={quiz} state={state} dispatch={dispatch} />
 }
 
 type QuizTabsProps = {
@@ -68,15 +62,11 @@ type QuizTabsProps = {
   dispatch: React.Dispatch<Action>
 }
 
-const QuizTabs: React.FC<QuizTabsProps> = ({
-  quiz,
-  state,
-  dispatch,
-}) => {
+const QuizTabs: React.FC<QuizTabsProps> = ({ quiz, state, dispatch }) => {
   return (
     <Stack sx={{ p: 0, justifyContent: "space-between" }}>
       <QuizCardHeader />
-      <TabContext value={state.quizzingOnLemmas ?? true ? "lemma" : "gloss"}>
+      <TabContext value={(state.quizzingOnLemmas ?? true) ? "lemma" : "gloss"}>
         <Box>
           <TabList
             onChange={(_e, tab) => {
@@ -148,7 +138,9 @@ const QuizCard: React.FC<QuizCardProps> = ({
       .then(() => {
         quiz.summary(quizzingOnLemmas).then((s) => setSummary(s))
       })
-      .catch(errorHandler(dispatch, "errored either getting next card or summary"))
+      .catch(
+        errorHandler(dispatch, "errored either getting next card or summary"),
+      )
   }, [quiz, quizzingOnLemmas, dispatch])
   // reveal the first card on mount
   useEffect(() => {
@@ -229,7 +221,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
           },
           ".inner .content": {
             overflow: "hidden",
-          }
+          },
         }}
       >
         <Stack
@@ -244,7 +236,9 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {/** something to quiz on and quiz is not yet over */}
             {!quiz.empty(quizzingOnLemmas) && !!card && (
               <>
-                {!newCard && <Typography className="content">{topic}</Typography>}
+                {!newCard && (
+                  <Typography className="content">{topic}</Typography>
+                )}
                 {newCard && (
                   <Badge variant="dot" color="success">
                     <Typography className="content">{topic}</Typography>
@@ -267,7 +261,12 @@ const QuizCard: React.FC<QuizCardProps> = ({
                   void (await quiz
                     .newQuiz(quizzingOnLemmas)
                     .then(nextCard)
-                    .catch(errorHandler(dispatch, "errored either getting a new quiz or setting its first card")))
+                    .catch(
+                      errorHandler(
+                        dispatch,
+                        "errored either getting a new quiz or setting its first card",
+                      ),
+                    ))
                 }}
               >
                 <Badge badgeContent={newCount} color="success">
@@ -293,7 +292,15 @@ const QuizCard: React.FC<QuizCardProps> = ({
                   {card.phrase[quizzingOnLemmas ? "note" : "lemma"]}
                 </Link>
                 {!!card.tags.length && (
-                  <Stack direction="row" spacing={1}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      rowGap: 1,
+                    }}
+                  >
                     {card.tags.map((t) => (
                       <TagChip
                         key={t.id}
@@ -386,7 +393,7 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
         interval,
         outcome,
         noAutograduate ? 0 : autoGraduateCount,
-        quizzingOnLemmas
+        quizzingOnLemmas,
       )
       .then((rv) => {
         clearFlipped()
@@ -410,7 +417,9 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
         quiz
           .summary(quizzingOnLemmas)
           .then((summary) => setSummary(summary))
-          .catch(errorHandler(dispatch, "errored getting new summary for display"))
+          .catch(
+            errorHandler(dispatch, "errored getting new summary for display"),
+          )
       })
       .catch(errorHandler(dispatch, "errored recording trial"))
   }
@@ -420,7 +429,11 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
     : () => handleSave(false)
   const special =
     outcome === "again" || outcome === "tomorrow" || outcome === "done"
-  const description = special ? <>&nbsp;</> : describeTimeInterval(interval, true)
+  const description = special ? (
+    <>&nbsp;</>
+  ) : (
+    describeTimeInterval(interval, true)
+  )
   let tt
   if (special) {
     switch (outcome) {
@@ -490,7 +503,7 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
                       message: `Your recall of the ${quizzingOnLemmas ? "gloss" : "lemma"
                         } of “${quizzingOnLemmas ? card.phrase.lemma : card.phrase.note
                         }” has been marked as good.`,
-                    })
+                    }),
                   )
                 }}
                 endIcon={<SentimentVerySatisfied />}
@@ -571,7 +584,7 @@ const SummarizeQuiz: React.FC<{ summary: Summary }> = ({ summary }) => {
                 <IconForOutcome outcome={o} key={o} />
                 <Box key={`${o}_count`}>{counts.get(o)}</Box>
               </Stack>
-            )
+            ),
         )}
       </Stack>
       <Stack direction="row" spacing={1} sx={{ my: 1, alignItems: "center" }}>
@@ -623,7 +636,11 @@ const QuizCardHeader: React.FC = () => {
           }
         }}
       >
-        <Tooltip enterDelay={200} arrow title="go to the Amanuensis documentation for the spaced repetition quiz">
+        <Tooltip
+          enterDelay={200}
+          arrow
+          title="go to the Amanuensis documentation for the spaced repetition quiz"
+        >
           <HelpOutlineIcon />
         </Tooltip>
       </Link>
