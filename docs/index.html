@@ -388,12 +388,16 @@
       </p>
       <figure class="full-width" id="example-figure">
         <img src="images/example.png" alt="what Amanuensis looks like in use" />
-        <figcaption>Amanuensis in use. The square on the right depending from the <a href="#oofla">little yellow
-            figure</a> is a note taken in Amanuensis regarding the hightlighted text. You can see at the top that
-          Amanuensis has five tags. The first, the <a href="#note">note</a>, is active. The others are the <a
-            href="#dictionary">dictionary</a>, the <a href="#quiz">spaced repetition quiz</a>, <a href="#tags">tags</a>,
-          and <a href="#configuration">configuration</a>.
-
+        <figcaption>
+          Amanuensis in use. The square on the right depending from the
+          <a href="#oofla">little yellow figure</a> is a note taken in
+          Amanuensis regarding the text highlighted in purple. You can see at
+          the top that Amanuensis has five tags. The first, the
+          <a href="#note">note</a>, is active. The others are the
+          <a href="#dictionary">dictionary</a>, the
+          <a href="#quiz">spaced repetition quiz</a>,
+          <a href="#tags">tags</a>, and
+          <a href="#configuration">configuration</a>.
         </figcaption>
       </figure>
       <p>
@@ -584,7 +588,8 @@
         <figcaption>
           A note: 1) lemma; 2) save icon; 3) language; 4) gloss; 5)
           elaboration; 6) tags; 7) links; 8) citation title; 9) citation date;
-          10) citation URL; 11) citation; 12) citation note; 13) citation tags
+          10) citation URL; 11) citation; 12) similarity search tool; 13)
+          citation note; 14) citation tags
         </figcaption>
       </figure>
       <p>
@@ -776,15 +781,47 @@
         allow you to find the note you are interested in and continue from
         where you were when Amanuensis closed.
       </p>
+      <h5>the similarity search tool</h5>
+      <figure id="similarity-search-tool-figure">
+        <img src="images/similarity_search_tool.png" alt="The similarity search tool" />
+        <figcaption>
+          The similarity search tool in action. The icon to the right is blue
+          after being clicked, indicating that it is active. The magnifying
+          glass to the left allows one to select a word to search for.
+        </figcaption>
+      </figure>
+      <p>
+        Whenever you create a note, Amanuensis will add the form cited to
+        those it can link directly to a particular note. These links appear in
+        red in the citation. In a language like Finnish, however, in which
+        words may have dozens of forms, you may have a note for a particular
+        word but no citation for its form. The similarity search tool helps
+        you find notes in these cases.
+      </p>
+      <p>
+        The tool has two states: active and inactive. The inactive state is
+        portrayed in <a href="#note-figure">the note figure</a>. It is the
+        small gray magnifying glass labeled (12). If you click this icon, the
+        tool becomes active. The icon will turn blue as shown in
+        <a href="#similarity-search-tool-figure">the tool figure</a>, and the
+        cursor will turn into a magnifying glass when it is over a word in the
+        citation which is not already a link to another note.
+      </p>
+      <p>
+        If you click on a word with the magnifying glass, you will switch to
+        the <a href="#dictionary">dictionary</a> tab in
+        <a href="#similar">similarity search mode</a> with the phrase
+        preloaded as the term searched for.
+      </p>
       <h5>citation note</h5>
       <p>
         Each citation has its own note in which you can record anything
-        interesting about the particular citation. This is (12) in
+        interesting about the particular citation. This is (13) in
         <a href="#note-figure">the figure</a>.
       </p>
       <h5>citation tags</h5>
       <p>
-        Every citation also may have its own tags. This is (13) in
+        Every citation also may have its own tags. This is (14) in
         <a href="#note-figure">the figure</a>.
       </p>
       <figure id="citation-note-and-tags">
@@ -919,7 +956,7 @@
       <p>
         When you highlight some text and invoke Amanuensis, it creates a
         provisional note and searches for similar notes within
-        <a href="#language">the language inferred by Chrome</a>. This
+        <a href="#languages">the language inferred by Chrome</a>. This
         facilitates merging the citation highlighted with an existing note
         immediately. The search is over all lemmas and citations. Because of
         this pattern of use, the similar phrase search form has only two
@@ -945,7 +982,8 @@
           plural, Jaro-Winkler is generally a pretty good default. There are
           languages, though, like the Bantu languages, that use inflectional
           prefixes &mdash; <i>watu</i> is the plural of <i>mtu</i>,
-          &ldquo;person&rdquo; in Swahili. For these see reverse Jaro-Winkler.
+          &ldquo;person&rdquo; in Swahili. For these, see reverse
+          Jaro-Winkler.
         </dd>
         <dt>longest common substring</dt>
         <dd>
@@ -1008,12 +1046,12 @@
         <img src="images/challenge.png" alt="the challenge side of a spaced repetition quiz card" />
         <figcaption>
           1) the lemma quiz tab; 2) gloss quiz tab; 3) a link to this
-          documentation; 4) the lemma for which you are challenged to provide the
-          gloss and tags; 5) the green dot indicating this is the first time
-          this challenge has been presented in a quiz; 6) the language badge
-          &mdash; the same lemma could occur in multiple languages; 7) how many
-          new &mdash; "green dot" &mdash; cards are in the quiz; how many old;
-          8) outcomes so far; 9) the progress bar
+          documentation; 4) the lemma for which you are challenged to provide
+          the gloss and tags; 5) the green dot indicating this is the first
+          time this challenge has been presented in a quiz; 6) the language
+          badge &mdash; the same lemma could occur in multiple languages; 7)
+          how many new &mdash; "green dot" &mdash; cards are in the quiz; how
+          many old; 8) outcomes so far; 9) the progress bar
         </figcaption>
       </figure>
       <p>
@@ -1027,7 +1065,7 @@
       </p>
       <p>
         Trials bear this theory out. The remaining problem, then, is
-        predicting when a memory will face &mdash; how much space one should
+        predicting when a memory will fade &mdash; how much space one should
         allow before repetition.
       </p>
       <p>
@@ -1040,13 +1078,25 @@
         note taking app, not a flashcard app. That being said, I'm quite
         pleased with Amanuensis's hacked together spaced repetition quiz.
       </p>
+      <h4 id="general-procedure">The general procedure</h4>
+      <p>Amanuensis presents its spaced repetition quiz as a stack of flashcards. You see a card. You try to guess what
+        is on the other side. Then you click the card. The card flips, revealing its back, and you rate your
+        performance.</p>
+      <p>
+        Quizzes consist of some number of new cards, cards you've never seen in a quiz, and whichever old cards may have
+        come due for another go. The new cards are a random subset of those available. All the scheduled old cards are
+        in the stack. If you skip a day, the next day you will see all the cards that were due the first day plus any
+        others that have come due, so they will pile up a bit if you don't do the quiz regularly.
+      </p>
       <h4>The challenge side of the card</h4>
       <p>
-        The challenge side of the card is the side that you are asked to
-        provide the answer to. In the case of a lemma quiz, this is the
-        <i>lemma</i> side. In the case of a gloss quiz, this is the
+        The challenge side of the card (<a href="#challenge-figure">challenge figure</a>) is the side presents a
+        challenge to which you are meant to provide
+        the answer. In the case of a lemma quiz, this is the
+        <i>lemma</i> side; the answer is the glass. In the case of a gloss
+        quiz, this is the
         <i>gloss</i>
-        side.
+        side; you are meant to provide the lemma.
       </p>
       <h4>The answer side of the card</h4>
       <figure id="response-figure">
@@ -1058,8 +1108,9 @@
         </figcaption>
       </figure>
       <p>
-        The answer side of the card is the side that you are asked to provide
-        the answer to. In the case of a lemma quiz, this is the
+        The answer side of the card (<a href="#response-figure">response figure</a>) is the side that provides the
+        answer to the challenge presented on
+        the first side seen. In the case of a lemma quiz, this is the
         <i>gloss</i> side. In the case of a gloss quiz, this is the
         <i>lemma</i>
         side.
@@ -1157,10 +1208,10 @@
       <figure id="config-figure">
         <img src="images/configuration.png" alt="the configuration tab" />
         <figcaption>
-          The configuration tab: 1) link to this documentation; 2) maximum similar
-          phrase count; 3) auto-graduate count 4) quiz memory challeng; 5)
-          clear database button; 6) export database button; 7) import database
-          button
+          The configuration tab: 1) link to this documentation; 2) maximum
+          similar phrase count; 3) auto-graduate count 4) quiz memory
+          challeng; 5) clear database button; 6) export database button; 7)
+          import database button
         </figcaption>
       </figure>
       <figure id="language-figure">
@@ -1238,9 +1289,9 @@
         You do not need to use Amanuensis to study languages. You can use it
         simply as a note taking tool. Amanuensis begins configured to use only
         one language, the "unknown" language &mdash; (2) in
-        <a href="#language-figure">the figure</a>. You do not need to configure
-        it further. If you create a note, it will begin and remain assigned to
-        the unkown language.
+        <a href="#language-figure">the figure</a>. You do not need to
+        configure it further. If you create a note, it will begin and remain
+        assigned to the unkown language.
       </p>
       <p>
         If you do wish to study a particular language you need to tell
@@ -1252,8 +1303,8 @@
       </p>
       <p>
         To add a language, click the add-language icon &mdash; (1) in
-        <a href="#language-figure">the figure</a>. This will open a modal where
-        you can select a language with an
+        <a href="#language-figure">the figure</a>. This will open a modal
+        where you can select a language with an
         <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
           title="the wikipedia page listing the ISO-639-1 language codes">ISO-639-1 language code</a>. At this time,
         Amanuensis does not provide a mechanism to add a
