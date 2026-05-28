@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { AppState, exhaustiveGuard } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined"
 import {
   Badge,
   Box,
@@ -208,7 +208,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
             width: "250px",
             height: "250px",
             py: 1,
-            px: 2, // push things in from the side so the green dot isn't right by the edge of the card
+            px: 4, // push things in from the side so the green dot isn't right by the edge of the card
             alignItems: "center",
             justifyContent: "center",
             border: "2px solid black",
@@ -241,7 +241,7 @@ const QuizCard: React.FC<QuizCardProps> = ({
                 )}
                 {newCard && (
                   <Badge variant="dot" color="success">
-                    <Typography className="content">{topic}</Typography>
+                    <Typography className="content" component="span">{topic}</Typography>
                   </Badge>
                 )}
                 {!!card.language && (

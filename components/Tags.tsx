@@ -18,7 +18,7 @@ import EditIcon from "@mui/icons-material/Edit"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import {

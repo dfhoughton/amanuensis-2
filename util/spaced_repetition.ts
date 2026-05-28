@@ -221,7 +221,7 @@ export class DailyQuiz {
     if (interval < oneDay) interval = oneDay
     // ratios borrowed by approximating what Anki seems to do
     const scalingFactor = this.config.quizScalingFactor ?? 1.0
-    let bad = this.truncateToDay(interval)
+    const bad = this.truncateToDay(interval)
     let ok = this.truncateToDay(bad * (1 + 1.22 * scalingFactor))
     if (ok === bad) ok += oneDay
     let good = this.truncateToDay(ok * (1 + 0.3 * scalingFactor))

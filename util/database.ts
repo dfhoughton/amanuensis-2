@@ -17,7 +17,7 @@ import { matcher, shuffle } from "./general"
 import every from "lodash/every"
 import uniq from "lodash/uniq"
 import { exportDB } from "dexie-export-import"
-import { defaultMaxSimilarPhrases, SimilaritySorter } from "./similarity_sorter"
+import { SimilaritySorter } from "./similarity_sorter"
 import {
   NonInitialOutcome,
   PreparedTrial,
@@ -576,11 +576,6 @@ export async function phraseSearch(
       let scope = languages.length
         ? db.phrases.where("languageId").anyOf(languages)
         : db.phrases.toCollection()
-      if (languages.length) {
-        scope = db.phrases.where("languageId").anyOf(languages)
-      } else {
-        scope = db.phrases.toCollection()
-      }
       if (text && /\S/.test(text.text)) {
         const { whole, exact, caseSensitive } = text
         const rx = matcher(text.text, !!whole, !exact, !caseSensitive)

@@ -832,6 +832,7 @@ const SearchableText: React.FC<SearchableTextProps> = ({
       {word.split(/([^\p{L}\p{N}_]*\s+[^\p{L}\p{N}_]*)/u).map((fragment, i) =>
         i % 2 === 0 && fragment ? (
           <Box
+            key={i}
             component="span"
             sx={{
               cursor:
@@ -871,7 +872,7 @@ const SearchableText: React.FC<SearchableTextProps> = ({
             {fragment}
           </Box>
         ) : (
-          <>{fragment}</>
+          <React.Fragment key={i}>{fragment}</React.Fragment>
         ),
       )}
     </>

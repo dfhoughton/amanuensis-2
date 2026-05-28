@@ -753,13 +753,13 @@ const TextSearchWidget: React.FC<TextSearchWidgetProps> = ({
           sx={{ width: "100%" }}
           onChange={
             debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-              ts.text = e.target.value
-              search = { ...search, [field]: ts, page: 1 }
-              phraseSearch(search)
+              const nextTs = { ...ts, text: e.target.value }
+              const nextSearch = { ...search, [field]: nextTs, page: 1 }
+              phraseSearch(nextSearch)
                 .then((searchResults) =>
                   dispatch({
                     action: "search",
-                    search,
+                    search: nextSearch,
                     searchResults,
                   })
                 )
@@ -863,16 +863,16 @@ const BooleanBubble: React.FC<BooleanBubbleProps> = ({
       <Avatar
         sx={sx}
         onClick={() => {
-          ts[subField] = !on
-          search = { ...search, [field]: ts, page: 1 }
-          if (/\S/.test(ts.text)) {
-            phraseSearch(search)
+          const nextTs = { ...ts, [subField]: !on }
+          const nextSearch = { ...search, [field]: nextTs, page: 1 }
+          if (/\S/.test(nextTs.text)) {
+            phraseSearch(nextSearch)
               .then((searchResults) =>
-                dispatch({ action: "search", search, searchResults })
+                dispatch({ action: "search", search: nextSearch, searchResults })
               )
               .catch(errorHandler(dispatch, `searching for phrases after clicking ${letter} boolean bubble`))
           } else {
-            dispatch({ action: "search", search, searchResults })
+            dispatch({ action: "search", search: nextSearch, searchResults })
           }
         }}
       >
@@ -1087,6 +1087,7 @@ const SearchResultsWidget: React.FC<SearchFormProps> = ({
         })}
       </Stack>
       <MergeModal
+        key={mergePhrase?.id ?? "closed"}
         from={mergePhrase}
         to={state.phrase}
         close={() => setMergePhrase(undefined)}
@@ -1122,13 +1123,14 @@ type MergeModalProps = {
   dispatch: React.Dispatch<Action>
 }
 const MergeModal: React.FC<MergeModalProps> = ({
-  from: f,
-  to,
+  from: initialFrom,
+  to: initialTo,
   close,
   dispatch,
 }) => {
   // in the case of an unsaved phrase, we want to switch which is from and which is to
-  if (to && to.id === undefined) [f, to] = [to, f]
+  const f = initialTo && initialTo.id === undefined ? initialTo : initialFrom
+  const to = initialTo && initialTo.id === undefined ? initialFrom : initialTo
   const emptyPhrase = useMemo(() => ({
     lemma: "",
     tags: [],
@@ -1140,12 +1142,10 @@ const MergeModal: React.FC<MergeModalProps> = ({
   const [from, setFrom] = useState<Phrase>({ ...(f ?? emptyPhrase) })
   const [tags, setTags] = useState<Tag[]>([])
   useEffect(() => {
-    setFrom({ ...(f ?? emptyPhrase) })
-    setMerged({ ...(to ?? emptyPhrase) })
     knownTags()
       .then((tags) => setTags(tags))
       .catch(errorHandler(dispatch, "obtaining tags for merge modal"))
-  }, [f, to, dispatch, emptyPhrase])
+  }, [dispatch])
   const closeAll = () => {
     close()
     setMerged(emptyPhrase)
