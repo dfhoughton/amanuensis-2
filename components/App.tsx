@@ -91,7 +91,13 @@ const App: React.FC = () => {
               dispatch({ action: "message" })
             }}
           >
-            <Alert severity={state.messageLevel ?? "success"} variant="filled">
+            <Alert
+              severity={state.messageLevel ?? "success"}
+              variant="filled"
+              onClose={() => {
+                dispatch({ action: "message" })
+              }}
+            >
               {state.message}
             </Alert>
           </Snackbar>
