@@ -601,7 +601,7 @@
         The various parts of a note are enumerated in
         <a href="#note-figure">the figure</a>.
       </p>
-      <h4>lemma</h4>
+      <h4 id="lemma">lemma</h4>
       <p>
         A note's
         <a
@@ -650,7 +650,7 @@
         will attempt to map Google's guess onto these languages. The language
         selector allows you to edit this guess when Amanuensis gets it wrong.
       </p>
-      <h4>gloss</h4>
+      <h4 id="gloss">gloss</h4>
       <p>
         This is where you write things that are true for all uses of the
         phrase. Typically, this is the phrase's definition.
@@ -1079,24 +1079,49 @@
         pleased with Amanuensis's hacked together spaced repetition quiz.
       </p>
       <h4 id="general-procedure">The general procedure</h4>
-      <p>Amanuensis presents its spaced repetition quiz as a stack of flashcards. You see a card. You try to guess what
-        is on the other side. Then you click the card. The card flips, revealing its back, and you rate your
-        performance.</p>
       <p>
-        Quizzes consist of some number of new cards, cards you've never seen in a quiz, and whichever old cards may have
-        come due for another go. The new cards are a random subset of those available. All the scheduled old cards are
-        in the stack. If you skip a day, the next day you will see all the cards that were due the first day plus any
-        others that have come due, so they will pile up a bit if you don't do the quiz regularly.
+        Amanuensis presents its spaced repetition quiz as a stack of
+        flashcards. You see a card. You try to guess what is on the other
+        side. Then you click the card. The card flips, revealing its back, and
+        you rate your performance.
+      </p>
+      <p>
+        Quizzes consist of some number of new cards, cards you've never seen
+        in a quiz, and whichever old cards may have come due for another go.
+        The new cards are a random subset of those available. All the
+        scheduled old cards are in the stack. If you skip a day, the next day
+        you will see all the cards that were due the first day plus any others
+        that have come due, so they will pile up a bit if you don't do the
+        quiz regularly.
       </p>
       <h4>The challenge side of the card</h4>
       <p>
-        The challenge side of the card (<a href="#challenge-figure">challenge figure</a>) is the side presents a
-        challenge to which you are meant to provide
-        the answer. In the case of a lemma quiz, this is the
-        <i>lemma</i> side; the answer is the glass. In the case of a gloss
-        quiz, this is the
-        <i>gloss</i>
-        side; you are meant to provide the lemma.
+        The challenge side of the card (<a href="#challenge-figure">challenge figure</a>) is the side presenting a
+        challenge to which you are meant to
+        provide the answer. In the case of a lemma quiz, the challenge is the
+        <a href="#lemma">lemma</a>; the answer is the gloss. In the case of a
+        gloss quiz, the challenge is the <a href="#gloss">gloss</a>; the
+        answer is the lemma.
+      </p>
+      <p>
+        The challenge side presents the challenge and enough context to
+        disambiguate similar cards. For the lemma, this is the locale. See (6)
+        in
+        <a href="#challenge-figure">challenge figure</a>. For the gloss, this
+        is the tags. See (2) in
+        <a href="#response-figure">response figure</a>.
+      </p>
+      <p>
+        If this is the first time you've been presented this challenge, it is
+        "new" and marked with a green dot. See (5) in
+        <a href="#challenge-figure">challenge figure</a>.
+      </p>
+      <p>
+        Below the challenge information is presented about the quiz and your
+        progress. The number of new and old cards in the quiz is shown; see
+        (7) in <a href="#challenge-figure">challenge figure</a>. Your success
+        so far is presented as a series of icons and counts; see (8). A
+        progress bar shows how far you have gotten in the quiz; see (9).
       </p>
       <h4>The answer side of the card</h4>
       <figure id="response-figure">
@@ -1111,9 +1136,93 @@
         The answer side of the card (<a href="#response-figure">response figure</a>) is the side that provides the
         answer to the challenge presented on
         the first side seen. In the case of a lemma quiz, this is the
-        <i>gloss</i> side. In the case of a gloss quiz, this is the
-        <i>lemma</i>
+        <a href="#gloss">gloss</a> side. In the case of a gloss quiz, this is
+        the
+        <a href="#lemma">lemma</a>
         side.
+      </p>
+      <p>
+        In addition to the answer to the challenge, the answer side presents
+        further contextual information you should master, chiefly the tags.
+      </p>
+      <p>
+        Bellow the answer to the challenge there is a row of six icons; see 3
+        &ndash; 6 in <a href="#response-figure">response figure</a>. You
+        choose and click one of these icons to rate how well you rose to the
+        challenge and schedule its next appearance in the spaced repetition
+        quiz. These icons are presented in order of rating, worst to best.
+      </p>
+      <p>
+        The red counterclockwise circular arrow, (3) in
+        <a href="#response-figure">response figure</a>, means "show again in
+        this quiz". If you click it, the challenge will show up again after
+        all the other challenges at the end of the quiz on this same day.
+      </p>
+      <p>
+        The gray arrow arching clockwise to the right, (4) in
+        <a href="#response-figure">response figure</a>, means "show again
+        tomorrow".
+      </p>
+      <p>
+        The various circular face icons, (5) in
+        <a href="#response-figure">response figure</a>, means roughly "bad",
+        "okay", "good". The text below them indicates how long it will be
+        until you see this particular challenge again in the quiz if you click
+        them.
+      </p>
+      <p>
+        Finally, the green graduation cap, (6) in
+        <a href="#response-figure">response figure</a>, means "I dub myself a
+        master of this challenge". If you click this, the challenge will never
+        show up in the quiz again.
+      </p>
+      <p>
+        <b>NOTE:</b> If you click the happy face enough times in a row,
+        Amanuensis will offer a modal suggesting you have mastered this
+        challenge and should graduate. You can graduate and eliminate the
+        card, or simply schedule it again. When you are on the point of
+        "auto-graduating" the smiling icon will be green instead of black. See
+        <a href="#auto-graduate-threshold">auto-graduate-threshold</a>.
+      </p>
+      <p>
+        After you have rated your performance on the current challenge, the
+        next challenge will be presented to you.
+      </p>
+      <h4>Strategy</h4>
+      <p>
+        There is some strategy to how you choose the self-evaluation icon. You
+        are playing against your own failing memory. The scheduling algorithm
+        tries to predict how quickly you will forget, but you have some notion
+        yourself. You can use this to your advantage.
+      </p>
+      <p>
+        If you fail a challenge after a long series of successes, the sad icon
+        may schedule its next appearance too far into the future. I often
+        click the "tomorrow" icon in this case. Facing the challenge when my
+        last failure is fresh in my mind helps me get back on track. Otherwise
+        I find myself failing again for the same reason, remembering the same
+        mistaken train of thought that led me to answer incorrectly the last
+        time.
+      </p>
+      <p>
+        I use the "again in this quiz" icon more sparingly, but it serves a
+        similar function: let me experience one success and overwrite my
+        mistake before moving on.
+      </p>
+      <p>
+        I live in Vermont, where it snows a lot. In the winter the town sends
+        a sidewalk plough to clear the sidewalks. The plough throws snow to
+        the side when it can. When it is passing a sidewalk or driveway it
+        throws the snow ahead of itself. This is fine so long as it sometimes
+        gets a chance to cast the snow out of its way. A spaced repetition
+        quiz works like this sidewalk plough, except it only ever throws the
+        snow forward. The quiz doesn't mind, but you may, as every day the
+        ratio of old to new words grows. Graduate cards when you can so that
+        you aren't facing the entire dictionary every day. If you find the
+        pile you face too overwhelming, you should either tune down the number
+        of new cards you face every day, or tune down the memory challenge, so
+        your sequences of success grow longer and you can graduate faster. See
+        the <a href="#quiz-configuration">quiz configuration options</a>.
       </p>
       <h3 id="tags">Tags</h3>
       <figure id="tags-figure">
@@ -1128,7 +1237,8 @@
         Tags consist of a short identifier, a visually distinctive style, and
         some content. They appear in Amanuensis as colored bubbles. When you
         hover over a tag, the content appears as tooltip text. Identifiers
-        must be unique &mdash; you can have only one tag identified as "M".
+        must be unique &mdash; you can have only one tag identified as "M",
+        for example.
       </p>
       <p>Tags serve two functions:</p>
       <ul>
@@ -1156,26 +1266,35 @@
         More commonly you will want to create a tag in an existing category.
         Perhaps you have a category of tags that indicate part of speech
         &mdash; noun, verb, adjective, etc. &mdash; and you wish to add a tag
-        for prepositions. Perhaps you nave a category of tags that represent
+        for prepositions. Perhaps you have a category of tags that represent
         noun class &mdash; masculine versus feminine, animate versus
         inanimate, abstract versus concrete &mdash; and you wish to add a new
         noun class. The tag category is represented stylistically. Your part
         of speech tag category might be purple text on a yellow background.
         Your noun class tag category might be red on pink. To create a new tag
         in an existing tag category, you click the duplicate icon (6) and then
-        add the tag, text, and perhaps locales it pertains to.
+        add the tag, text, and perhaps locales it pertains to.<span class="fn">This is a design flaw. There should be
+          some way to edit a tag
+          classes distinctive colors after you create it. This flaw will be
+          addressed in the next release of Amanuensis.</span>
       </p>
       <p>
         When tags are listed, they are sorted primarily by category, in the
-        order in which the category was created, and secondarily by identifer
+        order in which the category was created, and secondarily by identifier
         in alphabetical order.
       </p>
       <h4>tag locales</h4>
       <p>
         Sometimes a particular tag will be useful for all languages. All
-        languages have nouns and verbs, for instance, so whenever you are
-        creating a note, whatever the language, you may want to be able to tag
-        a lemma as a noun or a verb.
+        languages have nouns and verbs, for instance<span class="fn">When I was in graduate school for linguistics, some
+          people
+          proferred examples of languages in which nouns where this universal
+          didn't hold &mdash; all "nouns" were grammatically verbs or vice
+          versa. I don't know whether these debates have been settled. I take
+          it almost universally true that a language will have distinct
+          classes of words serving noun and verb functions with different
+          morpho-syntactic properties.</span>, so whenever you are creating a note, whatever the language, you may
+        want to be able to tag a lemma as a noun or a verb.
       </p>
       <p>
         Some languages have particular categories which are very important to
@@ -1200,7 +1319,7 @@
       <p>
         In the tags tab, if a tag has a single locale, that locale is shown in
         the locales bubble. If it has more than one, the bubble contains an
-        ellipsis. If you hove over a tag's locale bubble in the tags tab, all
+        ellipsis. If you hover over a tag's locale bubble in the tags tab, all
         its locales will appear in a tooltip. See (5) in
         <a href="#tags-figure">the figure</a>.
       </p>
@@ -1226,7 +1345,9 @@
         there are, together with some database actions, can be found on the
         configuration tab (<a href="#config-figure">the figure</a>).
       </p>
-      <h4 id="max-similars">max similar phrases</h4>
+      <h4>Dictionary</h4>
+      Configuration parameters for the <a href="#dictionary">dictionary</a> tab.
+      <h5 id="max-similars">max similar phrases</h5>
       <p>
         In a similarity search you are unlikely to find any interesting
         similar phrases after the first few notes, so rather than display all
@@ -1234,7 +1355,25 @@
         similarity Amanuensis just shows the few most similar ones. This
         parameter controls how many are shown.
       </p>
-      <h4>database actions</h4>
+      <h4 id="quiz-configuration">Quiz</h4>
+      Configuration parameters for the <a href="#quiz">quiz</a> tab.
+      <h5 id="auto-graduate-threshold">auto-graduate threshold</h5>
+      <p>
+        If you always get the answer to a challenge, you probably should stop
+        facing that challenge so you can spend your time on other things.
+        Amanuensis keeps track of how many times you've rated your response to
+        a challenge as good. If you pass this number, it will suggest you
+        "graduate" the challenge the next time you click the smiling icon.
+      </p>
+      <h5>memory challenge</h5>
+      <p>
+        When you click one of the face icons to rate your response to
+        the quiz challenge, Amanuensis reschedules the challenge for some future date based on your self-evaluation. By
+        default the scheduling is based on what I found experimenting with <a href="https://apps.ankiweb.net/">Anki</a>.
+        If you find you are getting too many challenges right you may wish to tune the scheduling up; if you get too
+        many wrong, you may wish to tune it down. Use this slider for that purpose.
+      </p>
+      <h4>Database</h4>
       <p>
         Amanuensis saves all its data on your machine in a database. It
         doesn't call home to a central server. It doesn't store data in the
@@ -1284,7 +1423,7 @@
         existing notes. This may result in duplicate notes and tags requiring
         merging or deletion.
       </p>
-      <h4 id="languages">languages</h4>
+      <h4 id="languages">Languages</h4>
       <p>
         You do not need to use Amanuensis to study languages. You can use it
         simply as a note taking tool. Amanuensis begins configured to use only
