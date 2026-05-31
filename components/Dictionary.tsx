@@ -1129,8 +1129,10 @@ const MergeModal: React.FC<MergeModalProps> = ({
   dispatch,
 }) => {
   // in the case of an unsaved phrase, we want to switch which is from and which is to
-  const f = initialTo && initialTo.id === undefined ? initialTo : initialFrom
-  const to = initialTo && initialTo.id === undefined ? initialFrom : initialTo
+  let f = initialTo && initialTo.id === undefined ? initialTo : initialFrom
+  let to = initialTo && initialTo.id === undefined ? initialFrom : initialTo
+  // always merge the newer into the older
+  if (f?.id !== undefined && to?.id !== undefined && f.id < to.id) [f, to] = [to, f]
   const emptyPhrase = useMemo(() => ({
     lemma: "",
     tags: [],
