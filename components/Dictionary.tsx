@@ -1246,7 +1246,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
               >
                 <Grid width={1}>
                   <Box>
-                    {from.tags?.map((t) => {
+                    {!!tags?.length && from.tags?.map((t) => {
                       const tag = tags.find((tag) => tag.id === t)!
                       const common = merged.tags!.some((o) => o === t)
                       return (
@@ -1278,7 +1278,7 @@ const MergeModal: React.FC<MergeModalProps> = ({
                 </Grid>
                 <Grid width={1}>
                   <Box>
-                    {merged.tags!.map((t) => {
+                    {!!tags?.length && merged.tags!.map((t) => {
                       const tag = tags.find((tag) => tag.id === t)!
                       return (
                         <TagChip
