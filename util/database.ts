@@ -488,7 +488,11 @@ export function citationToPhrase(
     const others = await db.phrases
       .where("languageId")
       .anyOf(languageIds)
-      .filter((p) => p.lemma.toLocaleLowerCase() === key || p.citations.some((o) => o.phrase.toLowerCase() === key))
+      .filter(
+        (p) =>
+          p.lemma.toLowerCase() === key ||
+          p.citations.some((o) => o.phrase.toLowerCase() === key)
+      )
       .toArray()
     c.locale = locale
     const phrase: Phrase = {
