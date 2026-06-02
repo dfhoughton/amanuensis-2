@@ -27,6 +27,7 @@ import {
   trialsKey,
 } from "./spaced_repetition"
 import { regex } from "list-matcher"
+import { snorm } from "./string"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -484,14 +485,12 @@ export function citationToPhrase(
       })[0].id!
     } else if (languages.length === 1) languageId = languages[0].id!
     const languageIds = languages.length ? languages.map((l) => l.id!) : [0]
-    const key = c.phrase.toLowerCase()
+    const key = snorm(c.phrase)
     const others = await db.phrases
       .where("languageId")
       .anyOf(languageIds)
       .filter(
-        (p) =>
-          p.lemma.toLowerCase() === key ||
-          p.citations.some((o) => o.phrase.toLowerCase() === key)
+        (p) => snorm(p.lemma) === key || p.citations.some((o) => snorm(o.phrase) === key)
       )
       .toArray()
     c.locale = locale

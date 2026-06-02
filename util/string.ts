@@ -7,6 +7,11 @@ export function squish(string: string) {
   }
 }
 
+// canonical form for string comparison
+export function snorm(s: string) {
+  return squish(s)?.toLowerCase()
+}
+
 // reverse the order of characters in a string
 export function reverse(string: string): string {
   return string.split('').reverse().join('')
