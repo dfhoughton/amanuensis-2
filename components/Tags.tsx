@@ -181,8 +181,7 @@ export const TagRow: React.FC<TagRowProps> = ({
       <Stack
         direction="row"
         spacing={1}
-        justifyContent={"space-between"}
-        sx={{ width: "100%", p: 0.5 }}
+        sx={{ justifyContent: "space-between", width: "100%", p: 0.5 }}
       >
         <TagChip tag={tag} onClick={tagSearch(tag, dispatch)} />
         <Box>{tag.description}</Box>
