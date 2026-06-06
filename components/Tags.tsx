@@ -60,11 +60,11 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
   }, [dispatch])
   return (
     <Box sx={{ minHeight: "400px" }}>
-      <Stack direction="row" justifyContent={"space-between"}>
+      <Stack direction="row" sx={{ justifyContent: "space-between" }}>
         <Typography variant="h5" component="h1">
           Tags
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="flex-end">
+        <Stack direction="row" spacing={1} sx={{ alignItems: "flex-end" }}>
           <Tooltip enterDelay={200} arrow title="Create a tag">
             <IconButton
               color="primary"
