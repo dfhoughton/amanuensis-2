@@ -54,6 +54,8 @@ export function wsrx(s: string): string | undefined {
   return chars.join("")
 }
 
+export const defaultStringNormalizer = (s: string) => snorm(s) ?? ""
+
 // for a given language generate a function which will normalize strings according to its equivalence classes
 // if it has none, fall back to snorm
 export function normalizer(language: Language): (s: string) => string {
@@ -97,6 +99,6 @@ export function normalizer(language: Language): (s: string) => string {
       }).join("")
     }
   } else {
-    return (s: string) => snorm(s) ?? ""
+    return defaultStringNormalizer
   }
 }

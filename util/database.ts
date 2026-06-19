@@ -27,7 +27,7 @@ import {
   trialsKey,
 } from "./spaced_repetition"
 import { regex } from "list-matcher"
-import { snorm } from "./string"
+import { defaultStringNormalizer, normalizer, snorm } from "./string"
 
 type PhraseTable = {
   phrases: Table<Phrase>
@@ -81,7 +81,7 @@ const schema = Object.assign(
   tagsSchema,
   relationsSchema,
   configurationSchema,
-  trialSchema
+  trialSchema,
 )
 db.version(1).stores(schema)
 function init() {
@@ -111,7 +111,7 @@ export function resetDatabase() {
     [db.phrases, db.languages, db.configuration, db.tags, db.relations],
     () => {
       Promise.all(db.tables.map((table) => table.clear())).then(() => init())
-    }
+    },
   )
 }
 
@@ -120,7 +120,7 @@ export function configuration(): Promise<Configuration | undefined> {
 }
 
 export function setConfiguration(
-  configuration: Configuration
+  configuration: Configuration,
 ): Promise<Configuration> {
   return db.configuration.put(configuration, 0)
 }
@@ -154,7 +154,7 @@ export async function getPhrase(id: number): Promise<Phrase | undefined> {
 
 // this basically does a join and fetches down the related phrases
 export function phrasesForRelations(
-  ids: number[]
+  ids: number[],
 ): Promise<Map<number, [number, Phrase]>> {
   return db.transaction("r", db.phrases, db.relations, async () => {
     const relations = await db.relations.where("id").anyOf(ids).toArray()
@@ -376,7 +376,7 @@ export function deletePhrase(phrase: Phrase): Promise<void> {
       const phrases = await db.phrases.where("id").anyOf(phraseIds).toArray()
       for (const p of phrases) {
         p.relations = p.relations!.filter(
-          (i) => !relations.some((r) => r.id === i)
+          (i) => !relations.some((r) => r.id === i),
         )
       }
       await db.phrases.bulkPut(phrases)
@@ -421,7 +421,7 @@ export function perhapsStaleLanguages(): Promise<Language[]> {
 export function addLanguage(
   name: string,
   locale: string,
-  moveExisting: boolean
+  moveExisting: boolean,
 ): Promise<Language> {
   return db.transaction("rw", db.phrases, db.languages, async () => {
     const language: Language = { name, locale, locales: {}, count: 0 }
@@ -451,7 +451,7 @@ export function countPhrasesWithLocale(locale: string): Promise<number> {
 
 export function removeLanguage(
   language: Language,
-  moveExisting: boolean
+  moveExisting: boolean,
 ): Promise<void> {
   return db.transaction("rw", db.phrases, db.languages, async () => {
     if (moveExisting) {
@@ -470,11 +470,11 @@ export function removeLanguage(
 // generate a new *unsaved* phrase and return the phrase a list of phrases it might be merged with
 export function citationToPhrase(
   c: Citation,
-  locale: string
+  locale: string,
 ): Promise<[Phrase, Phrase[]]> {
   return db.transaction("rw", db.languages, db.phrases, async () => {
     const languages = (await db.languages.toArray()).filter(
-      (l) => l.locale === locale || l.locales[locale]
+      (l) => l.locale === locale || l.locales[locale],
     )
     let languageId = 0
     if (languages.length > 1) {
@@ -490,7 +490,9 @@ export function citationToPhrase(
       .where("languageId")
       .anyOf(languageIds)
       .filter(
-        (p) => snorm(p.lemma) === key || p.citations.some((o) => snorm(o.phrase) === key)
+        (p) =>
+          snorm(p.lemma) === key ||
+          p.citations.some((o) => snorm(o.phrase) === key),
       )
       .toArray()
     c.locale = locale
@@ -531,7 +533,7 @@ export async function savePhrase(phrase: Phrase): Promise<Phrase> {
 
 /** search for phrases that might be merged with a phrase/citation */
 export async function similaritySearch(
-  search: SimilaritySearch
+  search: SimilaritySearch,
 ): Promise<SearchResults> {
   const {
     phrase,
@@ -541,12 +543,18 @@ export async function similaritySearch(
     page = 1,
     pageSize = 10,
   } = search
-  const rs = await db.transaction("r", db.phrases, async () => {
+  const rs = await db.transaction("r", db.phrases, db.languages, async () => {
     if (!search.phrase) return []
+    let norm: (s: string) => string
+    if (languages.length === 1) {
+      const l = await db.languages.get(languages[0])
+      if (l) norm = normalizer(l)
+    }
+    norm ??= defaultStringNormalizer
     const scope = languages.length
       ? db.phrases.where("languageId").anyOf(languages)
       : db.phrases.toCollection()
-    const sims = new SimilaritySorter(metric, phrase, limit)
+    const sims = new SimilaritySorter(metric, phrase, norm, limit)
     void (await scope.each((p) => sims.add(p)))
     return sims.toArray()
   })
@@ -559,7 +567,7 @@ export async function similaritySearch(
 
 /** general search */
 export async function phraseSearch(
-  search: FreeFormSearch
+  search: FreeFormSearch,
 ): Promise<SearchResults> {
   const {
     lemma,
@@ -630,12 +638,12 @@ export async function phraseSearch(
         .then((phrases) =>
           sort.direction === SortDirection.Descending
             ? phrases.reverse()
-            : phrases
+            : phrases,
         )
       const phrases = rs.slice(offset, offset + pageSize)
       const total = rs.length
       return { phrases, total }
-    }
+    },
   )
   const { phrases, total } = rv
   const pages = Math.ceil(total / pageSize)
@@ -670,7 +678,7 @@ function renameDb(file: File): Promise<Blob> {
         data.data.databaseName = "tmp"
         resolve(new Blob([JSON.stringify(data)], { type: "application/json" }))
       },
-      false
+      false,
     )
     reader.readAsText(file)
   })
@@ -680,7 +688,7 @@ function renameDb(file: File): Promise<Blob> {
 async function importPhrases(
   tmp: Dexie<DexieTable>,
   languageMap: Map<number, number>,
-  tagMap: Map<number, number>
+  tagMap: Map<number, number>,
 ) {
   const phraseNumberMap = new Map() as Map<number, number>
   const phraseMap = new Map() as Map<number, Phrase>
@@ -737,7 +745,7 @@ async function mergeLanguages(tmp: Dexie<DexieTable>) {
   const newLanguages: Map<string, Language> = new Map()
   const oldLanguages: Map<string, Language> = new Map()
     ; (await tmp.languages.toArray()).forEach((l) =>
-      newLanguages.set(l.locale!, l)
+      newLanguages.set(l.locale!, l),
     )
     ; (await db.languages.toArray()).forEach((l) => oldLanguages.set(l.locale!, l))
   const languageMap: Map<number, number> = new Map() // map new language ids to old language ids
@@ -770,7 +778,7 @@ export async function makeQuiz(
   // the maximum number of new phrases to include
   newPhrases: number,
   // whether questions concern the lemma or the gloss
-  phrasesAreQuestionsAndGlossesAreAnswers: boolean
+  phrasesAreQuestionsAndGlossesAreAnswers: boolean,
 ): Promise<QuizSignature> {
   const startTime = new Date()
   const phrases: number[] = []
@@ -837,7 +845,7 @@ export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
         : []
       const trial = (await db.trials.get(phraseId)) ?? { phraseId }
       return { phrase, trial, tags, language }
-    }
+    },
   )
 }
 
@@ -850,7 +858,7 @@ export async function saveTrial(trial: Trial): Promise<void> {
 export async function howTheQuizIsGoingSoFar(
   phrases: number[],
   startTime: Date,
-  quizzingOnLemmas: boolean
+  quizzingOnLemmas: boolean,
 ): Promise<Summary> {
   return db.transaction("r", db.trials, async () => {
     const allTrials = await db.trials.where("phraseId").anyOf(phrases).toArray()
@@ -897,7 +905,7 @@ export async function howTheQuizIsGoingSoFar(
 
 // count the number of phrases that might show up as new phrases in a quiz
 export async function newPhraseCount(
-  quizzingOnLemmas: boolean
+  quizzingOnLemmas: boolean,
 ): Promise<number> {
   return db.transaction("r", db.phrases, db.trials, async () => {
     const phraseIds = (await db.phrases
@@ -962,7 +970,7 @@ async function regexForLanguage(language: Language): Promise<RegExp> {
 // for converting text into text with links to known phrases
 export async function splitText(
   text: string,
-  language: Language
+  language: Language,
 ): Promise<{ parts: string[]; map: Map<string, Phrase> }> {
   const splitter = await regexForLanguage(language)
   const parts: string[] = []
@@ -1016,7 +1024,8 @@ export async function splitText(
       }
       const normalizedLemma = p.lemma.toLocaleLowerCase(language.locale)
       for (const c of p.citations) {
-        if (c.phrase.toLocaleLowerCase(language.locale) === normalizedLemma) continue // we've done this one already
+        if (c.phrase.toLocaleLowerCase(language.locale) === normalizedLemma)
+          continue // we've done this one already
         if (testPhrase(c.phrase)) {
           for (const word of findMatches(c.phrase)) {
             // citations only fill in blanks in the map

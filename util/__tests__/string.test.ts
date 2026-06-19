@@ -17,7 +17,7 @@ function makeLanguage(
 }
 
 describe("normalizer", () => {
-  describe("English (no equivalence classes)", () => {
+  describe("English (no equivalence classes for testing purposes)", () => {
     const english = makeLanguage("English")
     const normalize = normalizer(english)
 

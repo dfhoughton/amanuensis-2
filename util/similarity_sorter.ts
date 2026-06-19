@@ -37,20 +37,22 @@ export class SimilaritySorter {
   private store: [Phrase, number][]
   private limit: number
   private metric: (a: string, b: string) => number
-  constructor(metricName: DistanceMetric, key: string, limit: number = defaultMaxSimilarPhrases) {
+  private norm: (s: string) => string
+  constructor(metricName: DistanceMetric, key: string, norm: (s: string) => string, limit: number = defaultMaxSimilarPhrases) {
     if (limit < 1) throw new Error("limit must be a positive integer")
 
     this.metric = metric(metricName)
-    this.key = key.replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ")
+    this.key = norm(key)
     this.limit = limit
     this.store = []
+    this.norm = norm
   }
 
   // inserts phrase via binary search; maybe a min-max heap would be better?
   add(p: Phrase): void {
-    let d = this.metric(this.key, p.lemma)
+    let d = this.metric(this.key, this.norm(p.lemma))
     for (const c of p.citations) {
-      const d2 = this.metric(this.key, c.phrase)
+      const d2 = this.metric(this.key, this.norm(c.phrase))
       if (d2 < d) d = d2
     }
     const item: [Phrase, number] = [p, d]
