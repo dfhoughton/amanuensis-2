@@ -467,6 +467,13 @@ export function removeLanguage(
   })
 }
 
+// save an existing language (e.g. after editing equivalence classes)
+export function saveLanguage(language: Language): Promise<void> {
+  return db.languages.put(language).then(() => {
+    regexCache.delete(language.id!) // force recompilation
+  })
+}
+
 // generate a new *unsaved* phrase and return the phrase a list of phrases it might be merged with
 export function citationToPhrase(
   c: Citation,
