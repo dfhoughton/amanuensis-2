@@ -40,6 +40,13 @@ let t = createTheme({
     fontFamily: "Helvetica",
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        "body, html": {
+          scrollbarWidth: "none",
+        },
+      },
+    },
     MuiTabPanel: {
       styleOverrides: {
         root: ({ theme }) =>
