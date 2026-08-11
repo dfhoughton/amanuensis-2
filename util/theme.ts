@@ -43,6 +43,8 @@ let t = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         "body, html": {
+          // after a Chrome version bump the overflow scrollbar caused ugly reflow
+          // and expansion of the body; this fixes that
           scrollbarWidth: "none",
         },
       },
