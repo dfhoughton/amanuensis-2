@@ -53,7 +53,10 @@ import {
   defaultMaxSimilarPhrases,
   DistanceMetric,
 } from "../util/similarity_sorter"
-import { DEFAULT_AUTO_GRADUATE_COUNT } from "../util/spaced_repetition"
+import {
+  DEFAULT_AUTO_GRADUATE_COUNT,
+  MAX_NEW_PHRASES_PER_QUIZ,
+} from "../util/spaced_repetition"
 import { theme } from "../util/theme"
 import { snorm } from "../util/string"
 import {
@@ -94,6 +97,17 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           "errored upon saving configuration change when setting max similar phrases",
         ),
       )
+  }
+  const newPhrasesHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const c: ConfigurationType = {
+      ...config,
+    }
+    c.newPhrases = Number.parseInt(e.target.value)
+    setConfiguration(c)
+      .then(() => {
+        dispatch({ action: "config", config: c })
+      })
+      .catch(errorHandler(dispatch, "errored when saving new phrases count"))
   }
   const autoGraduateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const c: ConfigurationType = {
@@ -185,6 +199,14 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             <Quiz fontSize="small" sx={{ ml: 1, color: "gray" }} />
           </Tooltip>
         </Typography>
+        <TextField
+          label="New Phrases"
+          type="number"
+          fullWidth
+          slotProps={{ htmlInput: { min: 1, step: 1 } }}
+          value={state.config?.newPhrases ?? MAX_NEW_PHRASES_PER_QUIZ}
+          onChange={newPhrasesHandler}
+        />
         <TextField
           label="Auto-graduate Count"
           type="number"
