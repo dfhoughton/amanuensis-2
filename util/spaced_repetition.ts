@@ -147,7 +147,7 @@ export class DailyQuiz {
       )
     ) {
       this.config[quizType] = await makeQuiz(
-        MAX_NEW_PHRASES_PER_QUIZ,
+        this.config.newPhrases ?? MAX_NEW_PHRASES_PER_QUIZ,
         quizzingOnLemmas
       )
       void (await setConfiguration(this.config))
@@ -157,7 +157,7 @@ export class DailyQuiz {
   // replace the current quiz signature of quizzingOnLemmas type in the configuration
   async newQuiz(quizzingOnLemmas: boolean): Promise<void> {
     this.config[this.quizKey(quizzingOnLemmas)] = await makeQuiz(
-      MAX_NEW_PHRASES_PER_QUIZ,
+      this.config.newPhrases ?? MAX_NEW_PHRASES_PER_QUIZ,
       quizzingOnLemmas
     )
     void (await setConfiguration(this.config))
