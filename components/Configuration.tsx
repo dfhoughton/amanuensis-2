@@ -1068,7 +1068,6 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
 }) => {
   const [file, setFile] = React.useState<File>()
   const [dropText, setDropText] = React.useState("Click or drop file here")
-  const hiddenFilePicker = React.useRef<HTMLInputElement>(null)
   return (
     <Modal
       open={open}
@@ -1091,6 +1090,7 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
           {`This will import everything from the chosen database file into the working database. You may find that this results in duplicate notes and tags. You will have to merge or delete these manually.`}
         </Typography>
         <Stack
+          component="label"
           alignContent="center"
           alignItems="center"
           sx={{
@@ -1120,22 +1120,18 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
               console.error("" + error)
             }
           }}
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation()
-            e.preventDefault()
-            hiddenFilePicker.current?.click()
-          }}
         >
           {dropText}
           <input
             type="file"
             style={{ display: "none" }}
-            ref={hiddenFilePicker}
             accept="application/json"
             onChange={(e) => {
-              const file = e.target.files![0]
-              setDropText(file.name)
-              setFile(file)
+              const file = e.target.files?.[0]
+              if (file) {
+                setDropText(file.name)
+                setFile(file)
+              }
             }}
           />
         </Stack>
