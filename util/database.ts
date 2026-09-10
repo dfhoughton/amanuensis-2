@@ -16,7 +16,7 @@ import {
 import { matcher, shuffle } from "./general"
 import every from "lodash/every"
 import uniq from "lodash/uniq"
-import { exportDB } from "dexie-export-import"
+import { exportDB, importDB, ExportOptions } from "dexie-export-import"
 import { SimilaritySorter } from "./similarity_sorter"
 import {
   NonInitialOutcome,
@@ -127,7 +127,7 @@ export function setConfiguration(
 
 // creates a relation between the two phrases (if one does not exist), returning the relation id
 export function createRelation(p1: Phrase, p2: Phrase): Promise<number> {
-  const [i1, i2] = [p1.id!, p2.id!].sort()
+  const [i1, i2] = [p1.id!, p2.id!].sort((a, b) => a - b)
   return db.transaction("rw", db.phrases, db.relations, async () => {
     let id = (
       await db.relations
@@ -659,62 +659,77 @@ export async function phraseSearch(
 
 /** import export functionality */
 
-export async function exportDb() {
-  return exportDB(db)
+export async function exportDb(options?: ExportOptions) {
+  return exportDB(db, options)
 }
 
-export async function importDb(file: File) {
-  const blob = await renameDb(file)
-  const tmp = (await BaseDexie.import(blob)) as Dexie<DexieTable>
-  const languageMap = await mergeLanguages(tmp)
-  const tagMap = await importTags(tmp)
-  await importPhrases(tmp, languageMap, tagMap)
-  tmp.delete()
-  return
+export async function importDb(file: Blob) {
+  // Ensure any previous orphaned "tmp" database is cleaned up
+  try {
+    await BaseDexie.delete("tmp")
+  } catch {
+    // ignore if doesn't exist
+  }
+
+  let tmp: Dexie<DexieTable> | undefined
+  try {
+    tmp = (await importDB(file, { name: "tmp" })) as Dexie<DexieTable>
+    const languageMap = await mergeLanguages(tmp)
+    const tagMap = await importTags(tmp, languageMap)
+    await importPhrasesAndTrials(tmp, languageMap, tagMap)
+    regexCache.clear()
+  } finally {
+    if (tmp) {
+      try {
+        await tmp.delete()
+      } catch (e) {
+        console.warn("Failed to delete tmp database:", e)
+      }
+    }
+  }
 }
 
-// we export the db under the name amanuensis but want to import it under the name "tmp", so we need
-// to munge the import file
-function renameDb(file: File): Promise<Blob> {
-  return new Promise((resolve, _reject) => {
-    const reader = new FileReader()
-    reader.addEventListener(
-      "load",
-      () => {
-        const data = JSON.parse(reader.result as string)
-        data.data.databaseName = "tmp"
-        resolve(new Blob([JSON.stringify(data)], { type: "application/json" }))
-      },
-      false,
-    )
-    reader.readAsText(file)
-  })
-}
-
-// import phrases and relations, converting all foreign keys to those appropriate after import
-async function importPhrases(
+// import phrases, relations, and trials, converting all foreign keys to those appropriate after import
+async function importPhrasesAndTrials(
   tmp: Dexie<DexieTable>,
   languageMap: Map<number, number>,
   tagMap: Map<number, number>,
 ) {
-  const phraseNumberMap = new Map() as Map<number, number>
-  const phraseMap = new Map() as Map<number, Phrase>
-  // add the phrases minus relations
+  const phraseNumberMap = new Map<number, number>()
+  const phraseMap = new Map<number, Phrase>()
+
+  // 1. Add the phrases minus relations
   const phrases = await tmp.phrases.toArray()
   for (let p of phrases) {
     const oldId = p.id
     delete p.id
-    p.languageId = languageMap.get(p.languageId!)
+    if (p.languageId !== undefined) {
+      p.languageId = languageMap.get(p.languageId)
+    }
     const newTags: number[] = []
     for (const t of p.tags ?? []) {
-      newTags.push(tagMap.get(t)!)
+      const remapped = tagMap.get(t)
+      if (remapped !== undefined) {
+        newTags.push(remapped)
+      }
+    }
+    // Remap tags in citations
+    for (const c of p.citations ?? []) {
+      if (c.tags) {
+        c.tags = c.tags
+          .map((t) => tagMap.get(t))
+          .filter((t): t is number => t !== undefined)
+      }
     }
     p = { ...p, tags: newTags, relations: [] }
-    const id = await db.phrases.put(p)
-    phraseNumberMap.set(oldId!, id)
+    const id = (await db.phrases.put(p)) as number
+    if (oldId !== undefined) {
+      phraseNumberMap.set(oldId, id)
+    }
     phraseMap.set(id, { ...p, id })
   }
-  // now restore the relations
+
+  // 2. Restore relations
   const relations = await tmp.relations.toArray()
   for (const { p1: p1id, p2: p2id } of relations) {
     if (!phraseNumberMap.has(p1id)) continue
@@ -723,58 +738,106 @@ async function importPhrases(
     const p2 = phraseMap.get(phraseNumberMap.get(p2id)!)!
     await createRelation(p1, p2)
   }
+
+  // 3. Restore spaced repetition trials
+  const trials = await tmp.trials.toArray()
+  const trialsToInsert: Trial[] = []
+  for (const trial of trials) {
+    const newPhraseId = phraseNumberMap.get(trial.phraseId)
+    if (newPhraseId !== undefined) {
+      trialsToInsert.push({
+        ...trial,
+        phraseId: newPhraseId,
+      })
+    }
+  }
+  if (trialsToInsert.length > 0) {
+    await db.trials.bulkPut(trialsToInsert)
+  }
 }
 
-// import the tags from tmp, dealing with name collisions and returning a map from old tag ids to new
-async function importTags(tmp: Dexie<DexieTable>) {
-  const tagMap = new Map() as Map<number, number>
-    ; (await tmp.tags.toArray()).forEach(async (t) => {
-      let name = t.name
-      let disambiguator = 1
-      while (true) {
-        const nameInUse = await db.tags.get({ name })
-        if (nameInUse) {
-          name = `${t.name} (${disambiguator++})`
-        } else {
-          const oldId = t.id!
-          delete t.id
-          const id = (await db.tags.put({ ...t, name })) as number
-          tagMap.set(oldId, id)
-          break
+// import the tags from tmp, merging existing tags by name and remapping tag IDs
+async function importTags(
+  tmp: Dexie<DexieTable>,
+  languageMap: Map<number, number>,
+): Promise<Map<number, number>> {
+  const tagMap = new Map<number, number>()
+  const importedTags = await tmp.tags.toArray()
+
+  await db.transaction("rw", db.tags, async () => {
+    for (const t of importedTags) {
+      const oldId = t.id!
+      const existing = await db.tags.get({ name: t.name })
+      if (existing) {
+        // Tag already exists: reuse it and union associated languages
+        if (t.languages && t.languages.length > 0) {
+          const remappedLangs = t.languages
+            .map((lid) => languageMap.get(lid))
+            .filter((lid): lid is number => lid !== undefined)
+          const mergedLangs = uniq([
+            ...(existing.languages ?? []),
+            ...remappedLangs,
+          ])
+          if (mergedLangs.length !== (existing.languages?.length ?? 0)) {
+            existing.languages = mergedLangs
+            await db.tags.put(existing)
+          }
         }
+        tagMap.set(oldId, existing.id!)
+      } else {
+        // Brand new tag: remap languages and insert
+        delete t.id
+        if (t.languages) {
+          t.languages = t.languages
+            .map((lid) => languageMap.get(lid))
+            .filter((lid): lid is number => lid !== undefined)
+        }
+        const newId = (await db.tags.put(t)) as number
+        tagMap.set(oldId, newId)
       }
-    })
+    }
+  })
+
   return tagMap
 }
 
 // merge an imported set of languages into the existing languages table
-async function mergeLanguages(tmp: Dexie<DexieTable>) {
-  const newLanguages: Map<string, Language> = new Map()
-  const oldLanguages: Map<string, Language> = new Map()
-    ; (await tmp.languages.toArray()).forEach((l) =>
-      newLanguages.set(l.locale!, l),
-    )
-    ; (await db.languages.toArray()).forEach((l) => oldLanguages.set(l.locale!, l))
-  const languageMap: Map<number, number> = new Map() // map new language ids to old language ids
-  db.transaction("rw", db.languages, async () => {
-    for (const [locale, newLang] of newLanguages) {
-      const oldLang = oldLanguages.get(locale)
+async function mergeLanguages(
+  tmp: Dexie<DexieTable>,
+): Promise<Map<number, number>> {
+  const newLanguages = await tmp.languages.toArray()
+  const oldLanguages = await db.languages.toArray()
+  const oldLanguagesByLocale = new Map<string, Language>()
+  for (const l of oldLanguages) {
+    if (l.locale) oldLanguagesByLocale.set(l.locale, l)
+  }
+
+  const languageMap = new Map<number, number>()
+
+  await db.transaction("rw", db.languages, async () => {
+    for (const newLang of newLanguages) {
+      if (!newLang.locale) continue
+      const oldLang = oldLanguagesByLocale.get(newLang.locale)
       if (oldLang) {
-        oldLang.count += newLang.count
-        for (const [locale, count] of Object.entries(newLang.locales!)) {
-          oldLang.locales![locale] ??= 0
-          oldLang.locales![locale] += count
+        oldLang.count = (oldLang.count || 0) + (newLang.count || 0)
+        if (newLang.locales) {
+          oldLang.locales ??= {}
+          for (const [subLocale, count] of Object.entries(newLang.locales)) {
+            oldLang.locales[subLocale] =
+              (oldLang.locales[subLocale] || 0) + count
+          }
         }
         await db.languages.put(oldLang)
         languageMap.set(newLang.id!, oldLang.id!)
       } else {
         const oldId = newLang.id!
         delete newLang.id
-        const newId: number = await db.languages.put(newLang)
+        const newId = (await db.languages.put(newLang)) as number
         languageMap.set(oldId, newId)
       }
     }
   })
+
   return languageMap
 }
 
