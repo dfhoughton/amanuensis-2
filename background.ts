@@ -11,7 +11,7 @@ function sendToContent(
   msg: MessageFromBackgroundToContent,
   sendResponse: (m: MessageFromBackgroundToPopup) => void
 ) {
-  chrome.tabs.query({ active: true }).then((tabs) => {
+  chrome.tabs.query({ active: true, lastFocusedWindow: true }).then((tabs) => {
     if (tabs.length) {
       const tab = tabs.find((t) => t.id && t.url) ?? tabs[0]
       chrome.tabs.sendMessage(
@@ -24,40 +24,35 @@ function sendToContent(
             case "phraseSelected":
               sendResponse(m)
               break
-            case "selection":
-              chrome.tabs.query({ active: true }, (tabs) => {
-                const tab = tabs[0]
-                if (tab) {
-                  const { title, url } = tab
-                  const { selection } = m
-                  selection.title = title
-                  selection.url = cleanUrl(url!)
-                  const text = `${selection.before}${selection.phrase}${selection.after}`
-                  chrome.i18n
-                    .detectLanguage(text)
-                    .then((rv) => {
-                      const locale = rv.languages.sort(
-                        (a, b) => b.percentage - a.percentage
-                      )[0].language
-                      citationToPhrase(selection, locale)
-                        .then((phrase) => {
-                          sendResponse({ action: "phraseSelected", phrase })
-                        })
-                        .catch((e) => {
-                          console.error(
-                            "trouble getting citations for phrase",
-                            e
-                          )
-                          sendResponse({ action: "error", message: e.message })
-                        })
+            case "selection": {
+              const { selection } = m
+              selection.title = selection.title || tab.title
+              selection.url = cleanUrl(selection.url || tab.url || "")
+              const text = `${selection.before}${selection.phrase}${selection.after}`
+              chrome.i18n
+                .detectLanguage(text)
+                .then((rv) => {
+                  const locale = rv.languages.sort(
+                    (a, b) => b.percentage - a.percentage
+                  )[0].language
+                  citationToPhrase(selection, locale)
+                    .then((phrase) => {
+                      sendResponse({ action: "phraseSelected", phrase })
                     })
                     .catch((e) => {
-                      console.error('failed to obtain selected phrase', e)
+                      console.error(
+                        "trouble getting citations for phrase",
+                        e
+                      )
                       sendResponse({ action: "error", message: e.message })
                     })
-                }
-              })
+                })
+                .catch((e) => {
+                  console.error('failed to obtain selected phrase', e)
+                  sendResponse({ action: "error", message: e.message })
+                })
               break
+            }
             default:
               sendResponse({
                 action: "error",
