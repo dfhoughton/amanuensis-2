@@ -678,6 +678,16 @@ export async function importDb(file: Blob) {
     const tagMap = await importTags(tmp, languageMap)
     await importPhrasesAndTrials(tmp, languageMap, tagMap)
     regexCache.clear()
+
+    const config = (await db.configuration.get(0)) ?? { id: 0 }
+    // if either of the current quizzes has no phrases, remove it; this prevents
+    // an obscure bug that arises if you look at the quizzes with an empty DB and then
+    // import data
+    if (!config.currentPhraseQuiz?.phrases.length)
+      delete config.currentPhraseQuiz
+    if (!config.currentGlossQuiz?.phrases.length) delete config.currentGlossQuiz
+    await db.configuration.put(config, 0)
+    return config
   } finally {
     if (tmp) {
       try {

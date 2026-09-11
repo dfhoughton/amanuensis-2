@@ -1150,7 +1150,10 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
             disabled={file == null}
             onClick={() => {
               importDb(file!)
-                .then(() => {
+                .then((newConfig) => {
+                  if (newConfig) {
+                    dispatch({ action: "config", config: newConfig })
+                  }
                   dispatch({
                     action: "message",
                     message: `imported all data from ${file?.name}`,
