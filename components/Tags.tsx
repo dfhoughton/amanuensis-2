@@ -6,7 +6,6 @@ import {
   Button,
   Divider,
   IconButton,
-  Link,
   Modal,
   Stack,
   TextField,
@@ -18,7 +17,6 @@ import EditIcon from "@mui/icons-material/Edit"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined"
 import debounce from "lodash/debounce"
 import { MuiColorInput } from "mui-color-input"
 import {
@@ -31,6 +29,7 @@ import {
 import { TagChip } from "./TagChip"
 import { LanguageChip } from "./LanguageChip"
 import { LanguagePicker } from "./LanguagePicker"
+import { HelpLink } from "./HelpLink"
 
 type TagsProps = {
   dispatch: React.Dispatch<Action>
@@ -77,33 +76,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
               <AddIcon fontSize="medium" />
             </IconButton>
           </Tooltip>
-          <Link
-            sx={{ cursor: "pointer" }}
-            onClick={async () => {
-              let [tab] = await chrome.tabs.query({
-                active: true,
-                lastFocusedWindow: true,
-              })
-              if (tab === undefined) {
-                // try a different query
-                const tabs = await chrome.tabs.query({
-                  active: true,
-                  currentWindow: true,
-                })
-                if (tabs.length === 1) tab = tabs[0]
-              }
-              if (tab?.id) {
-                chrome.tabs.sendMessage(tab.id, {
-                  action: "help",
-                  anchor: "tags",
-                })
-              }
-            }}
-          >
-            <Tooltip enterDelay={200} arrow title="go to the Amanuensis documentation concerning tags">
-              <HelpOutlineIcon />
-            </Tooltip>
-          </Link>
+          <HelpLink anchor="tags" title="tags" />
         </Stack>
       </Stack>
       <Stack spacing={0.75} sx={{ mt: 2 }}>

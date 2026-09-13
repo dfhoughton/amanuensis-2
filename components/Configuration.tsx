@@ -44,7 +44,7 @@ import AddIcon from "@mui/icons-material/Add"
 import LanguageIcon from "@mui/icons-material/Language"
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined"
+import { HelpLink } from "./HelpLink"
 import ClearAll from "@mui/icons-material/ClearAll"
 import FileDownload from "@mui/icons-material/FileDownload"
 import FileUpload from "@mui/icons-material/FileUpload"
@@ -141,36 +141,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         <Typography variant="h5" component="h1">
           Configuration
         </Typography>
-        <Link
-          sx={{ cursor: "pointer" }}
-          onClick={async () => {
-            let [tab] = await chrome.tabs.query({
-              active: true,
-              lastFocusedWindow: true,
-            })
-            if (tab === undefined) {
-              // try a different query
-              const tabs = await chrome.tabs.query({
-                active: true,
-                currentWindow: true,
-              })
-              if (tabs.length === 1) tab = tabs[0]
-            }
-            if (tab?.id) {
-              chrome.tabs.sendMessage(tab.id, {
-                action: "help",
-                anchor: "configuration",
-              })
-            }
-          }}
-        >
-          <Tooltip
-            arrow
-            title="go to the Amanuensis documentation concerning configuration"
-          >
-            <HelpOutlineIcon />
-          </Tooltip>
-        </Link>
+        <HelpLink anchor="configuration" title="configuration" />
       </Stack>
       <Stack spacing={2} sx={{ alignItems: "flex-start", mt: 3 }}>
         <Typography variant="h6" component="h2" sx={{ pb: 1 }}>
@@ -431,17 +402,36 @@ export const Languages: React.FC<LanguagesProps> = ({
               <TableCell>
                 {!!l.id && (
                   <Stack direction="row">
-                    <IconButton
-                      color={
-                        l.graphemeEquivalenceClasses?.length
-                          ? "secondary"
-                          : "primary"
-                      }
-                      size="small"
-                      onClick={editLanguage(l)}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                    {!!l.graphemeEquivalenceClasses?.length && (
+                      <Badge
+                        variant="dot"
+                        color="secondary"
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            // squeeze the badge in a bit
+                            top: 3,
+                            right: 3,
+                          },
+                        }}
+                      >
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          onClick={editLanguage(l)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Badge>
+                    )}
+                    {!l.graphemeEquivalenceClasses?.length && (
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={editLanguage(l)}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       color={l.count ? "warning" : "primary"}
                       size="small"
@@ -780,11 +770,18 @@ const EditLanguageModal: React.FC<EditLanguageModalProps> = ({
       }}
     >
       <Box>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          {`Edit ${language?.name}`}
-        </Typography>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ width: "100%", justifyContent: "space-between" }}
+        >
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            {`Edit ${language?.name}`}
+          </Typography>
+          <HelpLink anchor="equivalence-classes" title="character equivalence classes" />
+        </Stack>
         <Typography id="modal-modal-description" sx={{ m: 2 }}>
-          {`Mark certain characters or character sequences as equivalent when finding similar phrases. For example, you may mark "é" as equivalent to "e" or "tch" as equivalent to "ch". If you need multiple equivalents – "é", "è", and "ê", say – separate them with commas.`}
+          {`Mark certain characters or character sequences as equivalent.`}
         </Typography>
         <Stack spacing={1} sx={{ m: 2 }}>
           {/* Existing equivalence classes */}
