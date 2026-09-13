@@ -11,6 +11,7 @@ import {
   Badge,
   Box,
   Button,
+  CircularProgress,
   IconButton,
   Link,
   Menu,
@@ -778,7 +779,10 @@ const EditLanguageModal: React.FC<EditLanguageModalProps> = ({
           <Typography id="modal-modal-title" variant="h6" component="h2">
             {`Edit ${language?.name}`}
           </Typography>
-          <HelpLink anchor="equivalence-classes" title="character equivalence classes" />
+          <HelpLink
+            anchor="equivalence-classes"
+            title="character equivalence classes"
+          />
         </Stack>
         <Typography id="modal-modal-description" sx={{ m: 2 }}>
           {`Mark certain characters or character sequences as equivalent.`}
@@ -1063,8 +1067,10 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
   setVersion,
   dispatch,
 }) => {
+  const defaultDropText = "Click or drop file here"
   const [file, setFile] = React.useState<File>()
-  const [dropText, setDropText] = React.useState("Click or drop file here")
+  const [dropText, setDropText] = React.useState(defaultDropText)
+  const [importing, setImporting] = React.useState(false)
   return (
     <Modal
       open={open}
@@ -1088,10 +1094,9 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
         </Typography>
         <Stack
           component="label"
-          alignContent="center"
-          alignItems="center"
           sx={{
             width: "100%",
+            alignItems: "center",
             margin: 1,
             marginBottom: 2,
             border: "2px dotted #bbb",
@@ -1103,11 +1108,13 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
           onDragOver={(e) => {
             e.stopPropagation()
             e.preventDefault()
+            if (importing) return
             e.dataTransfer.dropEffect = "copy"
           }}
           onDrop={async (e) => {
             e.stopPropagation()
             e.preventDefault()
+            if (importing) return
             const file = e.dataTransfer.files[0]
             try {
               if (!file) throw new Error(`Only files can be dropped here`)
@@ -1118,7 +1125,8 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
             }
           }}
         >
-          {dropText}
+          {!importing ? dropText : ""}
+          {importing && <CircularProgress />}
           <input
             type="file"
             style={{ display: "none" }}
@@ -1146,8 +1154,10 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
             color="primary"
             disabled={file == null}
             onClick={() => {
+              setImporting(true)
               importDb(file!)
                 .then((newConfig) => {
+                  setImporting(false)
                   if (newConfig) {
                     dispatch({ action: "config", config: newConfig })
                   }
@@ -1156,6 +1166,8 @@ const ImportDbModal: React.FC<ImportDbModalProps> = ({
                     message: `imported all data from ${file?.name}`,
                   })
                   setVersion(version + 1)
+                  setFile(undefined)
+                  setDropText(defaultDropText)
                   setOpen(false)
                 })
                 .catch(
