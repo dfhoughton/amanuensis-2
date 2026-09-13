@@ -84,35 +84,31 @@ const schema = Object.assign(
   trialSchema,
 )
 db.version(1).stores(schema)
-function init() {
-  db.languages.get(0).then((l) => {
-    if (!l) {
-      db.languages.add({
-        id: 0,
-        name: "unknown",
-        locale: "und",
-        locales: {},
-        count: 0,
-      })
-    }
-  })
-  db.configuration.get(0).then((c) => {
-    if (!c) {
-      db.configuration.add({ id: 0 })
-    }
-  })
+async function init() {
+  const l = await db.languages.get(0)
+  if (!l) {
+    await db.languages.add({
+      id: 0,
+      name: "unknown",
+      locale: "und",
+      locales: {},
+      count: 0,
+    })
+  }
+  const c = await db.configuration.get(0)
+  if (!c) {
+    await db.configuration.add({ id: 0 })
+  }
 }
 init()
 
 // clear everything
 export function resetDatabase() {
-  return db.transaction(
-    "rw",
-    [db.phrases, db.languages, db.configuration, db.tags, db.relations],
-    () => {
-      Promise.all(db.tables.map((table) => table.clear())).then(() => init())
-    },
-  )
+  return db.transaction("rw", db.tables, async () => {
+    await Promise.all(db.tables.map((table) => table.clear()))
+    await init()
+    regexCache.clear()
+  })
 }
 
 export function configuration(): Promise<Configuration | undefined> {
