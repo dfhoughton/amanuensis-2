@@ -223,7 +223,7 @@
       background-color: var(--paper);
       position: absolute;
       bottom: -0.7 5rem;
-      right: -0.75rem;
+      right: -1.75rem;
       z-index: 100;
       cursor: pointer;
       font-style: normal;
@@ -277,14 +277,11 @@
       position: relative;
 
       .figure-label {
-        position: absolute;
         background-color: var(--paper);
-        top: 0;
-        left: 0;
-        padding: 0.35rem;
-        border-radius: 1rem;
-        z-index: 10;
-        border: 3px solid var(--primary-color);
+        padding: 0.1rem 0.2rem;
+        margin: 0.2rem;
+        border-radius: 0.2rem;
+        border: 2px solid var(--primary-color);
       }
 
       img {
@@ -1675,19 +1672,12 @@
       const title = document.createElement("span")
       title.classList.add("figure-label")
       title.innerHTML = figId
-      title.onmouseover = (e) => {
-        title.classList.add("fade")
-      }
-      title.onmouseout = (e) => {
-        title.classList.remove("fade")
-      }
-      n.appendChild(title)
       let caption = n.querySelector("figcaption")
       if (caption === null) {
         caption = document.createElement("figcaption")
-        caption.innerHTML = `[${figId}]`
         n.appendChild(caption)
       }
+      caption.prepend(title)
       const returnLink = document.createElement("a")
       returnLink.classList.add("return")
       returnLink.innerHTML = "⬅"
