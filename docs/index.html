@@ -1325,8 +1325,8 @@
         <img src="images/configuration.png" alt="the configuration tab" />
         <figcaption>
           The configuration tab: 1) link to this documentation; 2) maximum
-          similar phrase count; 3) auto-graduate count 4) quiz memory
-          challeng; 5) clear database button; 6) export database button; 7)
+          similar phrase count; 3) new phrases per quiz; 4) auto-graduate count; 5) quiz memory
+          challenge; 6) clear database button; 7) export database button; 8)
           import database button
         </figcaption>
       </figure>
@@ -1334,7 +1334,14 @@
         <img src="images/languages.png" alt="the languages subsection of the configuration tab" />
         <figcaption>
           The languages subsection of the configuration tab: 1) language
-          adder; 2)&nbsp;the unknown language; 3) locale tally
+          adder; 2)&nbsp;the unknown language; 3) locale tally; 4) equivalent characters editor
+        </figcaption>
+      </figure>
+      <figure id="equivalence-classes-figure">
+        <img src="images/equivalence_classes.png" alt="the equivalent characters editor" />
+        <figcaption>
+          The equivalent characters editor. Use this to teach Amanuensis what orthographic differences should be treated
+          as equivalent when comparing words.
         </figcaption>
       </figure>
       <p>
@@ -1354,6 +1361,13 @@
       </p>
       <h4 id="quiz-configuration">Quiz</h4>
       Configuration parameters for the <a href="#quiz">quiz</a> tab.
+      <h5 id="new-phrases">new phrases</h5>
+      <p>
+        When you start a day's quizzes, Amanuensis will draw some number of
+        new phrases for you to learn, in addition to any phrases left over
+        from previous days. This parameter controls how many new phrases are
+        drawn.
+      </p>
       <h5 id="auto-graduate-threshold">auto-graduate threshold</h5>
       <p>
         If you always get the answer to a challenge, you probably should stop
@@ -1462,8 +1476,31 @@
         record this discrepancy and use it to improve its language assignment
         for subsequent notes. In (3) in
         <a href="#language-figure">the figure</a> you can see an instance of
-        this: 4 notes on Finnish were guessed by Chrome to contain Estonian
+        this: 5 notes on Finnish were guessed by the browser to contain Estonian
         (et); one was guessed to containg Swedish (sv).
+      </p>
+      <h5 id="equivalence-classes">character equivalence classes</h5>
+      <p>
+        Languages often have equivalent ways of spelling a given sound. In English, for example, <i>cafe</i> may also be
+        spelled <i>café</i>; <i>coordinate</i> may be spelled <i>coördinate</i>. This can be problematic if you are
+        looking to see whether you already have a note for one of these variable forms.
+      </p>
+      <p>
+        The equivalence class editor, <a href="#equivalence-classes-figure">the figure</a>, provides a means of
+        specifying equivalent character sequences. It is activated by clicking the
+        language's edit icon, (4) in <a href="#language-figure">the figure</a>. If you have already specified equivalent
+        characters for a given language, the editor icon will be decorated with the dot that you see in the figure.
+      </p>
+      <p>
+        The character sequences in the left field are treated as equivalent to the sequence in the right. You can mark
+        multi-character sequences as equivalent this way -- <i>tsch</i> and <i>ch</i>, say. If equivalence class
+        contains more than two members -- <i>é</i>, <i>è</i>, <i>ê</i>, <i>e</i>, for example -- simply separate
+        instances in the left field with commas.
+      </p>
+      <p>
+        For obvious reasons you cannot mark commas or whitespace as equivalent to anything. Also, capitalization is
+        already treated as irrelevant for purposes of comparison, so don't worry about marking <i>A</i> as equivalent to
+        <i>a</i>. It would be harmless but pointless.
       </p>
       <h2>Acknowledgements</h2>
       <p>
