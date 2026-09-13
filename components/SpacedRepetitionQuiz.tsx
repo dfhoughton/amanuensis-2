@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { AppState, exhaustiveGuard } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined"
 import {
   Badge,
   Box,
@@ -32,6 +31,7 @@ import TabPanel from "@mui/lab/TabPanel"
 import { TagChip } from "./TagChip"
 import { tagSearch } from "./Tags"
 import { BigLanguageChip } from "./LanguageChip"
+import { HelpLink } from "./HelpLink"
 import {
   Replay,
   SentimentNeutral,
@@ -613,37 +613,7 @@ const QuizCardHeader: React.FC = () => {
       <Typography variant="h5" component="h1">
         Quiz
       </Typography>
-      <Link
-        sx={{ cursor: "pointer" }}
-        onClick={async () => {
-          let [tab] = await chrome.tabs.query({
-            active: true,
-            lastFocusedWindow: true,
-          })
-          if (tab === undefined) {
-            // try a different query
-            const tabs = await chrome.tabs.query({
-              active: true,
-              currentWindow: true,
-            })
-            if (tabs.length === 1) tab = tabs[0]
-          }
-          if (tab?.id) {
-            chrome.tabs.sendMessage(tab.id, {
-              action: "help",
-              anchor: "quiz",
-            })
-          }
-        }}
-      >
-        <Tooltip
-          enterDelay={200}
-          arrow
-          title="go to the Amanuensis documentation for the spaced repetition quiz"
-        >
-          <HelpOutlineIcon />
-        </Tooltip>
-      </Link>
+      <HelpLink anchor="quiz" title="the spaced repetition quiz" />
     </Stack>
   )
 }

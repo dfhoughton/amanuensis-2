@@ -6,7 +6,8 @@
         "build": "BUILD_ARG='--sourcemap=inline' ./scripts/build.sh",
         "release-build": "BUILD_ARG='--minify --tree-shaking=true' ./scripts/build.sh",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
+        "lint:fix": "eslint . --fix",
+        "test": "jest"
     },
     "prettier": {
         "semi": false
@@ -44,6 +45,7 @@
         "baseline-browser-mapping": "^2.10.31",
         "chrome-types": "^0.1.428",
         "esbuild": "^0.28.0",
+        "jest": "^30.0.0",
         "eslint": "^10.4.0",
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-compiler": "^19.1.0-rc.2",

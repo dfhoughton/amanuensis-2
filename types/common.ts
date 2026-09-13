@@ -179,8 +179,13 @@ export type Language = {
   // the keys are the two-letter locale identifiers Chrome may identify this language by
   // the values are the number of citations for the given language with this locale
   locales: Record<string, number>
+  // ordered list of strings to use for normalization before similarity comparison
+  graphemeEquivalenceClasses?: GraphemeEquivalenceClass[]
   count: number // number of phrases assigned to language -- this is a denormalization
 }
+
+// the base string normalized to and the strings normalized from
+export type GraphemeEquivalenceClass = [base: string, equivalents: string[]]
 
 // for tagging notes and citations
 export type Tag = {

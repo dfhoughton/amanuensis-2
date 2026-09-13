@@ -1,5 +1,43 @@
 # Change Log
 
+## 2.1.0 _2026-09-13_
+
+### Major features
+
+- **grapheme equivalence classes** — configure custom character and grapheme equivalence rules per language (e.g., normalizing accented letters like `é, è, ê` → `e`, `ß` → `ss`, or stripping Hebrew vowel points)
+  - equivalence rules normalize words before similarity distance calculation, ensuring accents, diacritics, or variant spellings do not interfere with similarity searches
+  - dedicated modal editor in the Configuration tab to define and validate equivalence rules per language
+  - visual indicator (dot badge) in the language table to quickly identify languages with configured equivalence classes
+
+### Configuration changes
+
+- **configurable daily new phrases** — added a "New Phrases" number input under Quiz configuration to adjust how many new phrases are introduced each day (defaults to 5)
+
+### Database and storage
+
+- **spaced repetition trials included in database import** — importing a database backup now preserves quiz trial history and learning progress
+- **citation tag preservation** — citation tags are now properly remapped and preserved on import alongside note-level tags
+- **smart tag merging on import** — tags matching existing names are merged rather than duplicated with disambiguators, and their associated languages are combined
+- **improved database import UX** — streamlined file selection and drag-and-drop, added an in-progress loading indicator, and prevented interaction while importing
+- **empty quiz signature cleanup** — importing data after viewing the quiz tab on an empty database cleans up empty quiz signatures so daily quizzes generate properly
+- **reliable database reset** — database reset now properly clears all tables, re-initializes defaults, and clears compiled regex caches
+
+### Browser compatibility and navigation
+
+- **improved tab targeting** — queries now prioritize the active tab in the last focused window, improving behavior across multiple windows and non-Chrome Chromium/Firefox environments
+- **cleaner citation capture** — streamlined tab title and URL resolution when receiving text selections from content scripts
+- **citation title visibility** — fixed styling to ensure "(no title)" labels on citations are never clipped
+
+### Technical
+
+- added Jest testing framework and unit test suite for string normalization and language equivalence rules
+- created reusable `HelpLink` component across tabs (Quiz, Tags, Configuration) for direct links to documentation
+- transitioned database import to use `importDB` with isolated temporary database handling and cleanup
+
+### Documentation
+
+- moved documentation figure labels into figure captions to prevent labels from overlaying screenshots
+
 ## 2.0.0 _2026-06-06_
 
 ### Major features

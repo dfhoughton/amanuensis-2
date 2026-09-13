@@ -889,7 +889,7 @@ const Title: React.FC<{ citation: Citation }> = ({ citation }) => {
   }
   if (!citation.title)
     return (
-      <Typography sx={sx}>
+      <Typography sx={{ ...sx, overflow: "visible" }}>
         <i>no title</i>
       </Typography>
     )
