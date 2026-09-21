@@ -85,7 +85,7 @@ const oneWeek = oneDay * 7
 const oneMonth = oneDay * 31
 const maximumBadInterval = oneMonth * 1.5
 // interval at which point we start adding some randomness so phrases from the same citation aren't bunched up
-const scatterThreshold = oneWeek * 2
+const scatterThreshold = oneDay * 3
 
 export function describeTimeInterval(
   interval: number,
@@ -223,21 +223,29 @@ export class DailyQuiz {
     const scalingFactor = this.config.quizScalingFactor ?? 1.0
     const bad = this.truncateToDay(interval)
     let ok = this.truncateToDay(bad * (1 + 1.22 * scalingFactor))
-    if (ok === bad) ok += oneDay
+    if (ok >= scatterThreshold) {
+      ok = this.addJitter(ok)
+    }
+    while (ok <= bad) ok += oneDay
     let good = this.truncateToDay(ok * (1 + 0.3 * scalingFactor))
     if (good >= scatterThreshold) {
-      // add some randomness to keep phrases from the same text from bunching together
-      const jitter = Math.floor(Math.random() * 5) - 2
-      good = good + jitter * oneDay
+      good = this.addJitter(good)
     }
     while (good <= ok) good += oneDay
     let done = this.truncateToDay(good * (1 + 0.1 * scalingFactor))
-    if (done === good) done += oneDay
+    while (done <= good) done += oneDay
     rv.push(["bad", bad])
     rv.push(["ok", ok])
     rv.push(["good", good])
     rv.push(["done", done])
     return rv
+  }
+  // adds proportional randomness (±15%, at least ±1 day) to keep phrases from bunching together
+  private addJitter(interval: number): number {
+    const days = Math.round(interval / oneDay)
+    const fuzzRange = Math.max(1, Math.round(days * 0.15))
+    const jitter = Math.floor(Math.random() * (2 * fuzzRange + 1)) - fuzzRange
+    return this.truncateToDay(interval + jitter * oneDay)
   }
   // returns an interval that, when added to this.now, puts you at the beginning of the appropriate day
   private truncateToDay(interval: number): number {
