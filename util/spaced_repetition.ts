@@ -240,10 +240,10 @@ export class DailyQuiz {
     rv.push(["done", done])
     return rv
   }
-  // adds proportional randomness (±15%, at least ±1 day) to keep phrases from bunching together
+  // adds proportional randomness (±10%, at least ±1 day) to keep phrases from bunching together
   private addJitter(interval: number): number {
     const days = Math.round(interval / oneDay)
-    const fuzzRange = Math.max(1, Math.round(days * 0.15))
+    const fuzzRange = Math.max(1, Math.round(days * 0.10))
     const jitter = Math.floor(Math.random() * (2 * fuzzRange + 1)) - fuzzRange
     return this.truncateToDay(interval + jitter * oneDay)
   }
