@@ -85,12 +85,6 @@
       display: block;
     }
 
-    .up-link {
-      vertical-align: top;
-      font-size: 12px;
-      margin-left: 2px;
-    }
-
     dl {
       margin-left: 1rem;
 
@@ -173,13 +167,11 @@
       grid-area: sidebar;
     }
 
-    .wrapper {
+    .main {
       display: grid;
       grid-template-areas:
-        "header"
         "sidebar"
-        "content"
-        "footer";
+        "content";
     }
 
     .fn {
@@ -306,16 +298,20 @@
     }
 
     @media (min-width: 500px) {
-      .wrapper {
+      .main {
         grid-template-columns: 1fr 3fr;
         grid-template-areas:
-          "header  header"
-          "sidebar content"
-          "footer  footer";
+          "sidebar content";
       }
 
       .side {
-        padding: 0 1rem;
+        position: sticky;
+        top: 0;
+        align-self: start;
+        max-height: 100vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding: 0 1rem 2rem 1rem;
       }
 
       .head,
@@ -329,15 +325,13 @@
     }
 
     @media (min-width: 700px) {
-      .wrapper {
+      .main {
         grid-template-columns: 1fr 5fr;
         grid-template-areas:
-          "header  header"
-          "sidebar content"
-          "footer  footer";
+          "sidebar content";
       }
 
-      .sidebar {
+      .side {
         padding-left: 2rem;
       }
 
@@ -369,1182 +363,1196 @@
       </div>
       <img src="images/oofla.svg" width="128px" alt="Amanuensis logo -- Oofla the Gloofoo" title="Oofla the Gloofoo" />
     </header>
-    <nav class="side">
-      <h2>Contents</h2>
-      <div id="toc" />
-    </nav>
-    <article class="content">
-      <h2>What is Amanuensis?</h2>
-      <p>
-        Amanuensis is a Chrome extension that facilitates taking notes on
-        phrases you find as you browse the web. It captures the phrase, its
-        context &mdash; the surrounding text &mdash; the time you recorded it,
-        the URL, and any tags and notes, either on the phrase generally or
-        particular citations. You can link notes together, edit them, merge
-        them, search for them, export them, or import them.
-      </p>
-      <figure class="full-width" id="example-figure">
-        <img src="images/example.png" alt="what Amanuensis looks like in use" />
-        <figcaption>
-          Amanuensis in use. The square on the right depending from the
-          <a href="#oofla">little yellow figure</a> is a note taken in
-          Amanuensis regarding the text highlighted in purple. You can see at
-          the top that Amanuensis has five tags. The first, the
-          <a href="#note">note</a>, is active. The others are the
-          <a href="#dictionary">dictionary</a>, the
-          <a href="#quiz">spaced-repetition quiz</a>,
-          <a href="#tags">tags</a>, and
-          <a href="#configuration">configuration</a>.
-        </figcaption>
-      </figure>
-      <p>
-        In principal, you can use Amanuensis to take any sort of note. It was
-        designed, however, with language learning in mind. Every time you make
-        a note in Amanuensis you cue up a question in two
-        <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced-repetition</a>
-        flashcard <a href="#quiz">quizzes</a>, à la
-        <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form (<a
-          href="https://en.wiktionary.org/wiki/lemma#English:_canonical_form_of_an_inflected_word">&ldquo;lemma&rdquo;</a>)
-        to meaning (<a href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>) and a quiz from
-        meaning to form. You can take these quizzes daily
-        or on whatever schedule suits you. They will drum into your memory the
-        facts you annotate with notes.
-      </p>
-      <h3>Use</h3>
-      <p>This is the general pattern of use:</p>
-      <p>
-        You're reading an article on something that interests you. You find a
-        phrase of particular interest. If you're using Amanuensis to learn a
-        language, it's an unfamiliar phrase or idiom. If you're using it as a
-        research tool, it's a fact, observation, or data point. You highlight
-        the phrase and click the Amanuensis icon or press ctrl-shift-A to
-        start a note.<span class="fn">If you are studying a language, you will need some other source to
-          provide definitions, part of speech, etc. I find
-          <a href="https://en.wiktionary.org/wiki/Wiktionary:Main_Page">wiktionary</a>
-          is a great resource. It provides you considerably more and more
-          trustworthy information than you get from Google Translate, for
-          instance.</span>
-        You add relevant information, perhaps some tags. You look for similar
-        or related notes and link them. You save it.
-      </p>
-      <p>
-        Later, you wish to continue with an article. Say it's the last
-        article. You click the icon or press ctrl-shift-A and open Amanuensis.
-        You search, sorting for the most recently updated note. You click on
-        the first note, then click on the URL. This takes you to the page,
-        highlighting the phrase. You click on the search tab and see a list of
-        all the notes you took on the page. You resume reading the article and
-        taking notes.
-      </p>
-      <p>
-        Once a day, more or less, you <a href="#quiz">quiz</a> yourself on
-        your notes. About a fifth of the quiz are new notes selected randomly
-        from among those you've recently created. The rest are review.
-      </p>
-      <h3>Philosophy</h3>
-      <p>
-        When people learn languages in a classroom, most context is removed.
-        Words are learned in lists and are taught when the textbook or
-        professor deems best, not when the student is interested. But learning
-        facts unconnected to your interests is frustrating and inefficient. If
-        you don't already want to know the answer, the answer doesn't sink in.
-      </p>
-      <p>
-        The idea with Amanuensis is that you find something which is
-        inherently interesting to you and you try to read it. When you come
-        across unfamiliar words, you will be more likely to remember them,
-        because you <i>want</i> to know what they mean.
-      </p>
-      <p>
-        When you come across the words again, and look them up again, as one
-        does, you will be reminded of the last context in which you saw the
-        word. The words will all hang together in a web of meaning and
-        association.
-      </p>
-      <p>
-        As you go, you record connections between words, write down hypotheses
-        or questions to look up later, and add information. The more
-        connections you make among words and between words and ideas, the more
-        easily you will remember them. One thing will remind you of another.
-        The whole web holds when individual unconnected facts would have
-        fallen away.
-      </p>
-      <h3>Caveats</h3>
-      <p>
-        I have not tested Amanuensis on a right-to-left language like Arabic
-        or Hebrew.
-      </p>
-      <p>
-        I have not attempted to internationalize Amanuensis, ironically.
-        That's work that seems vast and un-fun, and the thing that has driven
-        development up to this point has been the fun. Just writing this
-        documentation is arduous enough. It's difficult to imagine writing
-        different versions for different languages and inserting an
-        <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">i18n</a>
-        layer into the code and so forth.
-      </p>
-      <p>
-        There is just one person writing and maintaining this code. Though I
-        use Amanuensis daily, there are corners, such as the importing and
-        exporting functionality, that are neglected.
-      </p>
-      <h3>Future</h3>
-      <p>
-        I have written Amanuensis because it is the language learning tool I
-        want. I am sharing it because, having written it, it costs me nothing
-        to do so.
-      </p>
-      <p>
-        It is free. It will remain free. I have no plans to make money off of
-        it.
-      </p>
-      <p>
-        However, for the same reason, I cannot guarantee it will be supported
-        and developed forever. I will keep working on it as long as I have use
-        for it. Since I love learning languages, I will keep at it for
-        decades, as long as I keep my health. But Amanuensis has a bus number
-        of one. If support drops off, something bad has happened. Still, I
-        imagine it will keep working, just without additional bells and
-        whistles.
-      </p>
-      <h2>Installation</h2>
-      To install Amanuensis, you have two options:
-      <h3>Chrome Web Store</h3>
-      <p>
-        Go to
-        <a href="https://chromewebstore.google.com/detail/amanuensis/hcclomiidfnghjhdidhhhbpdlhnbjjgg">Amanuensis's
-          page</a>
-        in the Chrome Web Store and click the "Add to Chrome" button.
-      </p>
-      <p>
-        You will likely want to
-        <a href="https://www.google.com/search?q=pin+an+extension">"pin"</a>
-        the extension so it is available whenever you happen to be looking at
-        a web page.
-      </p>
-      <p>
-        For some reason, when installed from the Chrome Store the app
-        sometimes gets assigned command-shift-A as its keyboard trigger rather
-        than the control-shift-A. The former conflicts with a keyboard
-        shortcut already present in Chrome. To fix this, type
-        "Chrome://extensions/shortcuts" in the address bar. Find Amanuensis,
-        and reset the key combination.
-        <a title="how to edit extension keyboard shortcuts"
-          href="https://www.fleetingnotes.app/docs/Reference/Enable%20keyboard%20shortcuts%20for%20browser%20extensions">This
-          note</a>
-        may help.
-      </p>
-      <h3>Install from source</h3>
-      <p>
-        Amanuensis is open source. If you are feeling adventurous you can
-        <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
-          title="how to clone a repository">clone the repository</a>, run the compile script, and
-        <a href="https://developer.Chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked"
-          title="how to load an unpacked extension">load the unpacked extension into Chrome</a>.
-      </p>
-      <p>
-        The respository is at
-        <a href="https://github.com/dfhoughton/amanuensis-2">https://github.com/dfhoughton/amanuensis-2</a>.<span
-          class="fn">Why "amanuensis-2"? Because there was an earlier version of this
-          extension that worked with an earlier version of the Chrome
-          extension spec. That version reached end of life and the extension
-          died. This is a thorough rewrite. It is somewhat less ambitious but
-          uses more modern tech.</span>
-      </p>
-      <p>
-        To run the build script, you must have
-        <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a terminal, cd
-        to the install directory and run
-        <code>npm run release-build</code> (or <code>npm run build</code> if
-        you want to set breakpoints and inspect human-readable code).<span class="fn">This is, in fact, how I work on
-          Amanuensis.</span>
-        Then go to Window > Extensions, click the &ldquo;Load unpacked&rdquo;
-        button, and select the dist directory, which will have the output of
-        the build scripts in it.
-      </p>
-      <h3>Non-Chrome Versions</h3>
-      <p>
-        I realize not everyone can or wants to use Chrome. I intend to make
-        Firefox and Safari versions at some point. It is a question of the
-        extent to which their APIs differ from Chrome's and figure out how
-        those extension stores work.
-      </p>
-      <h2>Amuensis's Bits and Pieces</h2>
-      <h3>Design Constraints</h3>
-      <p>
-        Amanuensis, like many extensions, lives in a little box in the top
-        right corner of the screen. It needs to stay out of the way of the
-        text you're reading, so everything needs to be compact, minimal,
-        abbreviated. We do what we can with tooltips and icons with familiar
-        meanings, but if we had more real estate on the screen we would have
-        made other choices.
-      </p>
-      <h3 id="note">Note</h3>
-      <figure id="note-figure">
-        <img src="images/note.png" alt="the parts of a note" />
-        <figcaption>
-          A note: 1) lemma; 2) save icon; 3) language; 4) gloss; 5)
-          elaboration; 6) tags; 7) links; 8) citation title; 9) citation date;
-          10) citation URL; 11) citation; 12) similarity search tool; 13)
-          citation note; 14) citation tags
-        </figcaption>
-      </figure>
-      <p>
-        Notes are the basic unit of Amanuensis. Their creation is its central
-        purpose. They collect information about citations. When you highlight
-        a bit of text and invoke Amanuensis, it begins a new note for you.
-      </p>
-      <p>
-        The various parts of a note are enumerated in
-        <a href="#note-figure">the figure</a>.
-      </p>
-      <h4 id="lemma">lemma</h4>
-      <p>
-        A note's
-        <a
-          href="https://en.wiktionary.org/wiki/lemma#:~:text=%2C%20lexicography)-,The%20canonical%20form%20of%20an%20inflected%20word,-%3B%20i.e.%2C%20the">lemma</a>
-        is the canonical form of its various citations. If you are using
-        Amanuensis to study English, you would probably consider the lemma of
-        <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be <i>cat</i>.
-      </p>
-      <h4>save icon</h4>
-      <p>
-        Click this to save the note. When you begin a note by highlighting
-        some text and opening Amanuensis, it is not yet saved. If any part of
-        the note is unsaved, the save icon will be enabled. If it is disabled
-        &mdash; gray &mdash; there is nothing to save.<span class="fn">I considered autosaving notes &mdash; every time
-          you make any edit
-          it is saved, perhaps after a short debounce period, maybe 400
-          milliseconds, so you aren't saving after every keypress. It is easy
-          to start notes accidentally, though. You have something highlighted
-          on the page. You forget about it. You open Amanuensis. Amanuensis
-          begins an unwanted note. If you're autosaving, you now have to
-          delete this. If you only autosave after the first save, that's
-          complicated and hence fragile, and you need the save button anyway.
-          So I implemented Amanuensis such that you have to save notes
-          explicitly.
-        </span>
-      </p>
-      <p>
-        In addition to the save icon there is a key sequence you can use to
-        save a note: ctrl-shift-S. This may not work in all operating systems.
-        I have developed this code in OS X, where this key sequence is
-        available.
-      </p>
-      <h4>language</h4>
-      <p>
-        Amanuensis uses a Chrome API to guess the language of a particular
-        citation from its content and context. There are many more languages
-        than Google attempts to recognize, however, and it is not always
-        correct in its guess. The language Google guesses is represented as a
-        "locale", a two-letter identifier. You can see the locale for Finnish,
-        "fi", as a blue badge overlay on the language selector in
-        <a href="#note-figure">the figure</a>.
-      </p>
-      <p>
-        To use this guess, you must specify in the configuration tab which
-        <a href="#languages">languages</a> you are interested in. Amanuensis
-        will attempt to map Google's guess onto these languages. The language
-        selector allows you to edit this guess when Amanuensis gets it wrong.
-      </p>
-      <h4 id="gloss">gloss</h4>
-      <p>
-        This is where you write things that are true for all uses of the
-        phrase. Typically, this is the phrase's definition.
-      </p>
-      <p>
-        The gloss should be <i>short</i>, like the word
-        <a href="https://en.wiktionary.org/wiki/gloss#Noun_2">gloss</a>
-        itself. It is used in
-        <a href="#quiz">quizzes</a>. Long notes make for ugly flip cards. Save
-        rambling for the <a href="#elaboration">elaboration</a>.
-      </p>
-      <h4 id="elaboration">elaboration</h4>
-      <p>
-        The elaboration is for things that don't fit in the note. Etymologies,
-        interesting quirks, analogies to other languages &mdash; these belong
-        in the elaboration.
-      </p>
-      <p>
-        The flashcards in the <a href="#quiz">quizzes</a> contain the lemma
-        and language on one side and the gloss and tags on the other. Any
-        elaboration is excluded.
-      </p>
-      <figure id="tag-figure">
-        <img src="images/tag.png" alt="a tag with its tooltip" style="max-width: 150px" />
-        <figcaption>A tag with its tooltip</figcaption>
-      </figure>
-      <h4>tags</h4>
-      <p>
-        <a href="#tags">Tags</a> (<a href="#tag-figure">see figure</a>)
-        represent frequently occurring, important bits of information. If you
-        hover over a tag, the information it represents will appear as a
-        tooltip. Click in the tag element, the area holding all the tags,
-        element 6 in <a href="#note-figure">the figure</a>, to add a tag.
-      </p>
-      <figure id="link-figure">
-        <img src="images/link.png" alt="how to link one note to another" />
-        <figcaption>
-          How to link one note to another. Note the color and shape
-          differences. The red link indicates a note not already linked to the
-          current note. The green link in a circle indicates one already
-          linked.
-        </figcaption>
-      </figure>
-      <h4>links</h4>
-      <p>
-        Links connect one note to another. In the example shown in
-        <a href="#note-figure">the figure</a>, the motivation for linking the
-        two notes was that they both contain <i>vallat</i>. You might link
-        notes because they are synonyms or antonyms, or for any reason
-        whatsoever.<span class="fn">In the first version of Amanuensis, links were were categorized
-          &mdash; synonyms, antonyms, etc. This was cumbersome and didn't work
-          well for non-symmetric relations. In a part-whole relation, for
-          instance, you needed to specify which side was the whole and which
-          the part. In this iteration I dropped all that complexity. I figure
-          these are your own notes. You'll remember how two related phrases
-          are related.</span>
-      </p>
-      <p>Clicking on a link takes you to the note linked.</p>
-      <p>
-        Links are always bidirectional. If you link <i>a</i> to <i>b</i>,
-        <i>b</i> will also be linked to <i>a</i>.
-      </p>
-      <p>
-        The mechanism for creating these links is within the
-        <a href="#dictionary">dictionary</a>. You will find each dictionary
-        entry has a link icon &mdash; <a href="#link-figure">the figure</a>.
-        This looks like a link in a chain. If you click it, you will create a
-        link <i>to the current note</i>, the note currently displayed in the
-        note tab.
-      </p>
-      <figure id="citation-figure">
-        <img src="images/citations.png" alt="parts of the citations section of a note" />
-        <figcaption>
-          The citations section of a note: 1) the current citation; 2)
-          per-citation options; 3) the action to mark the current citation as
-          the default; 4) the action to delete the current citation; 5) a
-          citation not currently displayed
-        </figcaption>
-      </figure>
-      <h4>citations</h4>
-      <p>
-        Every note has at least one citation. A citation is a use of the
-        note's lemma in context. Quite likely until you have been using
-        Amanuensis for some time each note will have just the one citation. If
-        you have a memory like a steel trap, you will only ever have the one.
-        But if you have an ordinary memory, or you find many interesting
-        citations, this number will grow.
-      </p>
-      <p>
-        If you have more than one citation, as in
-        <a href="#citation-figure">the figure</a>, you may pick a
-        &ldquo;canonical&rdquo; one to display by default when browsing notes.
-        You may also delete citations. You cannot delete the last citation.
-      </p>
-      <p>
-        You only have these options for the currently displayed citation.
-        Click on another to display it. (5) in
-        <a href="#citation-figure">the figure</a> is a non-selected citation.
-        For non-selected citations only the form, any note for that citation,
-        and the date it was recorded are displayed.
-      </p>
-      <h5>citation context</h5>
-      <p>
-        The citation context is shown for the displayed citation. Its parts
-        are enumerated in <a href="#note-figure">the figure</a>. These are the
-        title (8), the date the citation was recorded (9), the URL (10), and
-        the phrase itself and its surrounding text (11).
-      </p>
-      <p>
-        The title, date, and URL are displayed in abbreviation. If you hover
-        over them their full content will appear in a tooltip. In the case of
-        the date, this tooltip shows the time of day that the citation was
-        recorded.
-      </p>
-      <p>
-        If you click on the URL, Chrome will navigate to this page, where it
-        will attempt to highlight the phrase cited and bring it into view. If
-        the page has changed since you recorded the citation, highighting the
-        original phrase in its original context may not be possible.
-      </p>
-      <p>
-        If visiting a citation involves changing the
-        <a href="https://en.wikipedia.org/wiki/Domain_name">domain</a> of the
-        current tab, Amanuensis will likely close. This is a limitation of its
-        being a Chrome extension. If you reopen Amanuensis at this point, it
-        will open to the
-        <a href="#citations-on-page-tab">citations on page tab</a>, which will
-        allow you to find the note you are interested in and continue from
-        where you were when Amanuensis closed.
-      </p>
-      <h5>the similarity search tool</h5>
-      <figure id="similarity-search-tool-figure">
-        <img src="images/similarity_search_tool.png" alt="The similarity search tool" />
-        <figcaption>
-          The similarity search tool in action. The icon to the right is blue
-          after being clicked, indicating that it is active. The magnifying
-          glass to the left allows one to select a word to search for.
-        </figcaption>
-      </figure>
-      <p>
-        Whenever you create a note, Amanuensis will add the form cited to
-        those it can link directly to a particular note. These links appear in
-        red in the citation. In a language like Finnish, however, in which
-        words may have dozens of forms, you may have a note for a particular
-        word but no citation for its form. The similarity search tool helps
-        you find notes in these cases.
-      </p>
-      <p>
-        The tool has two states: active and inactive. The inactive state is
-        portrayed in <a href="#note-figure">the note figure</a>. It is the
-        small gray magnifying glass labeled (12). If you click this icon, the
-        tool becomes active. The icon will turn blue as shown in
-        <a href="#similarity-search-tool-figure">the tool figure</a>, and the
-        cursor will turn into a magnifying glass when it is over a word in the
-        citation which is not already a link to another note.
-      </p>
-      <p>
-        If you click on a word with the magnifying glass, you will switch to
-        the <a href="#dictionary">dictionary</a> tab in
-        <a href="#similar">similarity search mode</a> with the phrase
-        preloaded as the term searched for.
-      </p>
-      <h5>citation note</h5>
-      <p>
-        Each citation has its own note in which you can record anything
-        interesting about the particular citation. This is (13) in
-        <a href="#note-figure">the figure</a>.
-      </p>
-      <h5>citation tags</h5>
-      <p>
-        Every citation also may have its own tags. This is (14) in
-        <a href="#note-figure">the figure</a>.
-      </p>
-      <figure id="citation-note-and-tags">
-        <img src="images/citation_note_and_tags.png" alt="keeping track of peculiarities of a specific citation" />
-        <figcaption>
-          Using citation note and tags to keep track of unanswered questions.
-        </figcaption>
-      </figure>
-      <p>
-        I often use the citation note and tags to keep track of puzzles to
-        solve later. See <a href="#citation-note-and-tags">the figure</a>.
-        Here I have added my &ldquo;?&rdquo; tag to the citation to mark it as
-        something about which I have an unanswered question. I can click on
-        the tag to search for all unanswered questions, or I can search for
-        this tag in the dictionary tab.
-      </p>
-      <h3 id="dictionary">Dictionary</h3>
-      <figure id="dictionary-figure">
-        <img src="images/dictionary.png" alt="parts of the citations section of a note" />
-        <figcaption>
-          The elements of the dictionary: 1) the manner of browsing; 2) the
-          search form; 3) notes
-        </figcaption>
-      </figure>
-      <p>
-        The dictionary is where one may browse notes. As shown in
-        <a href="#dictionary-figure">the figure</a>, there are three manners
-        in which one may browse the dictionary (1): ad hoc search, by
-        similarity to the current citation, and by page (URL). Every manner of
-        search has a form to receive the search parameters (2). Changing these
-        parameters will cause Amanuensis to execute a new search. Every search
-        results in zero or more notes (3).
-      </p>
-      <figure id="results-figure">
-        <img src="images/result.png" alt="a search result" />
-        <figcaption>
-          A search result: 1) lemma; 2) gloss; 3) locale; 4) merge; 5) link;
-          6) delete
-        </figcaption>
-      </figure>
-      <p>
-        Each note in the search results (<a href="#results-figure">the figure</a>) is in turn represented by its lemma
-        (1), its gloss (2), its
-        language (3), and some actions one may take: merge the note with the
-        current note &mdash; the note currently displayed in the
-        <a href="#note">note tab</a> &mdash; (4), link the note to the current
-        note (5), or delete the note (6). The more destructive of these
-        actions, merging and deletion, require confirmation and, in the case
-        of merging, possible editing to complete.
-      </p>
-      <p>
-        If you click on a note in the dictionary, this will take you to the
-        <a href="#note">note tab</a>, where the note will be displayed. It is
-        now the current note, the note to which other notes displayed in the
-        dictionary may be merged or linked.
-      </p>
-      <figure id="search-figure">
-        <img src="images/search.png" alt="the free search form" />
-        <figcaption>
-          The free search form: 1) lemma; 2) any text; 3) tags; 4) whole word;
-          5) fuzzy match; 6) case-insensitive; 7) sort order; 8) clear form
-        </figcaption>
-      </figure>
-      <h4>free-form search</h4>
-      <p>
-        The search tab labeled simply "search" is the most flexible, and
-        consequently the most complex. See
-        <a href="#search-figure">the figure</a>.
-      </p>
-      <p>
-        There are two areas that allow you to search text: the lemma area and
-        the free text area. The first searches only lemmas. The second
-        searches lemmas, glosses, citations &mdash; the phrases themselves and
-        the context before and after &mdash; and citation notes.
-      </p>
-      <p>
-        Both text searches allow you to specify whether it is a whole word
-        search (5 in <a href="#search-figure">the figure</a>), whether it is a
-        fuzzy search (6), and whether it is case-insensitive (7).
-      </p>
-      <p>
-        A "whole word" search is a search where the first and last letters in
-        the search field should be the first and last letters in words
-        matched.
-      </p>
-      <p>
-        A "fuzzy" search is one where letters may intervene between characters
-        matched. A fuzzy search for <i>era</i> would also match
-        <i>terra</i> and <i>tertiary</i>, because in all three words the
-        letters <i>e</i>, <i>r</i>, and <i>a</i> occur in that order.
-      </p>
-      <p>
-        A "case-insensitive" search will match letters regardless of their
-        case. A case-insensitive search for <i>cat</i> would match <i>CAT</i>.
-        A case-insensitive fuzzy search for <i>cat</i> would match
-        <i>A Canticle for Leibowitz</i>.
-      </p>
-      <p>
-        Tag searches look for notes where a particular tag occurs in the
-        note's lemma or citation tags.
-      </p>
-      <p>Language searches search for notes with particular locales.</p>
-      <figure id="sort-figure" style="max-width: 250px">
-        <img src="images/sort.png" alt="search result sorting options" />
-        <figcaption>
-          Search result sorting options. The one pointed out with an arrow
-          will find the note you last edited.
-        </figcaption>
-      </figure>
-      <p>
-        By default the search results are sorted by lemma. Sometimes it helps
-        to apply a different sort order. This is the purpose of the icon
-        showing three horizontal bars of descending size (<a href="#sort-figure">the figure</a>). I frequently use the
-        last sort order, by time of last update
-        descending, to find where I left off when last using Amanuensis.
-      </p>
-      <figure id="similar-figure">
-        <img src="images/similar.png" alt="form for search for similar phrases" />
-        <figcaption>
-          The similar phrase search form: 1) form, 2) language(s), 3) string
-          similarity metric
-        </figcaption>
-      </figure>
-      <h4 id="similar">similar phrase</h4>
-      <p>
-        The same phrase may have different forms &mdash; <i>cat</i> and
-        <i>cats</i>, for example. It may appear as part of another word
-        &mdash; <i>cat</i> and <i>catfish</i>. To facilitate linking a note to
-        related notes, or to merge different citations into the same note,
-        Amanuensis has the similar phrase search (<a href="#similar-figure">the figure</a>).
-      </p>
-      <p>
-        When you highlight some text and invoke Amanuensis, it creates a
-        provisional note and searches for similar notes within
-        <a href="#languages">the language inferred by Chrome</a>. This
-        facilitates merging the citation highlighted with an existing note
-        immediately. The search is over all lemmas and citations. Because of
-        this pattern of use, the similar phrase search form has only two
-        fields: lemma and language.
-      </p>
-      <figure id="similarity-metric-figure">
-        <img src="images/similarity_menu.png" alt="dropdown that shows the string similarity metric" />
-        <figcaption>The string similarity metric dropdown.</figcaption>
-      </figure>
-      <p>
-        Amanuensis must apply a string similarity metric to do a phrase
-        similarity search. Because words can be similar in different ways,
-        Amanuensis provides four metrics (<a href="#similarity-metric-figure">the figure</a>). They are
-      </p>
-      <dl>
-        <dt>Jaro-Winkler</dt>
-        <dd>
-          <a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro-Winkler</a>
-          prioritizes changes at the <b>beginning</b> of the word.
-          Jaro-Winkler will find <i>cat</i> more similar to <i>cats</i> than
-          <i>scat</i>. Because most languages prefer suffixes to prefixes for
-          inflectional changes like the <i>-s</i> that marks <i>cats</i> as
-          plural, Jaro-Winkler is generally a pretty good default. There are
-          languages, though, like the Bantu languages, that use inflectional
-          prefixes &mdash; <i>watu</i> is the plural of <i>mtu</i>,
-          &ldquo;person&rdquo; in Swahili. For these, see reverse
-          Jaro-Winkler.
-        </dd>
-        <dt>longest common substring</dt>
-        <dd>
-          If you're dealing with compounds or phrases, not inflection, you
-          want to prioritize phrases that embed other phrases. For these,
-          <a href="https://en.wikipedia.org/wiki/Longest_common_subsequence">longest common substring</a>
-          is your friend.
-        </dd>
-        <dt>Levenshtein</dt>
-        <dd>
-          The
-          <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a>
-          algorithm measures the number of edits required to convert one
-          phrase into another. The beginning and end don't have particular
-          importance. Similar sequences don't have particular importance.
-          Levenshtein tends to consider words of similar length to be more
-          similar because more edits are required to add or subtract letters
-          to change a phrase's length. The Levenshtein similarity metric is
-          probably the least useful, but it may turn up easily confused words.
-        </dd>
-        <dt>reverse Jaro-Winkler</dt>
-        <dd>
-          Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It
-          considers changes at the <b>end</b> of the words more important. It
-          will find <i>scat</i> to be more similar to <i>cat</i> than
-          <i>cats</i>. This similarity metric may be useful for Bantu
-          languages that use inflectional prefixes. It is also useful for
-          finding words with similar suffixes.
-        </dd>
-      </dl>
-      <p>
-        Each of the metrics is marked with a distinctive color so you can see
-        what metric is in use when the dropdown is not open.
-      </p>
-      <p>
-        One could in principle rank all notes for their similarity to a given
-        phrase. In practice, however, there is little value in looking too far
-        down the list. For this reason, the maximum number of results
-        displayed in a similarity search is
-        <a href="#max-similars"
-          title="how to configure the maximum number of similar phrases displayed">configurable</a>.
-      </p>
-      <figure id="on-page-figure">
-        <img src="images/on-page.png" alt="form for searching for notes at a given URL" />
-        <figcaption>
-          To search for the citations on a page, you search by URL.
-        </figcaption>
-      </figure>
-      <h4 id="citations-on-page-tab">citations on page</h4>
-      <p>
-        The form to find citations on a given page is the simplest (<a href="#on-page-figure">the figure</a>). The
-        "page" in this case is just the URL, so the only field in the
-        search form contains a URL. The search performed is a search for notes
-        which have some citation whose URL <i>starts with</i> the string in
-        the search form. This means you can use this form to search for all
-        citations on a particular site, not just a particular page.
-      </p>
-      <h3 id="quiz">Spaced-repetition Quiz</h3>
-      <figure id="challenge-figure">
-        <img src="images/challenge.png" alt="the challenge side of a spaced-repetition quiz card" />
-        <figcaption>
-          1) the lemma quiz tab; 2) gloss quiz tab; 3) a link to this
-          documentation; 4) the lemma for which you are challenged to provide
-          the gloss and tags; 5) the green dot indicating this is the first
-          time this challenge has been presented in a quiz; 6) the language
-          badge &mdash; the same lemma could occur in multiple languages; 7)
-          how many new &mdash; "green dot" &mdash; cards are in the quiz; how
-          many old; 8) outcomes so far; 9) the progress bar
-        </figcaption>
-      </figure>
-      <p>
-        The idea behind
-        <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
-        is that one can learn a concept <i>most efficiently</i> when one
-        reviews it when one is about to forget it. If you can catch the memory
-        at the moment of disintegration and reconstitute it &mdash; if you
-        repeat it after allowing a certain space for it to fade &mdash; you
-        can rebuild it stronger without unnecessary drills.
-      </p>
-      <p>
-        Trials bear this theory out. The remaining problem, then, is
-        predicting when a memory will fade &mdash; how much space one should
-        allow before repetition.
-      </p>
-      <p>
-        <b>Disclaimer</b>: I have not made a deep study of this problem.
-        Rather, I observed how
-        <a href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it,
-        mixed this with what seemed sensible to me, and called it good. If you
-        want a more state-of-the-art spaced-repetition quiz, I liked Anki.
-        There are other options. My aim in writing Amanuensis was to make a
-        note-taking app, not a flashcard app. That being said, I'm quite
-        pleased with Amanuensis's hacked together spaced-repetition quiz.
-      </p>
-      <h4 id="general-procedure">The general procedure</h4>
-      <p>
-        Amanuensis presents its spaced-repetition quiz as a stack of
-        flashcards. You see a card. You try to guess what is on the other
-        side. Then you click the card. The card flips, revealing its back, and
-        you rate your performance.
-      </p>
-      <p>
-        Quizzes consist of some number of new cards, cards you've never seen
-        in a quiz, and whichever old cards may have come due for another go.
-        The new cards are a random subset of those available. All the
-        scheduled old cards are in the stack. If you skip a day, the next day
-        you will see all the cards that were due the first day plus any others
-        that have come due, so they will pile up a bit if you don't do the
-        quiz regularly.
-      </p>
-      <h4>The challenge side of the card</h4>
-      <p>
-        The challenge side of the card (<a href="#challenge-figure">challenge figure</a>) is the side presenting a
-        challenge to which you are meant to
-        provide the answer. In the case of a lemma quiz, the challenge is the
-        <a href="#lemma">lemma</a>; the answer is the gloss. In the case of a
-        gloss quiz, the challenge is the <a href="#gloss">gloss</a>; the
-        answer is the lemma.
-      </p>
-      <p>
-        The challenge side presents the challenge and enough context to
-        disambiguate similar cards. For the lemma, this is the locale. See (6)
-        in
-        <a href="#challenge-figure">challenge figure</a>. For the gloss, this
-        is the tags. See (2) in
-        <a href="#response-figure">response figure</a>.
-      </p>
-      <p>
-        If this is the first time you've been presented this challenge, it is
-        "new" and marked with a green dot. See (5) in
-        <a href="#challenge-figure">challenge figure</a>.
-      </p>
-      <p>
-        Below the challenge information is presented about the quiz and your
-        progress. The number of new and old cards in the quiz is shown; see
-        (7) in <a href="#challenge-figure">challenge figure</a>. Your success
-        so far is presented as a series of icons and counts; see (8). A
-        progress bar shows how far you have gotten in the quiz; see (9).
-      </p>
-      <h4>The answer side of the card</h4>
-      <figure id="response-figure">
-        <img src="images/response.png" alt="the answer side of a spaced-repetition quiz card" />
-        <figcaption>
-          1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show
-          again tomorrow"; 5) bad, okay, and good outcomes; 6) "graduate" this
-          card
-        </figcaption>
-      </figure>
-      <p>
-        The answer side of the card (<a href="#response-figure">response figure</a>) is the side that provides the
-        answer to the challenge presented on
-        the first side seen. In the case of a lemma quiz, this is the
-        <a href="#gloss">gloss</a> side. In the case of a gloss quiz, this is
-        the
-        <a href="#lemma">lemma</a>
-        side.
-      </p>
-      <p>
-        In addition to the answer to the challenge, the answer side presents
-        further contextual information you should master, chiefly the tags.
-      </p>
-      <p>
-        Bellow the answer to the challenge there is a row of six icons; see 3
-        &ndash; 6 in <a href="#response-figure">response figure</a>. You
-        choose and click one of these icons to rate how well you rose to the
-        challenge and schedule its next appearance in the spaced-repetition
-        quiz. These icons are presented in order of rating, worst to best.
-      </p>
-      <p>
-        The red counterclockwise circular arrow, (3) in
-        <a href="#response-figure">response figure</a>, means "show again in
-        this quiz". If you click it, the challenge will show up again after
-        all the other challenges at the end of the quiz on this same day.
-      </p>
-      <p>
-        The gray arrow arching clockwise to the right, (4) in
-        <a href="#response-figure">response figure</a>, means "show again
-        tomorrow".
-      </p>
-      <p>
-        The various circular face icons, (5) in
-        <a href="#response-figure">response figure</a>, means roughly "bad",
-        "okay", "good". The text below them indicates how long it will be
-        until you see this particular challenge again in the quiz if you click
-        them.
-      </p>
-      <p>
-        Finally, the green graduation cap, (6) in
-        <a href="#response-figure">response figure</a>, means "I dub myself a
-        master of this challenge". If you click this, the challenge will never
-        show up in the quiz again.
-      </p>
-      <p>
-        <b>NOTE:</b> If you click the happy face enough times in a row,
-        Amanuensis will offer a modal suggesting you have mastered this
-        challenge and should graduate. You can graduate and eliminate the
-        card, or simply schedule it again. When you are on the point of
-        "auto-graduating" the smiling icon will be green instead of black. See
-        <a href="#auto-graduate-threshold">auto-graduate-threshold</a>.
-      </p>
-      <p>
-        After you have rated your performance on the current challenge, the
-        next challenge will be presented to you.
-      </p>
-      <h4>Strategy</h4>
-      <p>
-        There is some strategy to how you choose the self-evaluation icon. You
-        are playing against your own failing memory. The scheduling algorithm
-        tries to predict how quickly you will forget, but you have some notion
-        yourself. You can use this to your advantage.
-      </p>
-      <p>
-        If you fail a challenge after a long series of successes, the sad icon
-        may schedule its next appearance too far into the future. I often
-        click the "tomorrow" icon in this case. Facing the challenge when my
-        last failure is fresh in my mind helps me get back on track. Otherwise
-        I find myself failing again for the same reason, remembering the same
-        mistaken train of thought that led me to answer incorrectly the last
-        time.
-      </p>
-      <p>
-        I use the "again in this quiz" icon more sparingly, but it serves a
-        similar function: let me experience one success and overwrite my
-        mistake before moving on.
-      </p>
-      <p>
-        I live in Vermont, where it snows a lot. In the winter the town sends
-        a sidewalk plough to clear the sidewalks. The plough throws snow to
-        the side when it can. When it is passing a sidewalk or driveway it
-        throws the snow ahead of itself. This is fine so long as it sometimes
-        gets a chance to cast the snow out of its way. A spaced-repetition
-        quiz works like this sidewalk plough, except it only ever throws the
-        snow forward. The quiz doesn't mind, but you may, as every day the
-        ratio of old to new words grows. Graduate cards when you can so that
-        you aren't facing the entire dictionary every day. If you find the
-        pile you face too overwhelming, you should either tune down the number
-        of new cards you face or tune down the memory challenge, so
-        your sequences of success grow longer and you can graduate faster. See
-        the <a href="#quiz-configuration">quiz configuration options</a>.
-      </p>
-      <h3 id="tags">Tags</h3>
-      <figure id="tags-figure">
-        <img src="images/tags.png" alt="the tag tab" />
-        <figcaption>
-          The tag tab: 1) create a new tag; 2) link to this documentation; 3)
-          the tag itself; 4) tag contents; 5) tag locales; 6) edit; 7)
-          duplicate; 8) delete
-        </figcaption>
-      </figure>
-      <p>
-        Tags consist of a short identifier, a visually distinctive style, and
-        some content. They appear in Amanuensis as colored bubbles. When you
-        hover over a tag, the content appears as tooltip text. Identifiers
-        must be unique &mdash; you can have only one tag identified as "M",
-        for example.
-      </p>
-      <p>Tags serve two functions:</p>
-      <ul>
-        <li>they concisely encapsulate recurring information</li>
-        <li>they facilitate the discovery of similar things</li>
-      </ul>
-      <p>
-        The tag tab (<a href="#tags-figure">the figure</a>) is where you
-        create, edit, and delete tags. If you click on a tag in the tag tab
-        Amanuensis will perform a search for you of all notes bearing this
-        tag.
-      </p>
-      <p>
-        If you wish to create a new <i>category</i> of tags, you click the
-        plus icon (1). This allows you to create all the elements of your tag
-        from scratch (<a href="#tag-modal-figure">the figure</a>). So long as
-        this tag is distinctive in its foreground or background color, it will
-        be the first member of a new category of tags.
-      </p>
-      <figure id="tag-modal-figure">
-        <img src="images/tag-modal.png" alt="the tag modal" />
-        <figcaption>Creating a new tag.</figcaption>
-      </figure>
-      <p>
-        More commonly you will want to create a tag in an existing category.
-        Perhaps you have a category of tags that indicate part of speech
-        &mdash; noun, verb, adjective, etc. &mdash; and you wish to add a tag
-        for prepositions. Perhaps you have a category of tags that represent
-        noun class &mdash; masculine versus feminine, animate versus
-        inanimate, abstract versus concrete &mdash; and you wish to add a new
-        noun class. The tag category is represented stylistically. Your part
-        of speech tag category might be purple text on a yellow background.
-        Your noun class tag category might be red on pink. To create a new tag
-        in an existing tag category, you click the duplicate icon (6) and then
-        add the tag, text, and perhaps locales it pertains to.<span class="fn">This is a design flaw. There should be
-          some way to edit a tag
-          classes distinctive colors after you create it. This flaw will be
-          addressed in the next release of Amanuensis.</span>
-      </p>
-      <p>
-        When tags are listed, they are sorted primarily by category, in the
-        order in which the category was created, and secondarily by identifier
-        in alphabetical order.
-      </p>
-      <h4>tag locales</h4>
-      <p>
-        Sometimes a particular tag will be useful for all languages. All
-        languages have nouns and verbs, for instance<span class="fn">When I was in graduate school for linguistics, some
-          people
-          proferred examples of languages in which nouns where this universal
-          didn't hold &mdash; all "nouns" were grammatically verbs or vice
-          versa. I don't know whether these debates have been settled. I take
-          it almost universally true that a language will have distinct
-          classes of words serving noun and verb functions with different
-          morpho-syntactic properties.</span>, so whenever you are creating a note, whatever the language, you may
-        want to be able to tag a lemma as a noun or a verb.
-      </p>
-      <p>
-        Some languages have particular categories which are very important to
-        them but mean nothing in other languages. Uralic languages, for
-        example, have an
-        <a href="https://en.wikipedia.org/wiki/Elative_case"
-          title="wikipedia article on the elative nominal case">elative case</a>. A noun in the elative case is
-        describing, roughly, motion out of a
-        space: <i>talosta</i> &mdash; "out of the house" in Finnish. If you
-        create an elative tag for Finnish, it's probably of no use to you for
-        notes about Mandarin.
-      </p>
-      <p>
-        To reduce tag clutter, therefore, Amanuensis allows you to specify the
-        locales for which a tag is relevant. If you provide no locales for a
-        tag, it is available for all notes.
-      </p>
-      <p>
-        You only see a tag's locales listed explicitly in the tags tab.
-        Elsewhere they serve only to hide irrelevant tags.
-      </p>
-      <p>
-        In the tags tab, if a tag has a single locale, that locale is shown in
-        the locales bubble. If it has more than one, the bubble contains an
-        ellipsis. If you hover over a tag's locale bubble in the tags tab, all
-        its locales will appear in a tooltip. See (5) in
-        <a href="#tags-figure">the figure</a>.
-      </p>
-      <h3 id="configuration">Configuration</h3>
-      <figure id="config-figure">
-        <img src="images/configuration.png" alt="the configuration tab" />
-        <figcaption>
-          The configuration tab: 1) link to this documentation; 2) maximum
-          similar phrase count; 3) new phrases per quiz; 4) auto-graduate count; 5) quiz memory
-          challenge; 6) clear database button; 7) export database button; 8)
-          import database button
-        </figcaption>
-      </figure>
-      <figure id="language-figure">
-        <img src="images/languages.png" alt="the languages subsection of the configuration tab" />
-        <figcaption>
-          The languages subsection of the configuration tab: 1) language
-          adder; 2)&nbsp;the unknown language; 3) locale tally; 4) equivalent characters editor
-        </figcaption>
-      </figure>
-      <figure id="equivalence-classes-figure">
-        <img src="images/equivalence_classes.png" alt="the equivalent characters editor" />
-        <figcaption>
-          The equivalent characters editor. Use this to teach Amanuensis what orthographic differences should be treated
-          as equivalent when comparing words.
-        </figcaption>
-      </figure>
-      <p>
-        Amanuensis does not yet have many configurable parameters. Those that
-        there are, together with some database actions, can be found on the
-        configuration tab (<a href="#config-figure">the figure</a>).
-      </p>
-      <h4>Dictionary</h4>
-      Configuration parameters for the <a href="#dictionary">dictionary</a> tab.
-      <h5 id="max-similars">max similar phrases</h5>
-      <p>
-        In a similarity search you are unlikely to find any interesting
-        similar phrases after the first few notes, so rather than display all
-        the notes in the dictionary for the given language sorted by
-        similarity Amanuensis just shows the few most similar ones. This
-        parameter controls how many are shown.
-      </p>
-      <h4 id="quiz-configuration">Quiz</h4>
-      Configuration parameters for the <a href="#quiz">quiz</a> tab.
-      <h5 id="new-phrases">new phrases</h5>
-      <p>
-        When you start a day's quizzes, Amanuensis will draw some number of
-        new phrases for you to learn, in addition to any phrases left over
-        from previous days. This parameter controls how many new phrases are
-        drawn.
-      </p>
-      <h5 id="auto-graduate-threshold">auto-graduate threshold</h5>
-      <p>
-        If you always get the answer to a challenge, you probably should stop
-        facing that challenge so you can spend your time on other things.
-        Amanuensis keeps track of how many times you've rated your response to
-        a challenge as good. If you pass this number, it will suggest you
-        "graduate" the challenge the next time you click the smiling icon.
-      </p>
-      <h5>memory challenge</h5>
-      <p>
-        When you click one of the face icons to rate your response to
-        the quiz challenge, Amanuensis reschedules the challenge for some future date based on your self-evaluation. By
-        default the scheduling is based on what I found experimenting with <a href="https://apps.ankiweb.net/">Anki</a>.
-        If you find you are getting too many challenges right you may wish to tune the scheduling up; if you get too
-        many wrong, you may wish to tune it down. Use this slider for that purpose.
-      </p>
-      <h4>Database</h4>
-      <p>
-        Amanuensis saves all its data on your machine in a database. It
-        doesn't call home to a central server. It doesn't store data in the
-        cloud.
-      </p>
-      <p>
-        This design provides simplicity and privacy. It also potentially locks
-        you into one device and prevents sharing notes with others. The
-        database actions provide some workarounds if you want a bit of both
-        worlds.
-      </p>
-      <h5>clear</h5>
-      <p>
-        The clear action &mdash; (5) in
-        <a href="#config-figure">the figure</a> &mdash; allows you to reset
-        Amanuensis to "factory settings". Once done one cannot restore the
-        database unless you've exported the data, so a confirmation modal will
-        intervene and ask whether you really mean to do this before your data
-        is erased forever.
-      </p>
-      <h5>export</h5>
-      <p>
-        The export database action &mdash; (6) in
-        <a href="#config-figure">the figure</a> &mdash; dumps the entire
-        contents of your Amanuensis database into a
-        <a href="https://en.wikipedia.org/wiki/JSON" title="an explanation of javascript object notation">JSON file</a>.
-      </p>
-      <p>
-        Having exported your database to a file, you can now save a backup
-        copy, install Amanuensis on another machine and restore your database
-        there, or share your notes with someone else.
-      </p>
-      <p>
-        If you want to use your notes for some other purpose, you can write a
-        script in some programming language that will parse the exported JSON
-        allow you to manipulate, transform, or extract it.
-      </p>
-      <h5>import</h5>
-      <p>
-        The import database action &mdash; (7) in
-        <a href="#config-figure">the figure</a> &mdash; allows you to add the
-        notes exported from a different instance of Amanuensis into your
-        current one.
-      </p>
-      <p>
-        The import process takes some pains to import notes without clobbering
-        existing notes. This may result in duplicate notes and tags requiring
-        merging or deletion.
-      </p>
-      <h4 id="languages">Languages</h4>
-      <p>
-        You do not need to use Amanuensis to study languages. You can use it
-        simply as a note taking tool. Amanuensis begins configured to use only
-        one language, the "unknown" language &mdash; (2) in
-        <a href="#language-figure">the figure</a>. You do not need to
-        configure it further. If you create a note, it will begin and remain
-        assigned to the unkown language.
-      </p>
-      <p>
-        If you do wish to study a particular language you need to tell
-        Amanuensis which languages you wish to study so that it can attempt to
-        categorize your notes correctly. This will ensure that
-        <a href="#similar">similar phrases</a> are sought only within the
-        correct language and that only those <a href="#tags">tags</a>
-        appropriate to the language are offered.
-      </p>
-      <p>
-        To add a language, click the add-language icon &mdash; (1) in
-        <a href="#language-figure">the figure</a>. This will open a modal
-        where you can select a language with an
-        <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
-          title="the wikipedia page listing the ISO-639-1 language codes">ISO-639-1 language code</a>. At this time,
-        Amanuensis does not provide a mechanism to add a
-        language which lacks an ISO-639-1 code. There are many languages that
-        lack such a code &mdash;
-        <a href="https://en.wikipedia.org/wiki/Yinjibarndi_language">Yinjibarndi</a>, for example, or
-        <a href="https://en.wikipedia.org/wiki/Sumerian_language">Sumerian</a>. Amanuensis does not yet provide a means
-        to add these for study. If
-        I am made aware of a demand for this, this may hasten my adding it. I
-        may add it regardless of whether anyone demands it. I simply have not
-        yet.
-      </p>
-      <p>
-        When you create a note, Chrome uses the phrase selected and the
-        surrounding text to guess its language. It may guess wrong, or be
-        unable to identify the language at all, assigning it the unknown
-        language. You can correct this using the language picker widget
-        &mdash; (3) in <a href="#note-figure">the figure</a>. Amanuensis will
-        record this discrepancy and use it to improve its language assignment
-        for subsequent notes. In (3) in
-        <a href="#language-figure">the figure</a> you can see an instance of
-        this: 5 notes on Finnish were guessed by the browser to contain Estonian
-        (et); one was guessed to containg Swedish (sv).
-      </p>
-      <h5 id="equivalence-classes">character equivalence classes</h5>
-      <p>
-        Languages often have equivalent ways of spelling a given sound. In English, for example, <i>cafe</i> may also be
-        spelled <i>café</i>; <i>coordinate</i> may be spelled <i>coördinate</i>. This can be problematic if you are
-        looking to see whether you already have a note for one of these variable forms.
-      </p>
-      <p>
-        The equivalence class editor, <a href="#equivalence-classes-figure">the figure</a>, provides a means of
-        specifying equivalent character sequences. It is activated by clicking the
-        language's edit icon, (4) in <a href="#language-figure">the figure</a>. If you have already specified equivalent
-        characters for a given language, the editor icon will be decorated with the dot that you see in the figure.
-      </p>
-      <p>
-        The character sequences in the left field are treated as equivalent to the sequence in the right. You can mark
-        multi-character sequences as equivalent this way -- <i>tsch</i> and <i>ch</i>, say. If equivalence class
-        contains more than two members -- <i>é</i>, <i>è</i>, <i>ê</i>, <i>e</i>, for example -- simply separate
-        instances in the left field with commas.
-      </p>
-      <p>
-        For obvious reasons you cannot mark commas or whitespace as equivalent to anything. Also, capitalization is
-        already treated as irrelevant for purposes of comparison, so don't worry about marking <i>A</i> as equivalent to
-        <i>a</i>. It would be harmless but pointless.
-      </p>
-      <h2>Acknowledgements</h2>
-      <p>
-        Though so far I'm the only person who has committed code to
-        Amanuensis, others have helped bring it to its current state and
-        deserve acknowledgement
-      </p>
-      <b>Martha Edwards</b>
-      <p>
-        Martha coached me through some confusion as I was learning
-        <a href="https://react.dev/">React</a> while writing this code.
-      </p>
-      <h2>Dedication</h2>
-      <figure id="oofla-figure" style="max-width: 250px">
-        <img src="images/oofla_cover.png"
-          alt='the cover of the book in which Jude wrote "The adventures of Oofla the Gloofoo"' />
-        <figcaption>The source of Amanuensis's logo.</figcaption>
-      </figure>
-      <p>
-        Amanuensis, like most of my projects, is dedicated to my son Jude, who
-        died on February 1st, 2023. He was a better programmer and a better,
-        kinder, more interesting person than me. I was looking forward to
-        being surprised and amazed by him as he went out into the world. He
-        shared repositories in github under the name
-        <a href="https://github.com/TurkeyMcMac" title="Jude's github repositories">TurkeyMcMac</a>.
-      </p>
-      <h3 id="oofla">Oofla the Gloofoo</h3>
-      <p>
-        In elementary school, Jude wrote the story of Oofla the Gloofoo (<a href="#oofla-figure">the figure</a>). He did
-        this to amuse himself and his friends and siblings. Each
-        day they would gather around to watch the latest installment unspool
-        as he wrote. On the last page of the exercise book there was an "about
-        the author" section &mdash; some lines for text and a box for a
-        picture. As was his way &mdash; Jude never spoke about himself &mdash;
-        Jude omitted the text. For a picture he provided an image of Oofla. So
-        I have always thought of Oofla as an avatar of Jude. Because I wish he
-        were still around, I used Oofla as Amanuensis's logo. Amanuensis is
-        still around if Jude isn't.
-      </p>
-      <p>We love you and miss you, Jude.</p>
-      <div id="footnotes">
-        <hr />
-      </div>
-    </article>
+    <main class="main">
+      <nav class="side">
+        <h2>Contents</h2>
+        <div id="toc" />
+      </nav>
+      <article class="content">
+        <h2>What is Amanuensis?</h2>
+        <p>
+          Amanuensis is a Chrome extension that facilitates taking notes on
+          phrases you find as you browse the web. It captures the phrase, its
+          context &mdash; the surrounding text &mdash; the time you recorded it,
+          the URL, and any tags and notes, either on the phrase generally or
+          particular citations. You can link notes together, edit them, merge
+          them, search for them, export them, or import them.
+        </p>
+        <figure class="full-width" id="example-figure">
+          <img src="images/example.png" alt="what Amanuensis looks like in use" />
+          <figcaption>
+            Amanuensis in use. The square on the right depending from the
+            <a href="#oofla">little yellow figure</a> is a note taken in
+            Amanuensis regarding the text highlighted in purple. You can see at
+            the top that Amanuensis has five tags. The first, the
+            <a href="#note">note</a>, is active. The others are the
+            <a href="#dictionary">dictionary</a>, the
+            <a href="#quiz">spaced-repetition quiz</a>,
+            <a href="#tags">tags</a>, and
+            <a href="#configuration">configuration</a>.
+          </figcaption>
+        </figure>
+        <p>
+          In principal, you can use Amanuensis to take any sort of note. It was
+          designed, however, with language learning in mind. Every time you make
+          a note in Amanuensis you cue up a question in two
+          <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced-repetition</a>
+          flashcard <a href="#quiz">quizzes</a>, à la
+          <a href="https://apps.ankiweb.net/">Anki</a>. A quiz from form (<a
+            href="https://en.wiktionary.org/wiki/lemma#English:_canonical_form_of_an_inflected_word">&ldquo;lemma&rdquo;</a>)
+          to meaning (<a href="https://en.wiktionary.org/wiki/gloss#Noun_2">&ldquo;gloss&rdquo;</a>) and a quiz from
+          meaning to form. You can take these quizzes daily
+          or on whatever schedule suits you. They will drum into your memory the
+          facts you annotate with notes.
+        </p>
+        <h3>Use</h3>
+        <p>This is the general pattern of use:</p>
+        <p>
+          You're reading an article on something that interests you. You find a
+          phrase of particular interest. If you're using Amanuensis to learn a
+          language, it's an unfamiliar phrase or idiom. If you're using it as a
+          research tool, it's a fact, observation, or data point. You highlight
+          the phrase and click the Amanuensis icon or press ctrl-shift-A to
+          start a note.<span class="fn">If you are studying a language, you will need some other source to
+            provide definitions, part of speech, etc. I find
+            <a href="https://en.wiktionary.org/wiki/Wiktionary:Main_Page">wiktionary</a>
+            is a great resource. It provides you considerably more and more
+            trustworthy information than you get from Google Translate, for
+            instance.</span>
+          You add relevant information, perhaps some tags. You look for similar
+          or related notes and link them. You save it.
+        </p>
+        <p>
+          Later, you wish to continue with an article. Say it's the last
+          article. You click the icon or press ctrl-shift-A and open Amanuensis.
+          You search, sorting for the most recently updated note. You click on
+          the first note, then click on the URL. This takes you to the page,
+          highlighting the phrase. You click on the search tab and see a list of
+          all the notes you took on the page. You resume reading the article and
+          taking notes.
+        </p>
+        <p>
+          Once a day, more or less, you <a href="#quiz">quiz</a> yourself on
+          your notes. About a fifth of the quiz are new notes selected randomly
+          from among those you've recently created. The rest are review.
+        </p>
+        <h3>Philosophy</h3>
+        <p>
+          When people learn languages in a classroom, most context is removed.
+          Words are learned in lists and are taught when the textbook or
+          professor deems best, not when the student is interested. But learning
+          facts unconnected to your interests is frustrating and inefficient. If
+          you don't already want to know the answer, the answer doesn't sink in.
+        </p>
+        <p>
+          The idea with Amanuensis is that you find something which is
+          inherently interesting to you and you try to read it. When you come
+          across unfamiliar words, you will be more likely to remember them,
+          because you <i>want</i> to know what they mean.
+        </p>
+        <p>
+          When you come across the words again, and look them up again, as one
+          does, you will be reminded of the last context in which you saw the
+          word. The words will all hang together in a web of meaning and
+          association.
+        </p>
+        <p>
+          As you go, you record connections between words, write down hypotheses
+          or questions to look up later, and add information. The more
+          connections you make among words and between words and ideas, the more
+          easily you will remember them. One thing will remind you of another.
+          The whole web holds when individual unconnected facts would have
+          fallen away.
+        </p>
+        <h3>Caveats</h3>
+        <p>
+          I have not tested Amanuensis on a right-to-left language like Arabic
+          or Hebrew.
+        </p>
+        <p>
+          I have not attempted to internationalize Amanuensis, ironically.
+          That's work that seems vast and un-fun, and the thing that has driven
+          development up to this point has been the fun. Just writing this
+          documentation is arduous enough. It's difficult to imagine writing
+          different versions for different languages and inserting an
+          <a href="https://en.wikipedia.org/wiki/Internationalization_and_localization">i18n</a>
+          layer into the code and so forth.
+        </p>
+        <p>
+          There is just one person writing and maintaining this code. Though I
+          use Amanuensis daily, there are corners, such as the importing and
+          exporting functionality, that are neglected.
+        </p>
+        <h3>Future</h3>
+        <p>
+          I have written Amanuensis because it is the language learning tool I
+          want. I am sharing it because, having written it, it costs me nothing
+          to do so.
+        </p>
+        <p>
+          It is free. It will remain free. I have no plans to make money off of
+          it.
+        </p>
+        <p>
+          However, for the same reason, I cannot guarantee it will be supported
+          and developed forever. I will keep working on it as long as I have use
+          for it. Since I love learning languages, I will keep at it for
+          decades, as long as I keep my health. But Amanuensis has a bus number
+          of one. If support drops off, something bad has happened. Still, I
+          imagine it will keep working, just without additional bells and
+          whistles.
+        </p>
+        <h2>Installation</h2>
+        To install Amanuensis, you have two options:
+        <h3>Chrome Web Store</h3>
+        <p>
+          Go to
+          <a href="https://chromewebstore.google.com/detail/amanuensis/hcclomiidfnghjhdidhhhbpdlhnbjjgg">Amanuensis's
+            page</a>
+          in the Chrome Web Store and click the "Add to Chrome" button.
+        </p>
+        <p>
+          You will likely want to
+          <a href="https://www.google.com/search?q=pin+an+extension">"pin"</a>
+          the extension so it is available whenever you happen to be looking at
+          a web page.
+        </p>
+        <p>
+          For some reason, when installed from the Chrome Store the app
+          sometimes gets assigned command-shift-A as its keyboard trigger rather
+          than the control-shift-A. The former conflicts with a keyboard
+          shortcut already present in Chrome. To fix this, type
+          "Chrome://extensions/shortcuts" in the address bar. Find Amanuensis,
+          and reset the key combination.
+          <a title="how to edit extension keyboard shortcuts"
+            href="https://www.fleetingnotes.app/docs/Reference/Enable%20keyboard%20shortcuts%20for%20browser%20extensions">This
+            note</a>
+          may help.
+        </p>
+        <h3>Install from source</h3>
+        <p>
+          Amanuensis is open source. If you are feeling adventurous you can
+          <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
+            title="how to clone a repository">clone the repository</a>, run the compile script, and
+          <a href="https://developer.Chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked"
+            title="how to load an unpacked extension">load the unpacked extension into Chrome</a>.
+        </p>
+        <p>
+          The respository is at
+          <a href="https://github.com/dfhoughton/amanuensis-2">https://github.com/dfhoughton/amanuensis-2</a>.<span
+            class="fn">Why "amanuensis-2"? Because there was an earlier version of this
+            extension that worked with an earlier version of the Chrome
+            extension spec. That version reached end of life and the extension
+            died. This is a thorough rewrite. It is somewhat less ambitious but
+            uses more modern tech.</span>
+        </p>
+        <p>
+          To run the build script, you must have
+          <a href="https://nodejs.org/en/download" title="how to install node">installed node</a>. Then, in a terminal,
+          cd
+          to the install directory and run
+          <code>npm run release-build</code> (or <code>npm run build</code> if
+          you want to set breakpoints and inspect human-readable code).<span class="fn">This is, in fact, how I work on
+            Amanuensis.</span>
+          Then go to Window > Extensions, click the &ldquo;Load unpacked&rdquo;
+          button, and select the dist directory, which will have the output of
+          the build scripts in it.
+        </p>
+        <h3>Non-Chrome Versions</h3>
+        <p>
+          I realize not everyone can or wants to use Chrome. I intend to make
+          Firefox and Safari versions at some point. It is a question of the
+          extent to which their APIs differ from Chrome's and figure out how
+          those extension stores work.
+        </p>
+        <h2>Amuensis's Bits and Pieces</h2>
+        <h3>Design Constraints</h3>
+        <p>
+          Amanuensis, like many extensions, lives in a little box in the top
+          right corner of the screen. It needs to stay out of the way of the
+          text you're reading, so everything needs to be compact, minimal,
+          abbreviated. We do what we can with tooltips and icons with familiar
+          meanings, but if we had more real estate on the screen we would have
+          made other choices.
+        </p>
+        <h3 id="note">Note</h3>
+        <figure id="note-figure">
+          <img src="images/note.png" alt="the parts of a note" />
+          <figcaption>
+            A note: 1) lemma; 2) save icon; 3) language; 4) gloss; 5)
+            elaboration; 6) tags; 7) links; 8) citation title; 9) citation date;
+            10) citation URL; 11) citation; 12) similarity search tool; 13)
+            citation note; 14) citation tags
+          </figcaption>
+        </figure>
+        <p>
+          Notes are the basic unit of Amanuensis. Their creation is its central
+          purpose. They collect information about citations. When you highlight
+          a bit of text and invoke Amanuensis, it begins a new note for you.
+        </p>
+        <p>
+          The various parts of a note are enumerated in
+          <a href="#note-figure">the figure</a>.
+        </p>
+        <h4 id="lemma">lemma</h4>
+        <p>
+          A note's
+          <a
+            href="https://en.wiktionary.org/wiki/lemma#:~:text=%2C%20lexicography)-,The%20canonical%20form%20of%20an%20inflected%20word,-%3B%20i.e.%2C%20the">lemma</a>
+          is the canonical form of its various citations. If you are using
+          Amanuensis to study English, you would probably consider the lemma of
+          <i>cats</i>, <i>cat's</i>, and <i>cat</i> to be <i>cat</i>.
+        </p>
+        <h4>save icon</h4>
+        <p>
+          Click this to save the note. When you begin a note by highlighting
+          some text and opening Amanuensis, it is not yet saved. If any part of
+          the note is unsaved, the save icon will be enabled. If it is disabled
+          &mdash; gray &mdash; there is nothing to save.<span class="fn">I considered autosaving notes &mdash; every
+            time
+            you make any edit
+            it is saved, perhaps after a short debounce period, maybe 400
+            milliseconds, so you aren't saving after every keypress. It is easy
+            to start notes accidentally, though. You have something highlighted
+            on the page. You forget about it. You open Amanuensis. Amanuensis
+            begins an unwanted note. If you're autosaving, you now have to
+            delete this. If you only autosave after the first save, that's
+            complicated and hence fragile, and you need the save button anyway.
+            So I implemented Amanuensis such that you have to save notes
+            explicitly.
+          </span>
+        </p>
+        <p>
+          In addition to the save icon there is a key sequence you can use to
+          save a note: ctrl-shift-S. This may not work in all operating systems.
+          I have developed this code in OS X, where this key sequence is
+          available.
+        </p>
+        <h4>language</h4>
+        <p>
+          Amanuensis uses a Chrome API to guess the language of a particular
+          citation from its content and context. There are many more languages
+          than Google attempts to recognize, however, and it is not always
+          correct in its guess. The language Google guesses is represented as a
+          "locale", a two-letter identifier. You can see the locale for Finnish,
+          "fi", as a blue badge overlay on the language selector in
+          <a href="#note-figure">the figure</a>.
+        </p>
+        <p>
+          To use this guess, you must specify in the configuration tab which
+          <a href="#languages">languages</a> you are interested in. Amanuensis
+          will attempt to map Google's guess onto these languages. The language
+          selector allows you to edit this guess when Amanuensis gets it wrong.
+        </p>
+        <h4 id="gloss">gloss</h4>
+        <p>
+          This is where you write things that are true for all uses of the
+          phrase. Typically, this is the phrase's definition.
+        </p>
+        <p>
+          The gloss should be <i>short</i>, like the word
+          <a href="https://en.wiktionary.org/wiki/gloss#Noun_2">gloss</a>
+          itself. It is used in
+          <a href="#quiz">quizzes</a>. Long notes make for ugly flip cards. Save
+          rambling for the <a href="#elaboration">elaboration</a>.
+        </p>
+        <h4 id="elaboration">elaboration</h4>
+        <p>
+          The elaboration is for things that don't fit in the note. Etymologies,
+          interesting quirks, analogies to other languages &mdash; these belong
+          in the elaboration.
+        </p>
+        <p>
+          The flashcards in the <a href="#quiz">quizzes</a> contain the lemma
+          and language on one side and the gloss and tags on the other. Any
+          elaboration is excluded.
+        </p>
+        <figure id="tag-figure">
+          <img src="images/tag.png" alt="a tag with its tooltip" style="max-width: 150px" />
+          <figcaption>A tag with its tooltip</figcaption>
+        </figure>
+        <h4>tags</h4>
+        <p>
+          <a href="#tags">Tags</a> (<a href="#tag-figure">see figure</a>)
+          represent frequently occurring, important bits of information. If you
+          hover over a tag, the information it represents will appear as a
+          tooltip. Click in the tag element, the area holding all the tags,
+          element 6 in <a href="#note-figure">the figure</a>, to add a tag.
+        </p>
+        <figure id="link-figure">
+          <img src="images/link.png" alt="how to link one note to another" />
+          <figcaption>
+            How to link one note to another. Note the color and shape
+            differences. The red link indicates a note not already linked to the
+            current note. The green link in a circle indicates one already
+            linked.
+          </figcaption>
+        </figure>
+        <h4>links</h4>
+        <p>
+          Links connect one note to another. In the example shown in
+          <a href="#note-figure">the figure</a>, the motivation for linking the
+          two notes was that they both contain <i>vallat</i>. You might link
+          notes because they are synonyms or antonyms, or for any reason
+          whatsoever.<span class="fn">In the first version of Amanuensis, links were were categorized
+            &mdash; synonyms, antonyms, etc. This was cumbersome and didn't work
+            well for non-symmetric relations. In a part-whole relation, for
+            instance, you needed to specify which side was the whole and which
+            the part. In this iteration I dropped all that complexity. I figure
+            these are your own notes. You'll remember how two related phrases
+            are related.</span>
+        </p>
+        <p>Clicking on a link takes you to the note linked.</p>
+        <p>
+          Links are always bidirectional. If you link <i>a</i> to <i>b</i>,
+          <i>b</i> will also be linked to <i>a</i>.
+        </p>
+        <p>
+          The mechanism for creating these links is within the
+          <a href="#dictionary">dictionary</a>. You will find each dictionary
+          entry has a link icon &mdash; <a href="#link-figure">the figure</a>.
+          This looks like a link in a chain. If you click it, you will create a
+          link <i>to the current note</i>, the note currently displayed in the
+          note tab.
+        </p>
+        <figure id="citation-figure">
+          <img src="images/citations.png" alt="parts of the citations section of a note" />
+          <figcaption>
+            The citations section of a note: 1) the current citation; 2)
+            per-citation options; 3) the action to mark the current citation as
+            the default; 4) the action to delete the current citation; 5) a
+            citation not currently displayed
+          </figcaption>
+        </figure>
+        <h4>citations</h4>
+        <p>
+          Every note has at least one citation. A citation is a use of the
+          note's lemma in context. Quite likely until you have been using
+          Amanuensis for some time each note will have just the one citation. If
+          you have a memory like a steel trap, you will only ever have the one.
+          But if you have an ordinary memory, or you find many interesting
+          citations, this number will grow.
+        </p>
+        <p>
+          If you have more than one citation, as in
+          <a href="#citation-figure">the figure</a>, you may pick a
+          &ldquo;canonical&rdquo; one to display by default when browsing notes.
+          You may also delete citations. You cannot delete the last citation.
+        </p>
+        <p>
+          You only have these options for the currently displayed citation.
+          Click on another to display it. (5) in
+          <a href="#citation-figure">the figure</a> is a non-selected citation.
+          For non-selected citations only the form, any note for that citation,
+          and the date it was recorded are displayed.
+        </p>
+        <h5>citation context</h5>
+        <p>
+          The citation context is shown for the displayed citation. Its parts
+          are enumerated in <a href="#note-figure">the figure</a>. These are the
+          title (8), the date the citation was recorded (9), the URL (10), and
+          the phrase itself and its surrounding text (11).
+        </p>
+        <p>
+          The title, date, and URL are displayed in abbreviation. If you hover
+          over them their full content will appear in a tooltip. In the case of
+          the date, this tooltip shows the time of day that the citation was
+          recorded.
+        </p>
+        <p>
+          If you click on the URL, Chrome will navigate to this page, where it
+          will attempt to highlight the phrase cited and bring it into view. If
+          the page has changed since you recorded the citation, highighting the
+          original phrase in its original context may not be possible.
+        </p>
+        <p>
+          If visiting a citation involves changing the
+          <a href="https://en.wikipedia.org/wiki/Domain_name">domain</a> of the
+          current tab, Amanuensis will likely close. This is a limitation of its
+          being a Chrome extension. If you reopen Amanuensis at this point, it
+          will open to the
+          <a href="#citations-on-page-tab">citations on page tab</a>, which will
+          allow you to find the note you are interested in and continue from
+          where you were when Amanuensis closed.
+        </p>
+        <h5>the similarity search tool</h5>
+        <figure id="similarity-search-tool-figure">
+          <img src="images/similarity_search_tool.png" alt="The similarity search tool" />
+          <figcaption>
+            The similarity search tool in action. The icon to the right is blue
+            after being clicked, indicating that it is active. The magnifying
+            glass to the left allows one to select a word to search for.
+          </figcaption>
+        </figure>
+        <p>
+          Whenever you create a note, Amanuensis will add the form cited to
+          those it can link directly to a particular note. These links appear in
+          red in the citation. In a language like Finnish, however, in which
+          words may have dozens of forms, you may have a note for a particular
+          word but no citation for its form. The similarity search tool helps
+          you find notes in these cases.
+        </p>
+        <p>
+          The tool has two states: active and inactive. The inactive state is
+          portrayed in <a href="#note-figure">the note figure</a>. It is the
+          small gray magnifying glass labeled (12). If you click this icon, the
+          tool becomes active. The icon will turn blue as shown in
+          <a href="#similarity-search-tool-figure">the tool figure</a>, and the
+          cursor will turn into a magnifying glass when it is over a word in the
+          citation which is not already a link to another note.
+        </p>
+        <p>
+          If you click on a word with the magnifying glass, you will switch to
+          the <a href="#dictionary">dictionary</a> tab in
+          <a href="#similar">similarity search mode</a> with the phrase
+          preloaded as the term searched for.
+        </p>
+        <h5>citation note</h5>
+        <p>
+          Each citation has its own note in which you can record anything
+          interesting about the particular citation. This is (13) in
+          <a href="#note-figure">the figure</a>.
+        </p>
+        <h5>citation tags</h5>
+        <p>
+          Every citation also may have its own tags. This is (14) in
+          <a href="#note-figure">the figure</a>.
+        </p>
+        <figure id="citation-note-and-tags">
+          <img src="images/citation_note_and_tags.png" alt="keeping track of peculiarities of a specific citation" />
+          <figcaption>
+            Using citation note and tags to keep track of unanswered questions.
+          </figcaption>
+        </figure>
+        <p>
+          I often use the citation note and tags to keep track of puzzles to
+          solve later. See <a href="#citation-note-and-tags">the figure</a>.
+          Here I have added my &ldquo;?&rdquo; tag to the citation to mark it as
+          something about which I have an unanswered question. I can click on
+          the tag to search for all unanswered questions, or I can search for
+          this tag in the dictionary tab.
+        </p>
+        <h3 id="dictionary">Dictionary</h3>
+        <figure id="dictionary-figure">
+          <img src="images/dictionary.png" alt="parts of the citations section of a note" />
+          <figcaption>
+            The elements of the dictionary: 1) the manner of browsing; 2) the
+            search form; 3) notes
+          </figcaption>
+        </figure>
+        <p>
+          The dictionary is where one may browse notes. As shown in
+          <a href="#dictionary-figure">the figure</a>, there are three manners
+          in which one may browse the dictionary (1): ad hoc search, by
+          similarity to the current citation, and by page (URL). Every manner of
+          search has a form to receive the search parameters (2). Changing these
+          parameters will cause Amanuensis to execute a new search. Every search
+          results in zero or more notes (3).
+        </p>
+        <figure id="results-figure">
+          <img src="images/result.png" alt="a search result" />
+          <figcaption>
+            A search result: 1) lemma; 2) gloss; 3) locale; 4) merge; 5) link;
+            6) delete
+          </figcaption>
+        </figure>
+        <p>
+          Each note in the search results (<a href="#results-figure">the figure</a>) is in turn represented by its lemma
+          (1), its gloss (2), its
+          language (3), and some actions one may take: merge the note with the
+          current note &mdash; the note currently displayed in the
+          <a href="#note">note tab</a> &mdash; (4), link the note to the current
+          note (5), or delete the note (6). The more destructive of these
+          actions, merging and deletion, require confirmation and, in the case
+          of merging, possible editing to complete.
+        </p>
+        <p>
+          If you click on a note in the dictionary, this will take you to the
+          <a href="#note">note tab</a>, where the note will be displayed. It is
+          now the current note, the note to which other notes displayed in the
+          dictionary may be merged or linked.
+        </p>
+        <figure id="search-figure">
+          <img src="images/search.png" alt="the free search form" />
+          <figcaption>
+            The free search form: 1) lemma; 2) any text; 3) tags; 4) whole word;
+            5) fuzzy match; 6) case-insensitive; 7) sort order; 8) clear form
+          </figcaption>
+        </figure>
+        <h4>free-form search</h4>
+        <p>
+          The search tab labeled simply "search" is the most flexible, and
+          consequently the most complex. See
+          <a href="#search-figure">the figure</a>.
+        </p>
+        <p>
+          There are two areas that allow you to search text: the lemma area and
+          the free text area. The first searches only lemmas. The second
+          searches lemmas, glosses, citations &mdash; the phrases themselves and
+          the context before and after &mdash; and citation notes.
+        </p>
+        <p>
+          Both text searches allow you to specify whether it is a whole word
+          search (5 in <a href="#search-figure">the figure</a>), whether it is a
+          fuzzy search (6), and whether it is case-insensitive (7).
+        </p>
+        <p>
+          A "whole word" search is a search where the first and last letters in
+          the search field should be the first and last letters in words
+          matched.
+        </p>
+        <p>
+          A "fuzzy" search is one where letters may intervene between characters
+          matched. A fuzzy search for <i>era</i> would also match
+          <i>terra</i> and <i>tertiary</i>, because in all three words the
+          letters <i>e</i>, <i>r</i>, and <i>a</i> occur in that order.
+        </p>
+        <p>
+          A "case-insensitive" search will match letters regardless of their
+          case. A case-insensitive search for <i>cat</i> would match <i>CAT</i>.
+          A case-insensitive fuzzy search for <i>cat</i> would match
+          <i>A Canticle for Leibowitz</i>.
+        </p>
+        <p>
+          Tag searches look for notes where a particular tag occurs in the
+          note's lemma or citation tags.
+        </p>
+        <p>Language searches search for notes with particular locales.</p>
+        <figure id="sort-figure" style="max-width: 250px">
+          <img src="images/sort.png" alt="search result sorting options" />
+          <figcaption>
+            Search result sorting options. The one pointed out with an arrow
+            will find the note you last edited.
+          </figcaption>
+        </figure>
+        <p>
+          By default the search results are sorted by lemma. Sometimes it helps
+          to apply a different sort order. This is the purpose of the icon
+          showing three horizontal bars of descending size (<a href="#sort-figure">the figure</a>). I frequently use the
+          last sort order, by time of last update
+          descending, to find where I left off when last using Amanuensis.
+        </p>
+        <figure id="similar-figure">
+          <img src="images/similar.png" alt="form for search for similar phrases" />
+          <figcaption>
+            The similar phrase search form: 1) form, 2) language(s), 3) string
+            similarity metric
+          </figcaption>
+        </figure>
+        <h4 id="similar">similar phrase</h4>
+        <p>
+          The same phrase may have different forms &mdash; <i>cat</i> and
+          <i>cats</i>, for example. It may appear as part of another word
+          &mdash; <i>cat</i> and <i>catfish</i>. To facilitate linking a note to
+          related notes, or to merge different citations into the same note,
+          Amanuensis has the similar phrase search (<a href="#similar-figure">the figure</a>).
+        </p>
+        <p>
+          When you highlight some text and invoke Amanuensis, it creates a
+          provisional note and searches for similar notes within
+          <a href="#languages">the language inferred by Chrome</a>. This
+          facilitates merging the citation highlighted with an existing note
+          immediately. The search is over all lemmas and citations. Because of
+          this pattern of use, the similar phrase search form has only two
+          fields: lemma and language.
+        </p>
+        <figure id="similarity-metric-figure">
+          <img src="images/similarity_menu.png" alt="dropdown that shows the string similarity metric" />
+          <figcaption>The string similarity metric dropdown.</figcaption>
+        </figure>
+        <p>
+          Amanuensis must apply a string similarity metric to do a phrase
+          similarity search. Because words can be similar in different ways,
+          Amanuensis provides four metrics (<a href="#similarity-metric-figure">the figure</a>). They are
+        </p>
+        <dl>
+          <dt>Jaro-Winkler</dt>
+          <dd>
+            <a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro-Winkler</a>
+            prioritizes changes at the <b>beginning</b> of the word.
+            Jaro-Winkler will find <i>cat</i> more similar to <i>cats</i> than
+            <i>scat</i>. Because most languages prefer suffixes to prefixes for
+            inflectional changes like the <i>-s</i> that marks <i>cats</i> as
+            plural, Jaro-Winkler is generally a pretty good default. There are
+            languages, though, like the Bantu languages, that use inflectional
+            prefixes &mdash; <i>watu</i> is the plural of <i>mtu</i>,
+            &ldquo;person&rdquo; in Swahili. For these, see reverse
+            Jaro-Winkler.
+          </dd>
+          <dt>longest common substring</dt>
+          <dd>
+            If you're dealing with compounds or phrases, not inflection, you
+            want to prioritize phrases that embed other phrases. For these,
+            <a href="https://en.wikipedia.org/wiki/Longest_common_subsequence">longest common substring</a>
+            is your friend.
+          </dd>
+          <dt>Levenshtein</dt>
+          <dd>
+            The
+            <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein</a>
+            algorithm measures the number of edits required to convert one
+            phrase into another. The beginning and end don't have particular
+            importance. Similar sequences don't have particular importance.
+            Levenshtein tends to consider words of similar length to be more
+            similar because more edits are required to add or subtract letters
+            to change a phrase's length. The Levenshtein similarity metric is
+            probably the least useful, but it may turn up easily confused words.
+          </dd>
+          <dt>reverse Jaro-Winkler</dt>
+          <dd>
+            Reverse Jaro-Winkler is just Jaro-Winkler applied backwards. It
+            considers changes at the <b>end</b> of the words more important. It
+            will find <i>scat</i> to be more similar to <i>cat</i> than
+            <i>cats</i>. This similarity metric may be useful for Bantu
+            languages that use inflectional prefixes. It is also useful for
+            finding words with similar suffixes.
+          </dd>
+        </dl>
+        <p>
+          Each of the metrics is marked with a distinctive color so you can see
+          what metric is in use when the dropdown is not open.
+        </p>
+        <p>
+          One could in principle rank all notes for their similarity to a given
+          phrase. In practice, however, there is little value in looking too far
+          down the list. For this reason, the maximum number of results
+          displayed in a similarity search is
+          <a href="#max-similars"
+            title="how to configure the maximum number of similar phrases displayed">configurable</a>.
+        </p>
+        <figure id="on-page-figure">
+          <img src="images/on-page.png" alt="form for searching for notes at a given URL" />
+          <figcaption>
+            To search for the citations on a page, you search by URL.
+          </figcaption>
+        </figure>
+        <h4 id="citations-on-page-tab">citations on page</h4>
+        <p>
+          The form to find citations on a given page is the simplest (<a href="#on-page-figure">the figure</a>). The
+          "page" in this case is just the URL, so the only field in the
+          search form contains a URL. The search performed is a search for notes
+          which have some citation whose URL <i>starts with</i> the string in
+          the search form. This means you can use this form to search for all
+          citations on a particular site, not just a particular page.
+        </p>
+        <h3 id="quiz">Spaced-repetition Quiz</h3>
+        <figure id="challenge-figure">
+          <img src="images/challenge.png" alt="the challenge side of a spaced-repetition quiz card" />
+          <figcaption>
+            1) the lemma quiz tab; 2) gloss quiz tab; 3) a link to this
+            documentation; 4) the lemma for which you are challenged to provide
+            the gloss and tags; 5) the green dot indicating this is the first
+            time this challenge has been presented in a quiz; 6) the language
+            badge &mdash; the same lemma could occur in multiple languages; 7)
+            how many new &mdash; "green dot" &mdash; cards are in the quiz; how
+            many old; 8) outcomes so far; 9) the progress bar
+          </figcaption>
+        </figure>
+        <p>
+          The idea behind
+          <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a>
+          is that one can learn a concept <i>most efficiently</i> when one
+          reviews it when one is about to forget it. If you can catch the memory
+          at the moment of disintegration and reconstitute it &mdash; if you
+          repeat it after allowing a certain space for it to fade &mdash; you
+          can rebuild it stronger without unnecessary drills.
+        </p>
+        <p>
+          Trials bear this theory out. The remaining problem, then, is
+          predicting when a memory will fade &mdash; how much space one should
+          allow before repetition.
+        </p>
+        <p>
+          <b>Disclaimer</b>: I have not made a deep study of this problem.
+          Rather, I observed how
+          <a href="https://apps.ankiweb.net/">Anki</a> seemed to be doing it,
+          mixed this with what seemed sensible to me, and called it good. If you
+          want a more state-of-the-art spaced-repetition quiz, I liked Anki.
+          There are other options. My aim in writing Amanuensis was to make a
+          note-taking app, not a flashcard app. That being said, I'm quite
+          pleased with Amanuensis's hacked together spaced-repetition quiz.
+        </p>
+        <h4 id="general-procedure">The general procedure</h4>
+        <p>
+          Amanuensis presents its spaced-repetition quiz as a stack of
+          flashcards. You see a card. You try to guess what is on the other
+          side. Then you click the card. The card flips, revealing its back, and
+          you rate your performance.
+        </p>
+        <p>
+          Quizzes consist of some number of new cards, cards you've never seen
+          in a quiz, and whichever old cards may have come due for another go.
+          The new cards are a random subset of those available. All the
+          scheduled old cards are in the stack. If you skip a day, the next day
+          you will see all the cards that were due the first day plus any others
+          that have come due, so they will pile up a bit if you don't do the
+          quiz regularly.
+        </p>
+        <h4>The challenge side of the card</h4>
+        <p>
+          The challenge side of the card (<a href="#challenge-figure">challenge figure</a>) is the side presenting a
+          challenge to which you are meant to
+          provide the answer. In the case of a lemma quiz, the challenge is the
+          <a href="#lemma">lemma</a>; the answer is the gloss. In the case of a
+          gloss quiz, the challenge is the <a href="#gloss">gloss</a>; the
+          answer is the lemma.
+        </p>
+        <p>
+          The challenge side presents the challenge and enough context to
+          disambiguate similar cards. For the lemma, this is the locale. See (6)
+          in
+          <a href="#challenge-figure">challenge figure</a>. For the gloss, this
+          is the tags. See (2) in
+          <a href="#response-figure">response figure</a>.
+        </p>
+        <p>
+          If this is the first time you've been presented this challenge, it is
+          "new" and marked with a green dot. See (5) in
+          <a href="#challenge-figure">challenge figure</a>.
+        </p>
+        <p>
+          Below the challenge information is presented about the quiz and your
+          progress. The number of new and old cards in the quiz is shown; see
+          (7) in <a href="#challenge-figure">challenge figure</a>. Your success
+          so far is presented as a series of icons and counts; see (8). A
+          progress bar shows how far you have gotten in the quiz; see (9).
+        </p>
+        <h4>The answer side of the card</h4>
+        <figure id="response-figure">
+          <img src="images/response.png" alt="the answer side of a spaced-repetition quiz card" />
+          <figcaption>
+            1) the answer; 2) the tags; 3) "show again in this quiz"; 4) "show
+            again tomorrow"; 5) bad, okay, and good outcomes; 6) "graduate" this
+            card
+          </figcaption>
+        </figure>
+        <p>
+          The answer side of the card (<a href="#response-figure">response figure</a>) is the side that provides the
+          answer to the challenge presented on
+          the first side seen. In the case of a lemma quiz, this is the
+          <a href="#gloss">gloss</a> side. In the case of a gloss quiz, this is
+          the
+          <a href="#lemma">lemma</a>
+          side.
+        </p>
+        <p>
+          In addition to the answer to the challenge, the answer side presents
+          further contextual information you should master, chiefly the tags.
+        </p>
+        <p>
+          Bellow the answer to the challenge there is a row of six icons; see 3
+          &ndash; 6 in <a href="#response-figure">response figure</a>. You
+          choose and click one of these icons to rate how well you rose to the
+          challenge and schedule its next appearance in the spaced-repetition
+          quiz. These icons are presented in order of rating, worst to best.
+        </p>
+        <p>
+          The red counterclockwise circular arrow, (3) in
+          <a href="#response-figure">response figure</a>, means "show again in
+          this quiz". If you click it, the challenge will show up again after
+          all the other challenges at the end of the quiz on this same day.
+        </p>
+        <p>
+          The gray arrow arching clockwise to the right, (4) in
+          <a href="#response-figure">response figure</a>, means "show again
+          tomorrow".
+        </p>
+        <p>
+          The various circular face icons, (5) in
+          <a href="#response-figure">response figure</a>, means roughly "bad",
+          "okay", "good". The text below them indicates how long it will be
+          until you see this particular challenge again in the quiz if you click
+          them.
+        </p>
+        <p>
+          Finally, the green graduation cap, (6) in
+          <a href="#response-figure">response figure</a>, means "I dub myself a
+          master of this challenge". If you click this, the challenge will never
+          show up in the quiz again.
+        </p>
+        <p>
+          <b>NOTE:</b> If you click the happy face enough times in a row,
+          Amanuensis will offer a modal suggesting you have mastered this
+          challenge and should graduate. You can graduate and eliminate the
+          card, or simply schedule it again. When you are on the point of
+          "auto-graduating" the smiling icon will be green instead of black. See
+          <a href="#auto-graduate-threshold">auto-graduate-threshold</a>.
+        </p>
+        <p>
+          After you have rated your performance on the current challenge, the
+          next challenge will be presented to you.
+        </p>
+        <h4>Strategy</h4>
+        <p>
+          There is some strategy to how you choose the self-evaluation icon. You
+          are playing against your own failing memory. The scheduling algorithm
+          tries to predict how quickly you will forget, but you have some notion
+          yourself. You can use this to your advantage.
+        </p>
+        <p>
+          If you fail a challenge after a long series of successes, the sad icon
+          may schedule its next appearance too far into the future. I often
+          click the "tomorrow" icon in this case. Facing the challenge when my
+          last failure is fresh in my mind helps me get back on track. Otherwise
+          I find myself failing again for the same reason, remembering the same
+          mistaken train of thought that led me to answer incorrectly the last
+          time.
+        </p>
+        <p>
+          I use the "again in this quiz" icon more sparingly, but it serves a
+          similar function: let me experience one success and overwrite my
+          mistake before moving on.
+        </p>
+        <p>
+          I live in Vermont, where it snows a lot. In the winter the town sends
+          a sidewalk plough to clear the sidewalks. The plough throws snow to
+          the side when it can. When it is passing a sidewalk or driveway it
+          throws the snow ahead of itself. This is fine so long as it sometimes
+          gets a chance to cast the snow out of its way. A spaced-repetition
+          quiz works like this sidewalk plough, except it only ever throws the
+          snow forward. The quiz doesn't mind, but you may, as every day the
+          ratio of old to new words grows. Graduate cards when you can so that
+          you aren't facing the entire dictionary every day. If you find the
+          pile you face too overwhelming, you should either tune down the number
+          of new cards you face or tune down the memory challenge, so
+          your sequences of success grow longer and you can graduate faster. See
+          the <a href="#quiz-configuration">quiz configuration options</a>.
+        </p>
+        <h3 id="tags">Tags</h3>
+        <figure id="tags-figure">
+          <img src="images/tags.png" alt="the tag tab" />
+          <figcaption>
+            The tag tab: 1) create a new tag; 2) link to this documentation; 3)
+            the tag itself; 4) tag contents; 5) tag locales; 6) edit; 7)
+            duplicate; 8) delete
+          </figcaption>
+        </figure>
+        <p>
+          Tags consist of a short identifier, a visually distinctive style, and
+          some content. They appear in Amanuensis as colored bubbles. When you
+          hover over a tag, the content appears as tooltip text. Identifiers
+          must be unique &mdash; you can have only one tag identified as "M",
+          for example.
+        </p>
+        <p>Tags serve two functions:</p>
+        <ul>
+          <li>they concisely encapsulate recurring information</li>
+          <li>they facilitate the discovery of similar things</li>
+        </ul>
+        <p>
+          The tag tab (<a href="#tags-figure">the figure</a>) is where you
+          create, edit, and delete tags. If you click on a tag in the tag tab
+          Amanuensis will perform a search for you of all notes bearing this
+          tag.
+        </p>
+        <p>
+          If you wish to create a new <i>category</i> of tags, you click the
+          plus icon (1). This allows you to create all the elements of your tag
+          from scratch (<a href="#tag-modal-figure">the figure</a>). So long as
+          this tag is distinctive in its foreground or background color, it will
+          be the first member of a new category of tags.
+        </p>
+        <figure id="tag-modal-figure">
+          <img src="images/tag-modal.png" alt="the tag modal" />
+          <figcaption>Creating a new tag.</figcaption>
+        </figure>
+        <p>
+          More commonly you will want to create a tag in an existing category.
+          Perhaps you have a category of tags that indicate part of speech
+          &mdash; noun, verb, adjective, etc. &mdash; and you wish to add a tag
+          for prepositions. Perhaps you have a category of tags that represent
+          noun class &mdash; masculine versus feminine, animate versus
+          inanimate, abstract versus concrete &mdash; and you wish to add a new
+          noun class. The tag category is represented stylistically. Your part
+          of speech tag category might be purple text on a yellow background.
+          Your noun class tag category might be red on pink. To create a new tag
+          in an existing tag category, you click the duplicate icon (6) and then
+          add the tag, text, and perhaps locales it pertains to.<span class="fn">This is a design flaw. There should be
+            some way to edit a tag
+            classes distinctive colors after you create it. This flaw will be
+            addressed in the next release of Amanuensis.</span>
+        </p>
+        <p>
+          When tags are listed, they are sorted primarily by category, in the
+          order in which the category was created, and secondarily by identifier
+          in alphabetical order.
+        </p>
+        <h4>tag locales</h4>
+        <p>
+          Sometimes a particular tag will be useful for all languages. All
+          languages have nouns and verbs, for instance<span class="fn">When I was in graduate school for linguistics,
+            some
+            people
+            proferred examples of languages in which nouns where this universal
+            didn't hold &mdash; all "nouns" were grammatically verbs or vice
+            versa. I don't know whether these debates have been settled. I take
+            it almost universally true that a language will have distinct
+            classes of words serving noun and verb functions with different
+            morpho-syntactic properties.</span>, so whenever you are creating a note, whatever the language, you may
+          want to be able to tag a lemma as a noun or a verb.
+        </p>
+        <p>
+          Some languages have particular categories which are very important to
+          them but mean nothing in other languages. Uralic languages, for
+          example, have an
+          <a href="https://en.wikipedia.org/wiki/Elative_case"
+            title="wikipedia article on the elative nominal case">elative case</a>. A noun in the elative case is
+          describing, roughly, motion out of a
+          space: <i>talosta</i> &mdash; "out of the house" in Finnish. If you
+          create an elative tag for Finnish, it's probably of no use to you for
+          notes about Mandarin.
+        </p>
+        <p>
+          To reduce tag clutter, therefore, Amanuensis allows you to specify the
+          locales for which a tag is relevant. If you provide no locales for a
+          tag, it is available for all notes.
+        </p>
+        <p>
+          You only see a tag's locales listed explicitly in the tags tab.
+          Elsewhere they serve only to hide irrelevant tags.
+        </p>
+        <p>
+          In the tags tab, if a tag has a single locale, that locale is shown in
+          the locales bubble. If it has more than one, the bubble contains an
+          ellipsis. If you hover over a tag's locale bubble in the tags tab, all
+          its locales will appear in a tooltip. See (5) in
+          <a href="#tags-figure">the figure</a>.
+        </p>
+        <h3 id="configuration">Configuration</h3>
+        <figure id="config-figure">
+          <img src="images/configuration.png" alt="the configuration tab" />
+          <figcaption>
+            The configuration tab: 1) link to this documentation; 2) maximum
+            similar phrase count; 3) new phrases per quiz; 4) auto-graduate count; 5) quiz memory
+            challenge; 6) clear database button; 7) export database button; 8)
+            import database button
+          </figcaption>
+        </figure>
+        <figure id="language-figure">
+          <img src="images/languages.png" alt="the languages subsection of the configuration tab" />
+          <figcaption>
+            The languages subsection of the configuration tab: 1) language
+            adder; 2)&nbsp;the unknown language; 3) locale tally; 4) equivalent characters editor
+          </figcaption>
+        </figure>
+        <figure id="equivalence-classes-figure">
+          <img src="images/equivalence_classes.png" alt="the equivalent characters editor" />
+          <figcaption>
+            The equivalent characters editor. Use this to teach Amanuensis what orthographic differences should be
+            treated
+            as equivalent when comparing words.
+          </figcaption>
+        </figure>
+        <p>
+          Amanuensis does not yet have many configurable parameters. Those that
+          there are, together with some database actions, can be found on the
+          configuration tab (<a href="#config-figure">the figure</a>).
+        </p>
+        <h4>Dictionary</h4>
+        Configuration parameters for the <a href="#dictionary">dictionary</a> tab.
+        <h5 id="max-similars">max similar phrases</h5>
+        <p>
+          In a similarity search you are unlikely to find any interesting
+          similar phrases after the first few notes, so rather than display all
+          the notes in the dictionary for the given language sorted by
+          similarity Amanuensis just shows the few most similar ones. This
+          parameter controls how many are shown.
+        </p>
+        <h4 id="quiz-configuration">Quiz</h4>
+        Configuration parameters for the <a href="#quiz">quiz</a> tab.
+        <h5 id="new-phrases">new phrases</h5>
+        <p>
+          When you start a day's quizzes, Amanuensis will draw some number of
+          new phrases for you to learn, in addition to any phrases left over
+          from previous days. This parameter controls how many new phrases are
+          drawn.
+        </p>
+        <h5 id="auto-graduate-threshold">auto-graduate threshold</h5>
+        <p>
+          If you always get the answer to a challenge, you probably should stop
+          facing that challenge so you can spend your time on other things.
+          Amanuensis keeps track of how many times you've rated your response to
+          a challenge as good. If you pass this number, it will suggest you
+          "graduate" the challenge the next time you click the smiling icon.
+        </p>
+        <h5>memory challenge</h5>
+        <p>
+          When you click one of the face icons to rate your response to
+          the quiz challenge, Amanuensis reschedules the challenge for some future date based on your self-evaluation.
+          By
+          default the scheduling is based on what I found experimenting with <a
+            href="https://apps.ankiweb.net/">Anki</a>.
+          If you find you are getting too many challenges right you may wish to tune the scheduling up; if you get too
+          many wrong, you may wish to tune it down. Use this slider for that purpose.
+        </p>
+        <h4>Database</h4>
+        <p>
+          Amanuensis saves all its data on your machine in a database. It
+          doesn't call home to a central server. It doesn't store data in the
+          cloud.
+        </p>
+        <p>
+          This design provides simplicity and privacy. It also potentially locks
+          you into one device and prevents sharing notes with others. The
+          database actions provide some workarounds if you want a bit of both
+          worlds.
+        </p>
+        <h5>clear</h5>
+        <p>
+          The clear action &mdash; (5) in
+          <a href="#config-figure">the figure</a> &mdash; allows you to reset
+          Amanuensis to "factory settings". Once done one cannot restore the
+          database unless you've exported the data, so a confirmation modal will
+          intervene and ask whether you really mean to do this before your data
+          is erased forever.
+        </p>
+        <h5>export</h5>
+        <p>
+          The export database action &mdash; (6) in
+          <a href="#config-figure">the figure</a> &mdash; dumps the entire
+          contents of your Amanuensis database into a
+          <a href="https://en.wikipedia.org/wiki/JSON" title="an explanation of javascript object notation">JSON
+            file</a>.
+        </p>
+        <p>
+          Having exported your database to a file, you can now save a backup
+          copy, install Amanuensis on another machine and restore your database
+          there, or share your notes with someone else.
+        </p>
+        <p>
+          If you want to use your notes for some other purpose, you can write a
+          script in some programming language that will parse the exported JSON
+          allow you to manipulate, transform, or extract it.
+        </p>
+        <h5>import</h5>
+        <p>
+          The import database action &mdash; (7) in
+          <a href="#config-figure">the figure</a> &mdash; allows you to add the
+          notes exported from a different instance of Amanuensis into your
+          current one.
+        </p>
+        <p>
+          The import process takes some pains to import notes without clobbering
+          existing notes. This may result in duplicate notes and tags requiring
+          merging or deletion.
+        </p>
+        <h4 id="languages">Languages</h4>
+        <p>
+          You do not need to use Amanuensis to study languages. You can use it
+          simply as a note taking tool. Amanuensis begins configured to use only
+          one language, the "unknown" language &mdash; (2) in
+          <a href="#language-figure">the figure</a>. You do not need to
+          configure it further. If you create a note, it will begin and remain
+          assigned to the unkown language.
+        </p>
+        <p>
+          If you do wish to study a particular language you need to tell
+          Amanuensis which languages you wish to study so that it can attempt to
+          categorize your notes correctly. This will ensure that
+          <a href="#similar">similar phrases</a> are sought only within the
+          correct language and that only those <a href="#tags">tags</a>
+          appropriate to the language are offered.
+        </p>
+        <p>
+          To add a language, click the add-language icon &mdash; (1) in
+          <a href="#language-figure">the figure</a>. This will open a modal
+          where you can select a language with an
+          <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
+            title="the wikipedia page listing the ISO-639-1 language codes">ISO-639-1 language code</a>. At this time,
+          Amanuensis does not provide a mechanism to add a
+          language which lacks an ISO-639-1 code. There are many languages that
+          lack such a code &mdash;
+          <a href="https://en.wikipedia.org/wiki/Yinjibarndi_language">Yinjibarndi</a>, for example, or
+          <a href="https://en.wikipedia.org/wiki/Sumerian_language">Sumerian</a>. Amanuensis does not yet provide a
+          means
+          to add these for study. If
+          I am made aware of a demand for this, this may hasten my adding it. I
+          may add it regardless of whether anyone demands it. I simply have not
+          yet.
+        </p>
+        <p>
+          When you create a note, Chrome uses the phrase selected and the
+          surrounding text to guess its language. It may guess wrong, or be
+          unable to identify the language at all, assigning it the unknown
+          language. You can correct this using the language picker widget
+          &mdash; (3) in <a href="#note-figure">the figure</a>. Amanuensis will
+          record this discrepancy and use it to improve its language assignment
+          for subsequent notes. In (3) in
+          <a href="#language-figure">the figure</a> you can see an instance of
+          this: 5 notes on Finnish were guessed by the browser to contain Estonian
+          (et); one was guessed to containg Swedish (sv).
+        </p>
+        <h5 id="equivalence-classes">character equivalence classes</h5>
+        <p>
+          Languages often have equivalent ways of spelling a given sound. In English, for example, <i>cafe</i> may also
+          be
+          spelled <i>café</i>; <i>coordinate</i> may be spelled <i>coördinate</i>. This can be problematic if you are
+          looking to see whether you already have a note for one of these variable forms.
+        </p>
+        <p>
+          The equivalence class editor, <a href="#equivalence-classes-figure">the figure</a>, provides a means of
+          specifying equivalent character sequences. It is activated by clicking the
+          language's edit icon, (4) in <a href="#language-figure">the figure</a>. If you have already specified
+          equivalent
+          characters for a given language, the editor icon will be decorated with the dot that you see in the figure.
+        </p>
+        <p>
+          The character sequences in the left field are treated as equivalent to the sequence in the right. You can mark
+          multi-character sequences as equivalent this way -- <i>tsch</i> and <i>ch</i>, say. If equivalence class
+          contains more than two members -- <i>é</i>, <i>è</i>, <i>ê</i>, <i>e</i>, for example -- simply separate
+          instances in the left field with commas.
+        </p>
+        <p>
+          For obvious reasons you cannot mark commas or whitespace as equivalent to anything. Also, capitalization is
+          already treated as irrelevant for purposes of comparison, so don't worry about marking <i>A</i> as equivalent
+          to
+          <i>a</i>. It would be harmless but pointless.
+        </p>
+        <h2>Acknowledgements</h2>
+        <p>
+          Though so far I'm the only person who has committed code to
+          Amanuensis, others have helped bring it to its current state and
+          deserve acknowledgement
+        </p>
+        <b>Martha Edwards</b>
+        <p>
+          Martha coached me through some confusion as I was learning
+          <a href="https://react.dev/">React</a> while writing this code.
+        </p>
+        <h2>Dedication</h2>
+        <figure id="oofla-figure" style="max-width: 250px">
+          <img src="images/oofla_cover.png"
+            alt='the cover of the book in which Jude wrote "The adventures of Oofla the Gloofoo"' />
+          <figcaption>The source of Amanuensis's logo.</figcaption>
+        </figure>
+        <p>
+          Amanuensis, like most of my projects, is dedicated to my son Jude, who
+          died on February 1st, 2023. He was a better programmer and a better,
+          kinder, more interesting person than me. I was looking forward to
+          being surprised and amazed by him as he went out into the world. He
+          shared repositories in github under the name
+          <a href="https://github.com/TurkeyMcMac" title="Jude's github repositories">TurkeyMcMac</a>.
+        </p>
+        <h3 id="oofla">Oofla the Gloofoo</h3>
+        <p>
+          In elementary school, Jude wrote the story of Oofla the Gloofoo (<a href="#oofla-figure">the figure</a>). He
+          did
+          this to amuse himself and his friends and siblings. Each
+          day they would gather around to watch the latest installment unspool
+          as he wrote. On the last page of the exercise book there was an "about
+          the author" section &mdash; some lines for text and a box for a
+          picture. As was his way &mdash; Jude never spoke about himself &mdash;
+          Jude omitted the text. For a picture he provided an image of Oofla. So
+          I have always thought of Oofla as an avatar of Jude. Because I wish he
+          were still around, I used Oofla as Amanuensis's logo. Amanuensis is
+          still around if Jude isn't.
+        </p>
+        <p>We love you and miss you, Jude.</p>
+        <div id="footnotes">
+          <hr />
+        </div>
+      </article>
+    </main>
     <footer class="footer">
       <a href="https://github.com/dfhoughton/amanuensis-2"
         title="source repository">https://github.com/dfhoughton/amanuensis-2</a>
@@ -1650,16 +1658,6 @@
           highlight(n)
         }
         toc.appendChild(e)
-        const up = document.createElement("a")
-        up.innerHTML = "&uarr;"
-        up.setAttribute("href", "#toc")
-        up.setAttribute("title", "return to table of contents")
-        up.classList.add("up-link")
-        up.onclick = (e) => {
-          e.preventDefault()
-          toc.scrollIntoView({ behavior: "smooth", block: "center" })
-        }
-        n.appendChild(up)
       })
     // move footnotes to the foot, etc.
     const footnotes = document.getElementById("footnotes")
