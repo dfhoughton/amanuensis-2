@@ -89,7 +89,7 @@ const scatterThreshold = oneDay * 3
 
 export function describeTimeInterval(
   interval: number,
-  abbreviate: boolean = false
+  abbreviate: boolean = false,
 ): string {
   let unit,
     amount,
@@ -123,6 +123,18 @@ export function describeTimeInterval(
 export const MAX_NEW_PHRASES_PER_QUIZ = 10
 export const DEFAULT_AUTO_GRADUATE_COUNT = 5
 
+// seeded random number generator for spacing out trials
+function rando(trial: Trial, quizzingOnLemmas: boolean) {
+  const tt = quizzingOnLemmas ? trial.phraseTrials : trial.glossTrials
+  let seed = trial.phraseId + (tt ? tt.nextTime.getTime() : 0)
+  return () => {
+    let t = (seed += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 // a controller that manages the daily quizzes
 // its methods are asynchronous because they always persist state to the database
 export class DailyQuiz {
@@ -148,7 +160,7 @@ export class DailyQuiz {
     ) {
       this.config[quizType] = await makeQuiz(
         this.config.newPhrases ?? MAX_NEW_PHRASES_PER_QUIZ,
-        quizzingOnLemmas
+        quizzingOnLemmas,
       )
       void (await setConfiguration(this.config))
     }
@@ -158,7 +170,7 @@ export class DailyQuiz {
   async newQuiz(quizzingOnLemmas: boolean): Promise<void> {
     this.config[this.quizKey(quizzingOnLemmas)] = await makeQuiz(
       this.config.newPhrases ?? MAX_NEW_PHRASES_PER_QUIZ,
-      quizzingOnLemmas
+      quizzingOnLemmas,
     )
     void (await setConfiguration(this.config))
   }
@@ -174,13 +186,13 @@ export class DailyQuiz {
     return await howTheQuizIsGoingSoFar(
       q.phrases,
       q.startTime,
-      quizzingOnLemmas
+      quizzingOnLemmas,
     )
   }
   // calculate the time options for a card based on its past trials
   intervalsForOutcomes(
     trial: Trial,
-    quizzingOnLemmas: boolean
+    quizzingOnLemmas: boolean,
   ): IntervalsForOutcomes {
     let tomorrow = new Date(this.now.getTime() + oneDay)
     tomorrow = new Date(
@@ -190,15 +202,16 @@ export class DailyQuiz {
       1,
       0,
       0,
-      0
+      0,
     )
     const rv: IntervalsForOutcomes = [
       ["again", 5 * oneMinute],
       ["tomorrow", tomorrow.getTime() - this.now.getTime()],
     ]
     let previous = trial[this.trialsKey(quizzingOnLemmas)]?.times.map(
-      (n) => n[0]
+      (n) => n[0],
     )
+    const rand = rando(trial, quizzingOnLemmas)
     let interval: number
     if (previous?.length) {
       previous = lastN(previous, 4)
@@ -224,12 +237,12 @@ export class DailyQuiz {
     const bad = this.truncateToDay(interval)
     let ok = this.truncateToDay(bad * (1 + 1.22 * scalingFactor))
     if (ok >= scatterThreshold) {
-      ok = this.addJitter(ok)
+      ok = this.addJitter(ok, rand)
     }
     while (ok <= bad) ok += oneDay
     let good = this.truncateToDay(ok * (1 + 0.3 * scalingFactor))
     if (good >= scatterThreshold) {
-      good = this.addJitter(good)
+      good = this.addJitter(good, rand)
     }
     while (good <= ok) good += oneDay
     let done = this.truncateToDay(good * (1 + 0.1 * scalingFactor))
@@ -240,11 +253,11 @@ export class DailyQuiz {
     rv.push(["done", done])
     return rv
   }
-  // adds proportional randomness (±10%, at least ±1 day) to keep phrases from bunching together
-  private addJitter(interval: number): number {
+  // adds proportional randomness (±8%, at least ±1 day) to keep phrases from bunching together
+  private addJitter(interval: number, rand: () => number): number {
     const days = Math.round(interval / oneDay)
-    const fuzzRange = Math.max(1, Math.round(days * 0.10))
-    const jitter = Math.floor(Math.random() * (2 * fuzzRange + 1)) - fuzzRange
+    const fuzzRange = Math.max(1, Math.round(days * 0.08))
+    const jitter = Math.floor(rand() * (2 * fuzzRange + 1)) - fuzzRange
     return this.truncateToDay(interval + jitter * oneDay)
   }
   // returns an interval that, when added to this.now, puts you at the beginning of the appropriate day
@@ -259,7 +272,7 @@ export class DailyQuiz {
     interval: number,
     outcome: Outcome,
     autoGraduateCount: number, // set to 0 to disable autograduation
-    quizzingOnLemmas: boolean
+    quizzingOnLemmas: boolean,
   ): Promise<{
     card: PreparedTrial
     intervals: IntervalsForOutcomes
@@ -325,7 +338,7 @@ export class DailyQuiz {
     return outcomes.length === 1 && outcomes[0] === "first"
   }
   private quizKey(
-    quizzingOnLemmas: boolean
+    quizzingOnLemmas: boolean,
   ): "currentGlossQuiz" | "currentPhraseQuiz" {
     return quizzingOnLemmas ? "currentPhraseQuiz" : "currentGlossQuiz"
   }
@@ -335,7 +348,7 @@ export class DailyQuiz {
 }
 
 export function trialsKey(
-  quizzingOnLemmas: boolean
+  quizzingOnLemmas: boolean,
 ): "phraseTrials" | "glossTrials" {
   return quizzingOnLemmas ? "phraseTrials" : "glossTrials"
 }
