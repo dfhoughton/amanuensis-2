@@ -1,0 +1,18 @@
+# Files and directories to ignore for Storybook
+# This prevents Storybook from trying to process certain files
+
+# Node modules
+node_modules
+
+# Build outputs
+dist
+.storybook
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Git
+.git
