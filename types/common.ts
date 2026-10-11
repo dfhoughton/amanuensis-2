@@ -187,14 +187,31 @@ export type Language = {
 // the base string normalized to and the strings normalized from
 export type GraphemeEquivalenceClass = [base: string, equivalents: string[]]
 
+export const DEFAULT_TAG_GROUP_NAME = "default"
+export const DEFAULT_TAG_GROUP_DESCRIPTION =
+  "the tag group holding tags without a more specific group"
+
+export type TagGroup = {
+  id?: number
+  name: string
+  description?: string
+  color: string
+  bgcolor: string
+  languages?: number[]
+  order: number
+}
+
 // for tagging notes and citations
 export type Tag = {
   id?: number
   name: string
   description?: string
+  groupId?: number
+  languages?: number[]
   color?: string
   bgcolor?: string
-  languages?: number[]
+  groupOrder?: number
+  effectiveLanguages?: number[]
 }
 
 // borrowing from https://www.meticulous.ai/blog/safer-exhaustive-switch-statements-in-typescript

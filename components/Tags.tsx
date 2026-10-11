@@ -4,32 +4,44 @@ import { Action, errorHandler } from "../util/reducer"
 import {
   Box,
   Button,
+  Chip,
   Divider,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
   IconButton,
+  InputLabel,
+  MenuItem,
   Modal,
+  Select,
   Stack,
+  Switch,
+  Tab,
+  Tabs,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material"
-import Grid from "@mui/material/Grid";
 import EditIcon from "@mui/icons-material/Edit"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
-import debounce from "lodash/debounce"
-import { MuiColorInput } from "mui-color-input"
 import {
   deleteTag,
+  knownTagGroups,
   knownTags,
+  normalizeHexColor,
   perhapsStaleLanguages,
   phraseSearch,
   saveTag,
+  sortTags,
 } from "../util/database"
 import { TagChip } from "./TagChip"
 import { LanguageChip } from "./LanguageChip"
 import { LanguagePicker } from "./LanguagePicker"
 import { HelpLink } from "./HelpLink"
+import { TagGroups } from "./TagGroups"
+import { DEFAULT_TAG_GROUP_NAME, TagGroup } from "../types/common"
 
 type TagsProps = {
   dispatch: React.Dispatch<Action>
@@ -37,19 +49,27 @@ type TagsProps = {
 
 export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
   const [tags, setTags] = useState<Tag[] | undefined>()
+  const [groups, setGroups] = useState<TagGroup[]>([])
+  const [subTab, setSubTab] = useState<"tags" | "groups">("tags")
   const [openAddTagModal, setOpenAddTagModal] = useState(false)
   const [version, setVersion] = useState(0)
+  const bumpVersion = () => setVersion((v) => v + 1)
+
   useEffect(() => {
     knownTags()
       .then((tags) => {
-        // sort the tags initially by creation order, then re-group by
-        // style, within each style group, sort by name
         tags = sortTags(tags)
         setTags(tags)
       })
       .catch(errorHandler(dispatch, "obtaining known tags for tags page"))
   }, [version, dispatch])
-  const bumpVersion = () => setVersion(version + 1)
+
+  useEffect(() => {
+    knownTagGroups()
+      .then((groups) => setGroups(groups))
+      .catch(errorHandler(dispatch, "obtaining tag groups for tags page"))
+  }, [version, dispatch])
+
   const [modalTag, setModalTag] = useState<Tag>({ name: "" })
   const [languages, setLanguages] = useState<Language[]>([])
   useEffect(() => {
@@ -57,19 +77,28 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
       .then((languages) => setLanguages(languages))
       .catch(errorHandler(dispatch, "obtaining languages for tags"))
   }, [dispatch])
+
   return (
     <Box sx={{ minHeight: "400px" }}>
-      <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h5" component="h1">
           Tags
         </Typography>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "flex-end" }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Tooltip enterDelay={200} arrow title="Create a tag">
             <IconButton
               color="primary"
               size="small"
               onClick={() => {
-                setModalTag({ name: "", languages: [] })
+                const defaultGroup = groups.find(
+                  (g) =>
+                    g.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+                )
+                setModalTag({
+                  name: "",
+                  groupId: defaultGroup?.id ?? 1,
+                  languages: undefined,
+                })
                 setOpenAddTagModal(true)
               }}
             >
@@ -79,24 +108,47 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
           <HelpLink anchor="tags" title="tags" />
         </Stack>
       </Stack>
-      <Stack spacing={0.75} sx={{ mt: 2 }}>
-        {tags
-          ?.filter((t) => !!t)
-          .map((t, i) => (
-            <Box key={t.id}>
-              {!!i && <Divider />}
-              <TagRow
-                tag={t}
-                languages={languages}
-                setTag={setModalTag}
-                setOpen={setOpenAddTagModal}
-                bumpVersion={bumpVersion}
-                dispatch={dispatch}
-              />
-            </Box>
-          ))}
-        {!tags?.length && <i>no tags yet</i>}
-      </Stack>
+
+      <Tabs
+        value={subTab}
+        onChange={(_e, v) => setSubTab(v)}
+        sx={{ borderBottom: 1, borderColor: "divider", mt: 1, mb: 2 }}
+      >
+        <Tab label="Tags" value="tags" />
+        <Tab label="Tag Groups" value="groups" />
+      </Tabs>
+
+      {subTab === "tags" && (
+        <Stack spacing={0.75}>
+          {tags
+            ?.filter((t) => !!t)
+            .map((t, i) => (
+              <Box key={t.id}>
+                {!!i && <Divider />}
+                <TagRow
+                  tag={t}
+                  languages={languages}
+                  setTag={setModalTag}
+                  setOpen={setOpenAddTagModal}
+                  bumpVersion={bumpVersion}
+                  dispatch={dispatch}
+                />
+              </Box>
+            ))}
+          {!tags?.length && <i>no tags yet</i>}
+        </Stack>
+      )}
+
+      {subTab === "groups" && (
+        <TagGroups
+          groups={groups}
+          tags={tags ?? []}
+          languages={languages}
+          bumpVersion={bumpVersion}
+          dispatch={dispatch}
+        />
+      )}
+
       <EditTagModal
         open={openAddTagModal}
         bumpVersion={bumpVersion}
@@ -104,6 +156,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
         setTag={setModalTag}
         setOpen={setOpenAddTagModal}
         tags={tags ?? []}
+        groups={groups}
         languages={languages}
         dispatch={dispatch}
       />
@@ -144,7 +197,8 @@ export const TagRow: React.FC<TagRowProps> = ({
   bumpVersion,
   dispatch,
 }) => {
-  const tagLanguages = tag.languages
+  const effectiveLangIds = tag.effectiveLanguages ?? tag.languages
+  const tagLanguages = effectiveLangIds
     ?.map((id) => languages.find((l) => l.id === id))
     .filter((l) => l != null)
     .sort((a, b) => a!.name!.localeCompare(b!.name!))
@@ -154,11 +208,11 @@ export const TagRow: React.FC<TagRowProps> = ({
       <Stack
         direction="row"
         spacing={1}
-        sx={{ justifyContent: "space-between", width: "100%", p: 0.5 }}
+        sx={{ justifyContent: "space-between", alignItems: "center", width: "100%", p: 0.5 }}
       >
         <TagChip tag={tag} onClick={tagSearch(tag, dispatch)} />
-        <Box>{tag.description}</Box>
-        <Stack direction="row" spacing={1}>
+        <Box sx={{ flex: 1, px: 2 }}>{tag.description}</Box>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           {!!languageTooltip && (
             <LanguageChip
               title={languageTooltip}
@@ -172,24 +226,23 @@ export const TagRow: React.FC<TagRowProps> = ({
               color="primary"
               size="small"
               onClick={() => {
-                tag.languages ??= []
-                setTag(tag)
+                setTag({ ...tag })
                 setOpen(true)
               }}
             >
               <EditIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
-          <Tooltip enterDelay={200} arrow title="duplicate tag colors">
+          <Tooltip enterDelay={200} arrow title="duplicate tag">
             <IconButton
               color="primary"
               size="small"
               onClick={() => {
                 setTag({
                   name: "",
-                  color: tag.color,
-                  bgcolor: tag.bgcolor,
-                  languages: tag.languages ?? [],
+                  groupId: tag.groupId,
+                  description: tag.description,
+                  languages: tag.languages ? [...tag.languages] : undefined,
                 })
                 setOpen(true)
               }}
@@ -235,9 +288,11 @@ type EditTagModalProps = {
   tag: Tag
   setTag: (tag: Tag) => void
   tags: Tag[]
+  groups: TagGroup[]
   languages: Language[]
   dispatch: React.Dispatch<Action>
 }
+
 const EditTagModal: React.FC<EditTagModalProps> = ({
   open,
   setOpen,
@@ -245,34 +300,91 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
   tag,
   setTag,
   tags,
+  groups,
   languages,
   dispatch,
 }) => {
-  const [_languageIds, setLanguageIds] = useState<number[]>(tag.languages ?? [])
-  const unique = useCallback((tag: Tag) =>
-    !tags.some((t) => t.id !== tag.id && t.name === tag.name), [tags])
-  const error = !unique(tag)
-  const tagHasUniqueName = useCallback((tag: Tag) => !!tag.name && /\S/.test(tag.name) && unique(tag), [unique])
-  const [submissible, setSubmissible] = useState(!open) // initially false
-  const handleLabelChange: (e: React.ChangeEvent<HTMLInputElement>) => void =
-    debounce((e) => {
-      const newTag = { ...tag, name: e.target.value }
-      setTag(newTag)
-      setSubmissible(tagHasUniqueName(newTag))
-    }, 250)
-  const save = () =>
-    saveTag(tag)
+  const defaultGroup = groups.find(
+    (g) => g.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+  )
+  const defaultGroupId = defaultGroup?.id ?? 1
+  const currentGroupId = tag.groupId ?? defaultGroupId
+  const currentGroup = groups.find((g) => g.id === currentGroupId)
+
+  // Language inheritance state: true if tag.languages is undefined
+  const inheritLanguages = tag.languages === undefined
+
+  // Check if tag name is unique within the selected group
+  const isNameUniqueInGroup = useCallback(
+    (name: string, targetGroupId: number) => {
+      const trimmed = name.trim().toLowerCase()
+      if (!trimmed) return false
+      return !tags.some(
+        (t) =>
+          t.id !== tag.id &&
+          t.groupId === targetGroupId &&
+          t.name.trim().toLowerCase() === trimmed
+      )
+    },
+    [tag.id, tags]
+  )
+
+  const isNameUnique = isNameUniqueInGroup(tag.name || "", currentGroupId)
+  const hasValidName = !!tag.name && /\S/.test(tag.name)
+  const nameError = hasValidName && !isNameUnique
+  const submissible = hasValidName && isNameUnique
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTag({ ...tag, name: e.target.value })
+  }
+
+  const handleGroupChange = (newGroupId: number) => {
+    setTag({ ...tag, groupId: newGroupId })
+  }
+
+  const handleInheritToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const shouldInherit = e.target.checked
+    if (shouldInherit) {
+      setTag({ ...tag, languages: undefined })
+    } else {
+      // Initialize with group languages as a starting point
+      setTag({
+        ...tag,
+        languages: currentGroup?.languages ? [...currentGroup.languages] : [],
+      })
+    }
+  }
+
+  const save = () => {
+    if (!submissible) return
+    saveTag({
+      ...tag,
+      groupId: currentGroupId,
+      name: tag.name.trim(),
+    })
       .then(() => {
         setOpen(false)
         bumpVersion()
       })
       .catch(errorHandler(dispatch, "saving tag after clicking save button in modal"))
+  }
+
+  const onlyDefaultGroup = groups.length <= 1
+  const anyGroupsDisabled = groups.some(
+    (g) => !isNameUniqueInGroup(tag.name || "", g.id!)
+  )
+
+  const previewTag: Tag = {
+    ...tag,
+    color: currentGroup?.color ?? "#000000",
+    bgcolor: currentGroup?.bgcolor ?? "#ffffff",
+  }
+
   return (
     <Modal
       open={open}
       onClose={() => setOpen(false)}
       aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
       onKeyDown={(e) => {
         if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
           e.preventDefault()
@@ -290,26 +402,25 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
         }}
       >
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          {!tag?.id && <>Create a New Tag</>}
-          {!!tag?.id && <>Edit Tag</>}
+          {!tag?.id ? "Create a New Tag" : "Edit Tag"}
         </Typography>
         <Stack
           spacing={2}
           sx={{ mt: 2, justifyContent: "space-evenly", alignContent: "center" }}
         >
           <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <TagChip tag={tag} />
+            <TagChip tag={previewTag} />
           </Box>
           <TextField
             required
             autoFocus
-            error={error}
-            onChange={handleLabelChange}
+            error={nameError}
+            onChange={handleNameChange}
             variant="standard"
             label="tag"
             placeholder="tag"
-            helperText={error ? "tag must be unique" : undefined}
-            defaultValue={tag?.name}
+            helperText={nameError ? "Tag name must be unique within this group" : undefined}
+            value={tag?.name ?? ""}
           />
           <TextField
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -318,64 +429,151 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
             variant="standard"
             label="description"
             placeholder="description"
-            defaultValue={tag?.description}
+            value={tag?.description ?? ""}
           />
-          <Grid container spacing={1} columns={12}>
-            <Grid size={4}>
-              <Box
-                sx={{
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  height: "100%",
-                }}
-              >
-                text
-              </Box>
-            </Grid>
-            <Grid size={8}>
-              <MuiColorInput
-                format="hex"
-                value={tag.color ?? "#000000"}
-                onChange={(v) => setTag({ ...tag, color: v })}
-              />
-            </Grid>
-            <Grid size={4}>
-              <Box
-                sx={{
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  height: "100%",
-                }}
-              >
-                background
-              </Box>
-            </Grid>
-            <Grid size={8}>
-              <MuiColorInput
-                value={tag.bgcolor ?? "#ffffff"}
-                onChange={(v) => setTag({ ...tag, bgcolor: v })}
-              />
-            </Grid>
-          </Grid>
-          <LanguagePicker
-            languages={languages}
-            languageIds={tag.languages ?? []}
-            onAdd={(l: Language) => () => {
-              if (!tag.languages!.some((lang) => lang === l.id)) {
-                const languages = [...tag.languages!, l.id!]
-                setTag({ ...tag, languages })
-                setLanguageIds(languages)
+
+          <FormControl fullWidth variant="standard" disabled={onlyDefaultGroup}>
+            <InputLabel id="tag-group-select-label">Tag Group</InputLabel>
+            <Select
+              labelId="tag-group-select-label"
+              value={currentGroupId}
+              onChange={(e) => handleGroupChange(Number(e.target.value))}
+              renderValue={(val) => {
+                const g = groups.find((grp) => grp.id === val)
+                if (!g) return ""
+                return (
+                  <Chip
+                    label={g.name}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      color: normalizeHexColor(g.color, "#000000"),
+                      backgroundColor: normalizeHexColor(g.bgcolor, "#ffffff"),
+                      fontWeight: 600,
+                    }}
+                  />
+                )
+              }}
+            >
+              {groups.map((g) => {
+                const disabled = !isNameUniqueInGroup(tag.name || "", g.id!)
+                const tooltipTitle = disabled
+                  ? `A tag named "${tag.name}" already exists in this group`
+                  : g.description || g.name
+                return (
+                  <MenuItem
+                    key={g.id}
+                    value={g.id}
+                    disabled={disabled}
+                    title={tooltipTitle}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", width: "100%" }}
+                    >
+                      <Chip
+                        label={g.name}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          color: normalizeHexColor(g.color, "#000000"),
+                          backgroundColor: normalizeHexColor(g.bgcolor, "#ffffff"),
+                          fontWeight: 600,
+                        }}
+                      />
+                      {!!g.description && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            maxWidth: 200,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {g.description}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </MenuItem>
+                )
+              })}
+            </Select>
+            {onlyDefaultGroup ? (
+              <FormHelperText>
+                Create groups to cluster tags of similar purpose.
+              </FormHelperText>
+            ) : anyGroupsDisabled ? (
+              <FormHelperText>
+                Some groups are disabled because a tag with this name already exists in them.
+              </FormHelperText>
+            ) : null}
+          </FormControl>
+
+          <Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={inheritLanguages}
+                  onChange={handleInheritToggle}
+                  size="small"
+                />
               }
-            }}
-            onDelete={(l: Language) => () => {
-              const languages = tag.languages!.filter((lang) => lang !== l.id)
-              setTag({ ...tag, languages })
-              setLanguageIds(languages)
-            }}
-          />
-          <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              label="Inherit languages from group"
+            />
+            {inheritLanguages ? (
+              <Box sx={{ mt: 0.5 }}>
+                {currentGroup?.languages?.length ? (
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0.5 }}
+                  >
+                    <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+                      Inheriting:
+                    </Typography>
+                    {currentGroup.languages.map((id) => {
+                      const lang = languages.find((l) => l.id === id)
+                      if (!lang) return null
+                      return (
+                        <LanguageChip
+                          key={id}
+                          title={lang.name}
+                          locale={lang.locale ?? lang.name}
+                        />
+                      )
+                    })}
+                  </Stack>
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    Inheriting: All languages (no restrictions)
+                  </Typography>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ mt: 1 }}>
+                <LanguagePicker
+                  languages={languages}
+                  languageIds={tag.languages ?? []}
+                  onAdd={(l: Language) => () => {
+                    if (!tag.languages?.some((lang) => lang === l.id)) {
+                      setTag({ ...tag, languages: [...(tag.languages ?? []), l.id!] })
+                    }
+                  }}
+                  onDelete={(l: Language) => () => {
+                    setTag({
+                      ...tag,
+                      languages: tag.languages?.filter((lang) => lang !== l.id),
+                    })
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          <Stack direction="row" sx={{ justifyContent: "space-between", mt: 1 }}>
             <Button variant="contained" disabled={!submissible} onClick={save}>
               Save
             </Button>
@@ -388,31 +586,6 @@ const EditTagModal: React.FC<EditTagModalProps> = ({
     </Modal>
   )
 }
-// put tags into their canonical display order
-export function sortTags(tags: Tag[]) {
-  tags = tags.sort((a, b) => a.id! - b.id!) // creation order
 
-  // group by style
-  let i = 0
-  type StyleGroup = { id: number; tags: Tag[] }
-  const styleMap: Map<string, StyleGroup> = new Map()
-  const styleGroups: StyleGroup[] = []
-  for (const t of tags) {
-    const style = `${t.bgcolor}:${t.color}`
-    const sg = styleMap.get(style) ?? {
-      id: i++,
-      tags: [],
-    }
-    sg.tags.push(t)
-    styleMap.set(style, sg)
-    if (i > styleGroups.length) styleGroups.push(sg)
-  }
-  tags.length = 0
-  for (const sg of styleGroups) {
-    tags = [
-      ...tags,
-      ...sg.tags.sort((a, b) => a.name.localeCompare(b.name)), // within group by name
-    ]
-  }
-  return tags
-}
+export { sortTags } from "../util/database"
+

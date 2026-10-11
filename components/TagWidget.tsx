@@ -85,14 +85,14 @@ export const TagWidget: React.FC<TagWidgeProps> = ({
               >
                 {tags
                   .filter((t) => !usedTags.has(t.id!))
-                  .filter(
-                    (t) =>
+                  .filter((t) => {
+                    const langs = t.effectiveLanguages ?? t.languages
+                    return (
                       !languageIds?.length ||
-                      !t.languages?.length ||
-                      t.languages.some((i) =>
-                        languageIds.some((i2) => i2 === i)
-                      )
-                  )
+                      !langs?.length ||
+                      langs.some((i) => languageIds.some((i2) => i2 === i))
+                    )
+                  })
                   .map((t) => (
                     <MenuItem key={t.id!} onClick={() => addTag(t)}>
                       <TagChip tag={t} arrowPosition="left" />

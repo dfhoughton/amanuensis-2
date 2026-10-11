@@ -2,6 +2,8 @@ import BaseDexie, { Table } from "dexie"
 import {
   Citation,
   Configuration,
+  DEFAULT_TAG_GROUP_DESCRIPTION,
+  DEFAULT_TAG_GROUP_NAME,
   FreeFormSearch,
   Language,
   Phrase,
@@ -11,6 +13,7 @@ import {
   SortDirection,
   SortType,
   Tag,
+  TagGroup,
   UrlSearch,
 } from "../types/common"
 import { matcher, shuffle } from "./general"
@@ -47,6 +50,12 @@ type TagTable = {
 const tagsSchema = {
   tags: "++id, &name",
 }
+type TagGroupTable = {
+  tagGroups: Table<TagGroup>
+}
+const tagGroupsSchema = {
+  tagGroups: "++id, &name, order",
+}
 type RelationTable = {
   relations: Table<Relation>
 }
@@ -70,9 +79,151 @@ type DexieTable = PhraseTable &
   LanguageTable &
   ConfigurationTable &
   TagTable &
+  TagGroupTable &
   RelationTable &
   TrialTable
 type Dexie<T extends DexieTable> = BaseDexie & T
+
+const NAMED_COLORS: Record<string, string> = {
+  black: "#000000",
+  white: "#ffffff",
+  silver: "#c0c0c0",
+  gray: "#808080",
+  grey: "#808080",
+  maroon: "#800000",
+  red: "#ff0000",
+  purple: "#800080",
+  fuchsia: "#ff00ff",
+  magenta: "#ff00ff",
+  green: "#008000",
+  lime: "#00ff00",
+  olive: "#808000",
+  yellow: "#ffff00",
+  navy: "#000080",
+  blue: "#0000ff",
+  teal: "#008080",
+  aqua: "#00ffff",
+  cyan: "#00ffff",
+  orange: "#ffa500",
+}
+
+function parseColorChannel(val: string): number {
+  val = val.trim()
+  let num: number
+  if (val.endsWith("%")) {
+    num = (parseFloat(val) / 100) * 255
+  } else {
+    num = parseFloat(val)
+  }
+  if (isNaN(num)) return 0
+  return Math.max(0, Math.min(255, Math.round(num)))
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  s /= 100
+  l /= 100
+  const k = (n: number) => (n + h / 30) % 12
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) =>
+    l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+  return [
+    Math.max(0, Math.min(255, Math.round(f(0) * 255))),
+    Math.max(0, Math.min(255, Math.round(f(8) * 255))),
+    Math.max(0, Math.min(255, Math.round(f(4) * 255))),
+  ]
+}
+
+export function normalizeHexColor(c?: string, fallback = "#000000"): string {
+  if (!c || typeof c !== "string") {
+    return fallback && fallback !== c ? normalizeHexColor(fallback, "#000000") : "#000000"
+  }
+  let str = c.trim().toLowerCase()
+  if (!str) {
+    return fallback && fallback !== c ? normalizeHexColor(fallback, "#000000") : "#000000"
+  }
+
+  // If prefixed with '#' before an rgb/rgba/hsl/hsla function (e.g. '#rgb(255, 236, 236)')
+  if (str.startsWith("#") && (str.startsWith("#rgb") || str.startsWith("#hsl"))) {
+    str = str.slice(1).trim()
+  }
+
+  // rgb(...) or rgba(...)
+  const rgbMatch = str.match(/^rgba?\(([^)]+)\)$/)
+  if (rgbMatch) {
+    const parts = rgbMatch[1].replace(/[,/]/g, " ").trim().split(/\s+/)
+    if (parts.length >= 3) {
+      const r = parseColorChannel(parts[0])
+      const g = parseColorChannel(parts[1])
+      const b = parseColorChannel(parts[2])
+      return (
+        "#" +
+        r.toString(16).padStart(2, "0") +
+        g.toString(16).padStart(2, "0") +
+        b.toString(16).padStart(2, "0")
+      )
+    }
+  }
+
+  // hsl(...) or hsla(...)
+  const hslMatch = str.match(/^hsla?\(([^)]+)\)$/)
+  if (hslMatch) {
+    const parts = hslMatch[1].replace(/[,/]/g, " ").trim().split(/\s+/)
+    if (parts.length >= 3) {
+      const h = parseFloat(parts[0]) || 0
+      const s = parseFloat(parts[1]) || 0
+      const l = parseFloat(parts[2]) || 0
+      const [r, g, b] = hslToRgb(h, s, l)
+      return (
+        "#" +
+        r.toString(16).padStart(2, "0") +
+        g.toString(16).padStart(2, "0") +
+        b.toString(16).padStart(2, "0")
+      )
+    }
+  }
+
+  // Named colors
+  if (NAMED_COLORS[str]) {
+    return NAMED_COLORS[str]
+  }
+
+  // Hex strings
+  const hexClean = str.startsWith("#") ? str.slice(1) : str
+  if (/^[0-9a-f]{3}$/i.test(hexClean)) {
+    return (
+      "#" +
+      hexClean[0] +
+      hexClean[0] +
+      hexClean[1] +
+      hexClean[1] +
+      hexClean[2] +
+      hexClean[2]
+    )
+  }
+  if (/^[0-9a-f]{4}$/i.test(hexClean)) {
+    return (
+      "#" +
+      hexClean[0] +
+      hexClean[0] +
+      hexClean[1] +
+      hexClean[1] +
+      hexClean[2] +
+      hexClean[2]
+    )
+  }
+  if (/^[0-9a-f]{6}$/i.test(hexClean)) {
+    return "#" + hexClean
+  }
+  if (/^[0-9a-f]{8}$/i.test(hexClean)) {
+    return "#" + hexClean.slice(0, 6)
+  }
+
+  if (fallback && fallback !== c) {
+    return normalizeHexColor(fallback, "#000000")
+  }
+  return "#000000"
+}
+
 const db = new BaseDexie("amanuensis") as Dexie<DexieTable>
 const schema = Object.assign(
   {},
@@ -84,6 +235,223 @@ const schema = Object.assign(
   trialSchema,
 )
 db.version(1).stores(schema)
+db.version(2)
+  .stores(
+    Object.assign({}, tagGroupsSchema, {
+      tags: "++id, groupId, [groupId+name]",
+    })
+  )
+  .upgrade(async (tx) => {
+    const tagsTable = tx.table<Tag>("tags")
+    const groupsTable = tx.table<TagGroup>("tagGroups")
+    const existingTags = await tagsTable.toArray()
+
+    type Cluster = {
+      color: string
+      bgcolor: string
+      tags: Tag[]
+    }
+    const clusterMap = new Map<string, Cluster>()
+    for (const t of existingTags) {
+      const color = normalizeHexColor(t.color, "#000000")
+      const bgcolor = normalizeHexColor(t.bgcolor, "#ffffff")
+      const key = `${bgcolor}:${color}`
+      let c = clusterMap.get(key)
+      if (!c) {
+        c = {
+          color,
+          bgcolor,
+          tags: [],
+        }
+        clusterMap.set(key, c)
+      }
+      c.tags.push(t)
+    }
+
+    const defaultKey = "#ffffff:#000000"
+    let defaultCluster = clusterMap.get(defaultKey)
+    if (!defaultCluster) {
+      defaultCluster = {
+        color: "#000000",
+        bgcolor: "#ffffff",
+        tags: [],
+      }
+      clusterMap.set(defaultKey, defaultCluster)
+    }
+
+    // Always create default group first with order 0
+    const defaultGroupId = (await groupsTable.add({
+      name: DEFAULT_TAG_GROUP_NAME,
+      description: DEFAULT_TAG_GROUP_DESCRIPTION,
+      color: "#000000",
+      bgcolor: "#ffffff",
+      order: 0,
+    })) as number
+
+    for (const t of defaultCluster.tags) {
+      t.groupId = defaultGroupId
+      delete t.color
+      delete t.bgcolor
+      await tagsTable.put(t)
+    }
+
+    const usedGroupNames = new Set<string>([
+      DEFAULT_TAG_GROUP_NAME.toLowerCase(),
+    ])
+    let nextOrder = 1
+
+    for (const [key, cluster] of clusterMap.entries()) {
+      if (key === defaultKey) continue
+      cluster.tags.sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+      const firstTag = cluster.tags[0]
+      let groupName = (firstTag?.name || `group-${nextOrder}`).trim()
+      if (usedGroupNames.has(groupName.toLowerCase())) {
+        let suffix = 2
+        while (usedGroupNames.has(`${groupName.toLowerCase()} (${suffix})`)) {
+          suffix++
+        }
+        groupName = `${groupName} (${suffix})`
+      }
+      usedGroupNames.add(groupName.toLowerCase())
+
+      const groupDesc = firstTag?.description
+
+      // Find common intersection of languages
+      let commonLanguages: number[] | undefined = undefined
+      if (
+        cluster.tags.length > 0 &&
+        cluster.tags.every((t) => t.languages && t.languages.length > 0)
+      ) {
+        const firstLangs: number[] = cluster.tags[0].languages!
+        const common = firstLangs.filter((langId: number) =>
+          cluster.tags.every((t) => t.languages!.includes(langId))
+        )
+        if (common.length > 0) {
+          commonLanguages = common
+        }
+      }
+
+      const groupId = (await groupsTable.add({
+        name: groupName,
+        description: groupDesc,
+        color: cluster.color,
+        bgcolor: cluster.bgcolor,
+        languages: commonLanguages,
+        order: nextOrder++,
+      })) as number
+
+      for (const t of cluster.tags) {
+        t.groupId = groupId
+        delete t.color
+        delete t.bgcolor
+        if (
+          commonLanguages &&
+          t.languages &&
+          t.languages.length === commonLanguages.length &&
+          t.languages.every((l: number) => commonLanguages!.includes(l))
+        ) {
+          t.languages = undefined
+        }
+        await tagsTable.put(t)
+      }
+    }
+  })
+
+db.version(3)
+  .stores(
+    Object.assign({}, tagGroupsSchema, {
+      tags: "++id, groupId, [groupId+name]",
+    })
+  )
+  .upgrade(async (tx) => {
+    const tagsTable = tx.table<Tag>("tags")
+    const groupsTable = tx.table<TagGroup>("tagGroups")
+    const existingGroups = await groupsTable.toArray()
+    const existingTags = await tagsTable.toArray()
+
+    let defaultGroup = existingGroups.find(
+      (g) => g.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+    )
+    if (!defaultGroup) {
+      const defId = (await groupsTable.add({
+        name: DEFAULT_TAG_GROUP_NAME,
+        description: DEFAULT_TAG_GROUP_DESCRIPTION,
+        color: "#000000",
+        bgcolor: "#ffffff",
+        order: 0,
+      })) as number
+      defaultGroup = {
+        id: defId,
+        name: DEFAULT_TAG_GROUP_NAME,
+        description: DEFAULT_TAG_GROUP_DESCRIPTION,
+        color: "#000000",
+        bgcolor: "#ffffff",
+        order: 0,
+      }
+      existingGroups.push(defaultGroup)
+    } else {
+      defaultGroup.color = "#000000"
+      defaultGroup.bgcolor = "#ffffff"
+      defaultGroup.order = 0
+      await groupsTable.put(defaultGroup)
+    }
+
+    const defaultGroupId = defaultGroup.id!
+    const rogueGroupIds = new Set<number>()
+    const groupsToKeep: TagGroup[] = [defaultGroup]
+
+    for (const g of existingGroups) {
+      if (g.id === defaultGroupId) continue
+      const normColor = normalizeHexColor(g.color, "#000000")
+      const normBg = normalizeHexColor(g.bgcolor, "#ffffff")
+
+      if (normColor === "#000000" && normBg === "#ffffff") {
+        rogueGroupIds.add(g.id!)
+        await groupsTable.delete(g.id!)
+      } else {
+        g.color = normColor
+        g.bgcolor = normBg
+        groupsToKeep.push(g)
+      }
+    }
+
+    // Deduplicate color collisions
+    const usedColorKeys = new Set<string>(["#ffffff:#000000"])
+    for (const g of groupsToKeep) {
+      if (g.id === defaultGroupId) continue
+      let key = `${g.bgcolor}:${g.color}`
+      if (usedColorKeys.has(key)) {
+        const [c, bg] = findUnusedColorPair(g.color, g.bgcolor, groupsToKeep)
+        g.color = c
+        g.bgcolor = bg
+        key = `${bg}:${c}`
+      }
+      usedColorKeys.add(key)
+      await groupsTable.put(g)
+    }
+
+    const validGroupIds = new Set(groupsToKeep.map((g) => g.id!))
+    for (const t of existingTags) {
+      let needsPut = false
+      if (
+        t.groupId === undefined ||
+        rogueGroupIds.has(t.groupId) ||
+        !validGroupIds.has(t.groupId)
+      ) {
+        t.groupId = defaultGroupId
+        needsPut = true
+      }
+      if (t.color !== undefined || t.bgcolor !== undefined) {
+        delete t.color
+        delete t.bgcolor
+        needsPut = true
+      }
+      if (needsPut) {
+        await tagsTable.put(t)
+      }
+    }
+  })
+
 async function init() {
   const l = await db.languages.get(0)
   if (!l) {
@@ -99,8 +467,73 @@ async function init() {
   if (!c) {
     await db.configuration.add({ id: 0 })
   }
+  let defaultGroup = await db.tagGroups
+    .where("name")
+    .equalsIgnoreCase(DEFAULT_TAG_GROUP_NAME)
+    .first()
+  if (!defaultGroup) {
+    const id = (await db.tagGroups.add({
+      name: DEFAULT_TAG_GROUP_NAME,
+      description: DEFAULT_TAG_GROUP_DESCRIPTION,
+      color: "#000000",
+      bgcolor: "#ffffff",
+      order: 0,
+    })) as number
+    defaultGroup = {
+      id,
+      name: DEFAULT_TAG_GROUP_NAME,
+      description: DEFAULT_TAG_GROUP_DESCRIPTION,
+      color: "#000000",
+      bgcolor: "#ffffff",
+      order: 0,
+    }
+  } else if (
+    defaultGroup.color !== "#000000" ||
+    defaultGroup.bgcolor !== "#ffffff" ||
+    defaultGroup.order !== 0
+  ) {
+    defaultGroup.color = "#000000"
+    defaultGroup.bgcolor = "#ffffff"
+    defaultGroup.order = 0
+    await db.tagGroups.put(defaultGroup)
+  }
+
+  // Sanitize all groups and check for rogue duplicate default groups
+  const allGroups = await db.tagGroups.toArray()
+  const rogueIds: number[] = []
+  for (const g of allGroups) {
+    if (g.id === defaultGroup.id) continue
+    const normColor = normalizeHexColor(g.color, "#000000")
+    const normBg = normalizeHexColor(g.bgcolor, "#ffffff")
+    if (normColor === "#000000" && normBg === "#ffffff") {
+      rogueIds.push(g.id!)
+    } else if (g.color !== normColor || g.bgcolor !== normBg) {
+      g.color = normColor
+      g.bgcolor = normBg
+      await db.tagGroups.put(g)
+    }
+  }
+
+  if (rogueIds.length > 0) {
+    await db.transaction("rw", db.tags, db.tagGroups, async () => {
+      for (const rogueId of rogueIds) {
+        const rogueTags = await db.tags.where("groupId").equals(rogueId).toArray()
+        for (const t of rogueTags) {
+          t.groupId = defaultGroup!.id!
+        }
+        if (rogueTags.length > 0) {
+          await db.tags.bulkPut(rogueTags)
+        }
+        await db.tagGroups.delete(rogueId)
+      }
+    })
+  }
 }
-init()
+init().catch((e) => {
+  if (typeof indexedDB !== "undefined") {
+    console.warn("Failed to initialize database:", e)
+  }
+})
 
 // clear everything
 export function resetDatabase() {
@@ -186,12 +619,120 @@ export function deleteRelation(id: number): Promise<void> {
   })
 }
 
-export function knownTags(): Promise<Tag[]> {
-  return db.tags.toArray()
+export function findUnusedColorPair(
+  color: string,
+  bgcolor: string,
+  existingGroups: TagGroup[]
+): [string, string] {
+  const used = new Set(
+    existingGroups.map(
+      (g) =>
+        `${normalizeHexColor(g.bgcolor, "#ffffff")}:${normalizeHexColor(
+          g.color,
+          "#000000"
+        )}`
+    )
+  )
+  const curColor = normalizeHexColor(color, "#000000")
+  let curBg = normalizeHexColor(bgcolor, "#ffffff")
+  let count = 0
+  while (used.has(`${curBg}:${curColor}`) && count < 1000) {
+    count++
+    let bgNum = parseInt(curBg.replace("#", ""), 16)
+    if (isNaN(bgNum)) bgNum = 0xffffff
+    bgNum = (bgNum + 0x010203) & 0xffffff
+    curBg = "#" + bgNum.toString(16).padStart(6, "0")
+  }
+  return [curColor, curBg]
 }
 
-export function saveTag(tag: Tag): Promise<void> {
-  return db.tags.put(tag)
+export async function enrichTags(tags: Tag[]): Promise<Tag[]> {
+  if (!tags.length) return tags
+  const groupIds = Array.from(
+    new Set(
+      tags.map((t) => t.groupId).filter((id): id is number => id !== undefined)
+    )
+  )
+  const groups = groupIds.length
+    ? await db.tagGroups.where("id").anyOf(groupIds).toArray()
+    : []
+  const groupMap = new Map(groups.map((g) => [g.id!, g]))
+  for (const t of tags) {
+    const g = t.groupId !== undefined ? groupMap.get(t.groupId) : undefined
+    if (g) {
+      t.color = g.color
+      t.bgcolor = g.bgcolor
+      t.groupOrder = g.order
+      t.effectiveLanguages = t.languages ?? g.languages ?? []
+    } else {
+      t.color = "#000000"
+      t.bgcolor = "#ffffff"
+      t.groupOrder = 0
+      t.effectiveLanguages = t.languages ?? []
+    }
+  }
+  return tags
+}
+
+export function sortTags(tags: Tag[], groups?: TagGroup[]): Tag[] {
+  const groupOrderMap = groups
+    ? new Map(groups.map((g) => [g.id!, g.order]))
+    : undefined
+
+  return [...tags].sort((a, b) => {
+    const orderA =
+      a.groupOrder ??
+      (a.groupId !== undefined ? groupOrderMap?.get(a.groupId) ?? 0 : 0)
+    const orderB =
+      b.groupOrder ??
+      (b.groupId !== undefined ? groupOrderMap?.get(b.groupId) ?? 0 : 0)
+    if (orderA !== orderB) {
+      return orderA - orderB
+    }
+    return a.name.localeCompare(b.name)
+  })
+}
+
+export async function knownTags(): Promise<Tag[]> {
+  const [tags, groups] = await Promise.all([
+    db.tags.toArray(),
+    db.tagGroups.toArray(),
+  ])
+  const groupMap = new Map(groups.map((g) => [g.id!, g]))
+  for (const t of tags) {
+    const g = t.groupId !== undefined ? groupMap.get(t.groupId) : undefined
+    if (g) {
+      t.color = g.color
+      t.bgcolor = g.bgcolor
+      t.groupOrder = g.order
+      t.effectiveLanguages = t.languages ?? g.languages ?? []
+    } else {
+      t.color = "#000000"
+      t.bgcolor = "#ffffff"
+      t.groupOrder = 0
+      t.effectiveLanguages = t.languages ?? []
+    }
+  }
+  return sortTags(tags, groups)
+}
+
+export async function saveTag(tag: Tag): Promise<void> {
+  let groupId = tag.groupId
+  if (groupId === undefined) {
+    const defaultGroup = await db.tagGroups
+      .where("name")
+      .equalsIgnoreCase(DEFAULT_TAG_GROUP_NAME)
+      .first()
+    groupId = defaultGroup?.id ?? 1
+  }
+  const cleanTag: Tag = {
+    id: tag.id,
+    name: tag.name,
+    description: tag.description,
+    groupId,
+    languages: tag.languages,
+  }
+  await db.tags.put(cleanTag)
 }
 
 // deletes a tag and all its uses, returning the number of phrases affected
@@ -199,7 +740,7 @@ export function deleteTag(tag: Tag): Promise<number> {
   return db.transaction("rw", db.tags, db.phrases, async () => {
     let count = 0
     const mutated: Phrase[] = []
-    db.phrases.each((p) => {
+    await db.phrases.each((p) => {
       let changed = false
       if (p.tags) {
         const newTags: number[] = []
@@ -235,6 +776,247 @@ export function deleteTag(tag: Tag): Promise<number> {
     if (mutated.length) await db.phrases.bulkPut(mutated)
     await db.tags.delete(tag.id)
     return count
+  })
+}
+
+export async function knownTagGroups(): Promise<TagGroup[]> {
+  const groups = await db.tagGroups.toArray()
+  return groups.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+}
+
+export async function saveTagGroup(group: TagGroup): Promise<number> {
+  if (!group.name || !group.name.trim()) {
+    throw new Error("Tag group name is required")
+  }
+  const trimmedName = group.name.trim()
+  const allGroups = await db.tagGroups.toArray()
+
+  // Default group cannot be edited
+  const defaultGroup = allGroups.find(
+    (g) => g.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+  )
+  if (
+    group.id !== undefined &&
+    defaultGroup &&
+    defaultGroup.id === group.id
+  ) {
+    throw new Error("The default tag group cannot be edited")
+  }
+  if (
+    group.id === undefined &&
+    trimmedName.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+  ) {
+    throw new Error("Cannot create a group named 'default'")
+  }
+
+  // Name uniqueness
+  const nameConflict = allGroups.find(
+    (g) =>
+      g.id !== group.id && g.name.toLowerCase() === trimmedName.toLowerCase()
+  )
+  if (nameConflict) {
+    throw new Error(`A tag group named "${nameConflict.name}" already exists`)
+  }
+
+  // Color uniqueness
+  const normColor = normalizeHexColor(group.color, "#000000")
+  const normBg = normalizeHexColor(group.bgcolor, "#ffffff")
+  const colorConflict = allGroups.find(
+    (g) =>
+      g.id !== group.id &&
+      normalizeHexColor(g.color, "#000000") === normColor &&
+      normalizeHexColor(g.bgcolor, "#ffffff") === normBg
+  )
+  if (colorConflict) {
+    throw new Error(
+      `A tag group with these colors already exists ("${colorConflict.name}")`
+    )
+  }
+
+  const toSave: TagGroup = {
+    ...group,
+    name: trimmedName,
+    color: normColor,
+    bgcolor: normBg,
+  }
+  return (await db.tagGroups.put(toSave)) as number
+}
+
+export async function checkGroupDeletionConflicts(
+  groupId: number
+): Promise<string[]> {
+  const defaultGroup = await db.tagGroups
+    .where("name")
+    .equalsIgnoreCase(DEFAULT_TAG_GROUP_NAME)
+    .first()
+  if (!defaultGroup || defaultGroup.id === groupId) {
+    throw new Error("The default group cannot be deleted")
+  }
+  const defaultTags = await db.tags
+    .where("groupId")
+    .equals(defaultGroup.id!)
+    .toArray()
+  const defaultTagNames = new Set(
+    defaultTags.map((t) => t.name.toLowerCase())
+  )
+  const groupTags = await db.tags.where("groupId").equals(groupId).toArray()
+  return groupTags
+    .filter((t) => defaultTagNames.has(t.name.toLowerCase()))
+    .map((t) => t.name)
+}
+
+export async function deleteTagGroup(group: TagGroup): Promise<number> {
+  const defaultGroup = await db.tagGroups
+    .where("name")
+    .equalsIgnoreCase(DEFAULT_TAG_GROUP_NAME)
+    .first()
+  if (!defaultGroup || defaultGroup.id === group.id) {
+    throw new Error("The default group cannot be deleted")
+  }
+  return db.transaction("rw", db.tags, db.tagGroups, async () => {
+    const conflicts = await checkGroupDeletionConflicts(group.id!)
+    if (conflicts.length > 0) {
+      throw new Error(
+        `Cannot delete group: tags [${conflicts.join(", ")}] conflict with tags in the default group`
+      )
+    }
+    const tags = await db.tags.where("groupId").equals(group.id!).toArray()
+    for (const t of tags) {
+      t.groupId = defaultGroup.id!
+    }
+    if (tags.length > 0) {
+      await db.tags.bulkPut(tags)
+    }
+    await db.tagGroups.delete(group.id!)
+    return tags.length
+  })
+}
+
+async function remapTagsInPhrases(remapMap: Map<number, number>) {
+  if (remapMap.size === 0) return
+  const mutated: Phrase[] = []
+  await db.phrases.each((p) => {
+    let changed = false
+    if (p.tags) {
+      const nextTags: number[] = []
+      for (const t of p.tags) {
+        const remapped = remapMap.get(t)
+        if (remapped !== undefined) {
+          nextTags.push(remapped)
+          changed = true
+        } else {
+          nextTags.push(t)
+        }
+      }
+      if (changed) p.tags = uniq(nextTags)
+    }
+    for (const c of p.citations) {
+      if (c.tags) {
+        let citationChanged = false
+        const nextTags: number[] = []
+        for (const t of c.tags) {
+          const remapped = remapMap.get(t)
+          if (remapped !== undefined) {
+            nextTags.push(remapped)
+            citationChanged = true
+          } else {
+            nextTags.push(t)
+          }
+        }
+        if (citationChanged) {
+          c.tags = uniq(nextTags)
+          changed = true
+        }
+      }
+    }
+    if (changed) mutated.push(p)
+  })
+  if (mutated.length > 0) {
+    await db.phrases.bulkPut(mutated)
+  }
+}
+
+export async function mergeTagGroups(
+  sourceGroupId: number,
+  targetGroupId: number
+): Promise<void> {
+  if (sourceGroupId === targetGroupId) {
+    throw new Error("Cannot merge a tag group into itself")
+  }
+  const defaultGroup = await db.tagGroups
+    .where("name")
+    .equalsIgnoreCase(DEFAULT_TAG_GROUP_NAME)
+    .first()
+  if (defaultGroup && defaultGroup.id === sourceGroupId) {
+    throw new Error("The default group cannot be merged into another group")
+  }
+
+  return db.transaction("rw", db.tags, db.tagGroups, db.phrases, async () => {
+    const sourceTags = await db.tags
+      .where("groupId")
+      .equals(sourceGroupId)
+      .toArray()
+    const targetTags = await db.tags
+      .where("groupId")
+      .equals(targetGroupId)
+      .toArray()
+
+    const targetTagsByName = new Map(
+      targetTags.map((t) => [t.name.toLowerCase(), t])
+    )
+    const tagRemap = new Map<number, number>()
+    const tagsToUpdate: Tag[] = []
+    const tagIdsToDelete: number[] = []
+
+    for (const st of sourceTags) {
+      const match = targetTagsByName.get(st.name.toLowerCase())
+      if (match) {
+        // Merge st into match
+        tagRemap.set(st.id!, match.id!)
+        if (st.languages && st.languages.length > 0) {
+          const merged = uniq([...(match.languages ?? []), ...st.languages])
+          if (merged.length !== (match.languages?.length ?? 0)) {
+            match.languages = merged
+            tagsToUpdate.push(match)
+          }
+        }
+        tagIdsToDelete.push(st.id!)
+      } else {
+        st.groupId = targetGroupId
+        tagsToUpdate.push(st)
+      }
+    }
+
+    if (tagRemap.size > 0) {
+      await remapTagsInPhrases(tagRemap)
+    }
+    if (tagsToUpdate.length > 0) {
+      await db.tags.bulkPut(tagsToUpdate)
+    }
+    if (tagIdsToDelete.length > 0) {
+      await db.tags.bulkDelete(tagIdsToDelete)
+    }
+    await db.tagGroups.delete(sourceGroupId)
+  })
+}
+
+export async function reorderTagGroups(
+  orderedGroupIds: number[]
+): Promise<void> {
+  return db.transaction("rw", db.tagGroups, async () => {
+    const groups = await db.tagGroups.where("id").anyOf(orderedGroupIds).toArray()
+    const groupMap = new Map(groups.map((g) => [g.id!, g]))
+    const updated: TagGroup[] = []
+    orderedGroupIds.forEach((id, index) => {
+      const g = groupMap.get(id)
+      if (g && g.order !== index) {
+        g.order = index
+        updated.push(g)
+      }
+    })
+    if (updated.length > 0) {
+      await db.tagGroups.bulkPut(updated)
+    }
   })
 }
 
@@ -762,7 +1544,7 @@ async function importPhrasesAndTrials(
   }
 }
 
-// import the tags from tmp, merging existing tags by name and remapping tag IDs
+// import the tags and tag groups from tmp, merging existing tags/groups and remapping IDs
 async function importTags(
   tmp: Dexie<DexieTable>,
   languageMap: Map<number, number>,
@@ -770,12 +1552,248 @@ async function importTags(
   const tagMap = new Map<number, number>()
   const importedTags = await tmp.tags.toArray()
 
-  await db.transaction("rw", db.tags, async () => {
+  let importedGroups: TagGroup[] = []
+  if (tmp.tables.some((t) => t.name === "tagGroups")) {
+    importedGroups = await tmp.table<TagGroup>("tagGroups").toArray()
+  }
+
+  // Fallback for v1 database export without tagGroups table
+  if (importedGroups.length === 0 && importedTags.length > 0) {
+    const clusterMap = new Map<
+      string,
+      { color: string; bgcolor: string; tags: Tag[] }
+    >()
+    for (const t of importedTags) {
+      const color = normalizeHexColor(t.color, "#000000")
+      const bgcolor = normalizeHexColor(t.bgcolor, "#ffffff")
+      const key = `${bgcolor}:${color}`
+      let c = clusterMap.get(key)
+      if (!c) {
+        c = { color, bgcolor, tags: [] }
+        clusterMap.set(key, c)
+      }
+      c.tags.push(t)
+    }
+
+    const defaultKey = "#ffffff:#000000"
+    let defaultCluster = clusterMap.get(defaultKey)
+    if (!defaultCluster) {
+      defaultCluster = {
+        color: "#000000",
+        bgcolor: "#ffffff",
+        tags: [],
+      }
+      clusterMap.set(defaultKey, defaultCluster)
+    }
+
+    let simId = 1
+    const defGroupId = simId++
+    importedGroups.push({
+      id: defGroupId,
+      name: DEFAULT_TAG_GROUP_NAME,
+      description: DEFAULT_TAG_GROUP_DESCRIPTION,
+      color: "#000000",
+      bgcolor: "#ffffff",
+      order: 0,
+    })
+    for (const t of defaultCluster.tags) {
+      t.groupId = defGroupId
+    }
+
+    for (const [key, cluster] of clusterMap.entries()) {
+      if (key === defaultKey) continue
+      cluster.tags.sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+      const firstTag = cluster.tags[0]
+      const name = (firstTag?.name || `group-${simId}`).trim()
+      const desc = firstTag?.description
+      const groupId = simId++
+
+      // Common languages
+      let commonLanguages: number[] | undefined = undefined
+      if (
+        cluster.tags.length > 0 &&
+        cluster.tags.every((t) => t.languages && t.languages.length > 0)
+      ) {
+        const firstLangs: number[] = cluster.tags[0].languages!
+        const common = firstLangs.filter((langId: number) =>
+          cluster.tags.every((t) => t.languages!.includes(langId))
+        )
+        if (common.length > 0) {
+          commonLanguages = common
+        }
+      }
+
+      importedGroups.push({
+        id: groupId,
+        name,
+        description: desc,
+        color: cluster.color,
+        bgcolor: cluster.bgcolor,
+        languages: commonLanguages,
+        order: simId,
+      })
+      for (const t of cluster.tags) {
+        t.groupId = groupId
+        if (
+          commonLanguages &&
+          t.languages &&
+          t.languages.length === commonLanguages.length &&
+          t.languages.every((l: number) => commonLanguages!.includes(l))
+        ) {
+          t.languages = undefined
+        }
+      }
+    }
+  }
+
+  await db.transaction("rw", db.tags, db.tagGroups, async () => {
+    const existingGroups = await db.tagGroups.toArray()
+    let defaultGroup = existingGroups.find(
+      (g) => g.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase()
+    )
+    if (!defaultGroup) {
+      const defId = (await db.tagGroups.add({
+        name: DEFAULT_TAG_GROUP_NAME,
+        description: DEFAULT_TAG_GROUP_DESCRIPTION,
+        color: "#000000",
+        bgcolor: "#ffffff",
+        order: 0,
+      })) as number
+      defaultGroup = {
+        id: defId,
+        name: DEFAULT_TAG_GROUP_NAME,
+        description: DEFAULT_TAG_GROUP_DESCRIPTION,
+        color: "#000000",
+        bgcolor: "#ffffff",
+        order: 0,
+      }
+      existingGroups.push(defaultGroup)
+    }
+    const defaultGroupId = defaultGroup.id!
+
+    const groupMap = new Map<number, number>() // importedGroupId -> activeGroupId
+
+    for (const impG of importedGroups) {
+      const oldGroupId = impG.id!
+      const normColor = normalizeHexColor(impG.color, "#000000")
+      const normBg = normalizeHexColor(impG.bgcolor, "#ffffff")
+
+      // If imported group is the default group (by name or default colors)
+      if (
+        impG.name.toLowerCase() === DEFAULT_TAG_GROUP_NAME.toLowerCase() ||
+        (normColor === "#000000" && normBg === "#ffffff")
+      ) {
+        groupMap.set(oldGroupId, defaultGroupId)
+        continue
+      }
+
+      // Rule 1: Same name and same colors -> exact match!
+      const exactMatch = existingGroups.find(
+        (exG) =>
+          exG.name.toLowerCase() === impG.name.toLowerCase() &&
+          normalizeHexColor(exG.color, "#000000") === normColor &&
+          normalizeHexColor(exG.bgcolor, "#ffffff") === normBg
+      )
+
+      if (exactMatch) {
+        groupMap.set(oldGroupId, exactMatch.id!)
+        if (impG.languages && impG.languages.length > 0) {
+          const remappedLangs = impG.languages
+            .map((lid) => languageMap.get(lid))
+            .filter((lid): lid is number => lid !== undefined)
+          const mergedLangs = uniq([
+            ...(exactMatch.languages ?? []),
+            ...remappedLangs,
+          ])
+          if (mergedLangs.length !== (exactMatch.languages?.length ?? 0)) {
+            exactMatch.languages = mergedLangs
+            await db.tagGroups.put(exactMatch)
+          }
+        }
+      } else {
+        // Name conflict?
+        let newName = impG.name.trim()
+        const descNotes: string[] = []
+        if (
+          existingGroups.some(
+            (exG) => exG.name.toLowerCase() === newName.toLowerCase()
+          )
+        ) {
+          const origName = newName
+          let suffix = 2
+          while (
+            existingGroups.some(
+              (exG) =>
+                exG.name.toLowerCase() === `${origName} (${suffix})`.toLowerCase()
+            )
+          ) {
+            suffix++
+          }
+          newName = `${origName} (${suffix})`
+          descNotes.push(
+            `[modifications during merging: renamed from '${origName}' due to name conflict with an existing group]`
+          )
+        }
+
+        // Color conflict?
+        let adjColor = normColor
+        let adjBg = normBg
+        const colorConflict = existingGroups.find(
+          (exG) =>
+            normalizeHexColor(exG.color, "#000000") === normColor &&
+            normalizeHexColor(exG.bgcolor, "#ffffff") === normBg
+        )
+        if (colorConflict) {
+          const [c, bg] = findUnusedColorPair(normColor, normBg, existingGroups)
+          adjColor = c
+          adjBg = bg
+          descNotes.push(
+            `[modifications during merging: colors adjusted from ${impG.bgcolor}/${impG.color} to ${adjBg}/${adjColor} due to conflict with '${colorConflict.name}']`
+          )
+        }
+
+        const newDesc = [impG.description, ...descNotes]
+          .filter(Boolean)
+          .join(" ")
+
+        let newLanguages = impG.languages
+        if (newLanguages && newLanguages.length > 0) {
+          newLanguages = newLanguages
+            .map((lid) => languageMap.get(lid))
+            .filter((lid): lid is number => lid !== undefined)
+        }
+
+        delete impG.id
+        const newGroupRecord: TagGroup = {
+          name: newName,
+          description: newDesc || undefined,
+          color: adjColor,
+          bgcolor: adjBg,
+          languages: newLanguages,
+          order: existingGroups.length,
+        }
+        const newGroupId = (await db.tagGroups.add(newGroupRecord)) as number
+        newGroupRecord.id = newGroupId
+        groupMap.set(oldGroupId, newGroupId)
+        existingGroups.push(newGroupRecord)
+      }
+    }
+
+    // Now import tags
     for (const t of importedTags) {
       const oldId = t.id!
-      const existing = await db.tags.get({ name: t.name })
+      const targetGroupId =
+        (t.groupId !== undefined ? groupMap.get(t.groupId) : undefined) ??
+        defaultGroupId
+
+      // Check for tag name collision within the target group
+      const existing = await db.tags
+        .where("groupId")
+        .equals(targetGroupId)
+        .and((tag) => tag.name.toLowerCase() === t.name.toLowerCase())
+        .first()
+
       if (existing) {
-        // Tag already exists: reuse it and union associated languages
         if (t.languages && t.languages.length > 0) {
           const remappedLangs = t.languages
             .map((lid) => languageMap.get(lid))
@@ -791,8 +1809,10 @@ async function importTags(
         }
         tagMap.set(oldId, existing.id!)
       } else {
-        // Brand new tag: remap languages and insert
         delete t.id
+        t.groupId = targetGroupId
+        delete t.color
+        delete t.bgcolor
         if (t.languages) {
           t.languages = t.languages
             .map((lid) => languageMap.get(lid))
@@ -910,6 +1930,7 @@ export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
     db.phrases,
     db.languages,
     db.tags,
+    db.tagGroups,
     db.trials,
     async () => {
       const phrase = (await db.phrases.get(phraseId)) as Phrase
@@ -917,7 +1938,9 @@ export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
         throw `note for "${phrase.lemma}" has no language specified`
       const language = (await db.languages.get(phrase.languageId!)) as Language
       const tags: Tag[] = phrase.tags?.length
-        ? await db.tags.where("id").anyOf(phrase.tags).toArray()
+        ? await enrichTags(
+            await db.tags.where("id").anyOf(phrase.tags).toArray()
+          )
         : []
       const trial = (await db.trials.get(phraseId)) ?? { phraseId }
       return { phrase, trial, tags, language }

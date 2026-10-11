@@ -1,6 +1,7 @@
 import { alpha, Chip, Tooltip, TooltipProps } from "@mui/material"
 import React from "react"
 import { Tag } from "../types/common"
+import { normalizeHexColor } from "../util/database"
 
 type Props = {
   tag: Tag
@@ -23,16 +24,18 @@ export const TagChip: React.FC<Props> = ({
     bgcolor = "#ffffff",
     description,
   } = tag ?? {}
+  const safeColor = normalizeHexColor(color, "#000000")
+  const safeBgcolor = normalizeHexColor(bgcolor, "#ffffff")
   const chip = (
     <Chip
       label={name}
       variant="outlined"
       size="small"
       sx={{
-        color,
-        backgroundColor: bgcolor,
+        color: safeColor,
+        backgroundColor: safeBgcolor,
         "& .MuiChip-deleteIcon": {
-          color: alpha(color, 0.6),
+          color: alpha(safeColor, 0.6),
         },
       }}
       clickable={!!onClick}
