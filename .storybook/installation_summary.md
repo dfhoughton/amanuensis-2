@@ -62,7 +62,7 @@ Storybook will be available at `http://localhost:6006`
 
 Example:
 ```typescript
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MyComponent } from './MyComponent'
 
 const meta: Meta<typeof MyComponent> = {

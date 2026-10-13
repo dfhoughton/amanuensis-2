@@ -70,7 +70,7 @@ This serves the static build on port 6006.
 ### Example Story Structure
 
 ```typescript
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MyComponent } from './MyComponent'
 
 const meta: Meta<typeof MyComponent> = {

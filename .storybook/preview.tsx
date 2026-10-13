@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/react'
+import type { Preview } from '@storybook/react-vite'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import { theme } from '../util/theme'
 
@@ -13,6 +13,7 @@ const preview: Preview = {
       </ThemeProvider>
     ),
   ],
+
   parameters: {
     actions: { argTypesRegex: '^on.*' },
     controls: {
@@ -22,6 +23,8 @@ const preview: Preview = {
       },
     },
   },
+
+  tags: ['autodocs']
 }
 
 export default preview
