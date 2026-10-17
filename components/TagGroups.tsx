@@ -188,20 +188,6 @@ export const TagGroups: React.FC<TagGroupsProps> = ({
                       }}
                     />
                   </Tooltip>
-                  {!!group.description && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        maxWidth: 260,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {group.description}
-                    </Typography>
-                  )}
                 </Stack>
 
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

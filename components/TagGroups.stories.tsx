@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import React from 'react'
 import { TagGroups } from './TagGroups'
 import { TagGroup, Tag, Language } from '../types/common'
 import type { Action } from '../util/reducer'
@@ -117,7 +116,7 @@ const sampleGroups: TagGroup[] = [
   {
     id: 4,
     name: 'Technical Terms',
-    description: 'Domain-specific terminology with long description text that should truncate',
+    description: 'Domain-specific terminology with long description text',
     color: '#9C27B0',
     bgcolor: '#F3E5F5',
     languages: [2, 3],
@@ -127,7 +126,7 @@ const sampleGroups: TagGroup[] = [
 
 // Helper functions for the stories
 const noop = () => {}
-const noopDispatch = (action: Action) => {}
+const noopDispatch = (_action: Action) => {}
 
 // Wrapper component that provides the required callbacks
 export const Default: Story = {
@@ -201,7 +200,7 @@ export const GroupsWithLongDescriptions: Story = {
       {
         id: 1,
         name: 'Group 1',
-        description: 'This is a very long description that should be truncated with ellipsis to show how it handles overflow in the UI',
+        description: 'This is a very long description that is displayed only via tooltip on hover to prevent layout infelicities',
         color: '#2196F3',
         bgcolor: '#E3F2FD',
         languages: [1, 2, 3],
@@ -210,7 +209,7 @@ export const GroupsWithLongDescriptions: Story = {
       {
         id: 2,
         name: 'Group 2',
-        description: 'Another extended description text that needs to be truncated properly',
+        description: 'Another extended description text displayed via tooltip',
         color: '#4CAF50',
         bgcolor: '#E8F5E9',
         languages: [1],
