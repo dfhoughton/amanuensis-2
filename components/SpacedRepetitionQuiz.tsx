@@ -21,6 +21,7 @@ import {
   describeTimeInterval,
   IntervalsForOutcomes,
   NonInitialOutcome,
+  Outcome,
   OUTCOME_ORDER,
   PreparedTrial,
   Summary,
@@ -530,11 +531,14 @@ const IntervalButton: React.FC<IntervalButtonProps> = ({
   )
 }
 
-const IconForOutcome: React.FC<{
-  outcome: NonInitialOutcome
+export const IconForOutcome: React.FC<{
+  outcome: Outcome
   success?: boolean
-}> = ({ outcome, success }) => {
+  graduated?: boolean
+}> = ({ outcome, success, graduated }) => {
   switch (outcome) {
+    case "first":
+      return <School color="info" />
     case "again":
       return <Replay color="error" />
     case "tomorrow":
@@ -544,7 +548,7 @@ const IconForOutcome: React.FC<{
     case "ok":
       return <SentimentNeutral />
     case "good":
-      return <SentimentVerySatisfied color={success ? "success" : undefined} />
+      return graduated ? <School color="success" /> : <SentimentVerySatisfied color={success ? "success" : undefined} />
     case "done":
       return <School color="success" />
     default:
