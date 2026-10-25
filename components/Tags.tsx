@@ -115,7 +115,7 @@ export const Tags: React.FC<TagsProps> = ({ dispatch }) => {
         sx={{ borderBottom: 1, borderColor: "divider", mt: 1, mb: 2 }}
       >
         <Tab label="Tags" value="tags" />
-        <Tab label="Tag Groups" value="groups" />
+        <Tab label="Groups" value="groups" />
       </Tabs>
 
       {subTab === "tags" && (
