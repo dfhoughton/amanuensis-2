@@ -29,7 +29,7 @@ import {
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import debounce from "lodash/debounce"
-import { Save, Language as LanguageIcon, Search } from "@mui/icons-material"
+import { Save, Language as LanguageIcon, Search, School } from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -175,114 +175,125 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
       {!!citation && (
         <Box onKeyDown={handleKeyPress}>
           {/* lemma and save and language widgets */}
-          <Grid container columns={6}>
-            <Grid size={5}>
-              <TextField
-                onChange={
-                  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-                    dispatch({
-                      action: "phrase",
-                      phrase: { ...phrase!, lemma: e.target.value },
-                    })
-                  }, 500) as React.ChangeEventHandler<
-                    HTMLInputElement | HTMLTextAreaElement
-                  >
-                }
-                variant="standard"
-                hiddenLabel
-                placeholder="Lemma"
-                defaultValue={phrase?.lemma}
-                sx={{ width: "100%", pn: 1 }}
-                inputRef={lemmaRef}
-                slotProps={{
-                  input: {
-                    style: {
-                      fontWeight: 700,
-                    },
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={1}>
-              <Stack
-                sx={{
-                  display: "inline-table",
-                  float: "right",
-                }}
-              >
-                <Tooltip
-                  enterDelay={200}
-                  arrow
-                  title={`When this is enabled, some part of this phrase is unsaved.${clean ? "" : " Click to save."
-                    }`}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, pb: 1 }}>
+            <TextField
+              onChange={
+                debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+                  dispatch({
+                    action: "phrase",
+                    phrase: { ...phrase!, lemma: e.target.value },
+                  })
+                }, 500) as React.ChangeEventHandler<
+                  HTMLInputElement | HTMLTextAreaElement
                 >
-                  <span>
-                    <IconButton
-                      color="primary"
-                      size="small"
-                      disabled={clean}
-                      onClick={save}
+              }
+              variant="standard"
+              hiddenLabel
+              placeholder="Lemma"
+              defaultValue={phrase?.lemma}
+              sx={{ flex: 1, minWidth: 0 }}
+              inputRef={lemmaRef}
+              slotProps={{
+                input: {
+                  style: {
+                    fontWeight: 700,
+                  },
+                },
+              }}
+            />
+            <Stack
+              direction="row"
+              spacing={0}
+              sx={{ alignItems: "center", flexShrink: 0 }}
+            >
+              <Tooltip
+                enterDelay={200}
+                arrow
+                title={`When this is enabled, some part of this phrase is unsaved.${clean ? "" : " Click to save."
+                  }`}
+              >
+                <Box component="span" sx={{ display: "inline-flex" }}>
+                  <IconButton
+                    color="primary"
+                    size="small"
+                    disabled={clean}
+                    onClick={save}
+                  >
+                    <Save fontSize="inherit" />
+                  </IconButton>
+                </Box>
+              </Tooltip>
+              <Tooltip
+                enterDelay={200}
+                arrow
+                title={`TBD`}
+              >
+                <Box component="span" sx={{ display: "inline-flex" }}>
+                  <IconButton
+                    color="primary"
+                    size="small"
+                    disabled={true}
+                    onClick={save}
+                  >
+                    <School fontSize="inherit" />
+                  </IconButton>
+                </Box>
+              </Tooltip>
+              {languages.length > 1 && (
+                <>
+                  <Tooltip
+                    enterDelay={200}
+                    arrow
+                    title="Change language assignment for note"
+                  >
+                    <Badge
+                      badgeContent={
+                        currentLanguage?.locale === "und"
+                          ? undefined
+                          : currentLanguage?.locale
+                      }
+                      overlap="circular"
+                      color="secondary"
                     >
-                      <Save fontSize="inherit" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                {languages.length > 1 && (
-                  <>
-                    <Tooltip
-                      enterDelay={200}
-                      arrow
-                      title="Change language assignment for note"
-                    >
-                      <Badge
-                        badgeContent={
-                          currentLanguage?.locale === "und"
-                            ? undefined
-                            : currentLanguage?.locale
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={(e) =>
+                          setLanguageMenuAnchorEl(e.currentTarget)
                         }
-                        overlap="circular"
-                        color="secondary"
                       >
-                        <IconButton
-                          color="primary"
-                          size="small"
-                          onClick={(e) =>
-                            setLanguageMenuAnchorEl(e.currentTarget)
-                          }
+                        <LanguageIcon fontSize="inherit" />
+                      </IconButton>
+                    </Badge>
+                  </Tooltip>
+                  <Menu
+                    slotProps={{ list: { dense: true } }}
+                    anchorEl={languageMenuAnchorEl}
+                    open={languageMenuOpen}
+                    onClose={() => setLanguageMenuAnchorEl(null)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.preventDefault()
+                        setLanguageMenuAnchorEl(null)
+                      }
+                    }}
+                  >
+                    {languages
+                      .sort((a, b) => (a.name < b.name ? -1 : 1))
+                      .map((l) => (
+                        <MenuItem
+                          key={l.id!}
+                          selected={l.id === phrase.languageId}
+                          onClick={changeLanguage(l)}
                         >
-                          <LanguageIcon fontSize="inherit" />
-                        </IconButton>
-                      </Badge>
-                    </Tooltip>
-                    <Menu
-                      slotProps={{ list: { dense: true } }}
-                      anchorEl={languageMenuAnchorEl}
-                      open={languageMenuOpen}
-                      onClose={() => setLanguageMenuAnchorEl(null)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") {
-                          e.preventDefault()
-                          setLanguageMenuAnchorEl(null)
-                        }
-                      }}
-                    >
-                      {languages
-                        .sort((a, b) => (a.name < b.name ? -1 : 1))
-                        .map((l) => (
-                          <MenuItem
-                            key={l.id!}
-                            selected={l.id === phrase.languageId}
-                            onClick={changeLanguage(l)}
-                          >
-                            {l.name}
-                          </MenuItem>
-                        ))}
-                    </Menu>
-                  </>
-                )}
-              </Stack>
-            </Grid>
-          </Grid>
+                          {l.name}
+                        </MenuItem>
+                      ))}
+                  </Menu>
+                </>
+              )}
+            </Stack>
+          </Box>
           <TextField
             multiline
             autoFocus
