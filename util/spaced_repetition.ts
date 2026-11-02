@@ -166,6 +166,26 @@ export class DailyQuiz {
     }
     return this.config[quizType]
   }
+  // add a phrase to the end of the current quiz of the specified type
+  async addToQuiz(
+    phraseId: number,
+    quizzingOnLemmas: boolean,
+    q?: QuizSignature,
+  ) {
+    if (!q) q = await this.quiz(quizzingOnLemmas)
+    if (await this.inQuiz(phraseId, quizzingOnLemmas, q)) return
+    q.phrases.push(phraseId)
+    void (await setConfiguration(this.config))
+  }
+  // checks to see whether the given phrase is in the current quiz of the specified type
+  async inQuiz(
+    phraseId: number,
+    quizzingOnLemmas: boolean,
+    q?: QuizSignature,
+  ): Promise<boolean> {
+    if (!q) q = await this.quiz(quizzingOnLemmas)
+    return q.phrases.includes(phraseId)
+  }
   // replace the current quiz signature of quizzingOnLemmas type in the configuration
   async newQuiz(quizzingOnLemmas: boolean): Promise<void> {
     this.config[this.quizKey(quizzingOnLemmas)] = await makeQuiz(
@@ -262,9 +282,9 @@ export class DailyQuiz {
   }
   // returns an interval that, when added to this.now, puts you at the beginning of the appropriate day
   private truncateToDay(interval: number): number {
-    const t2 = new Date(this.now.getTime() + interval)
-    const t3 = new Date(t2.getFullYear(), t2.getMonth(), t2.getDate())
-    return t3.getTime() - this.now.getTime()
+    const t = new Date(this.now.getTime() + interval)
+    t.setHours(0, 0, 0, 0)
+    return t.getTime() - this.now.getTime()
   }
   // records the outcome of the most recent trial and returns the next card to display and the intervals for its buttons, if any
   async recordTrial(
@@ -289,8 +309,10 @@ export class DailyQuiz {
     }
     let graduated = false
     t[tk] = trialTimes
-    if (trialTimes.times.length === 0) trialTimes.times.push([now, "first"]) // record a starting time from which to measure first interval
-    trialTimes.times.push([time, outcome])
+    if (trialTimes.times.length === 0)
+      trialTimes.times.push([now, "first"]) // record a starting time from which to measure first interval
+    else trialTimes.times[trialTimes.times.length - 1][0] = now // reset this to the actual trial time
+    trialTimes.times.push([time, outcome]) // anticipated next trial time (not sure this is the best architecture)
     trialTimes.nextTime = time
     if (outcome === "again") {
       // move phrase to end of queue
@@ -336,6 +358,9 @@ export class DailyQuiz {
     if (outcomes.length === 0) return true
     // belt and suspenders
     return outcomes.length === 1 && outcomes[0] === "first"
+  }
+  getConfig(): Configuration {
+    return this.config
   }
   private quizKey(
     quizzingOnLemmas: boolean,

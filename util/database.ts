@@ -1939,13 +1939,17 @@ export async function prepareTrial(phraseId: number): Promise<PreparedTrial> {
       const language = (await db.languages.get(phrase.languageId!)) as Language
       const tags: Tag[] = phrase.tags?.length
         ? await enrichTags(
-            await db.tags.where("id").anyOf(phrase.tags).toArray()
-          )
+          await db.tags.where("id").anyOf(phrase.tags).toArray()
+        )
         : []
       const trial = (await db.trials.get(phraseId)) ?? { phraseId }
       return { phrase, trial, tags, language }
     },
   )
+}
+
+export async function getTrial(phraseId: number): Promise<Trial> {
+  return (await db.trials.get(phraseId)) ?? { phraseId }
 }
 
 // save the outcome of a single flash card trial

@@ -29,7 +29,12 @@ import {
 } from "../types/common"
 import { Action, errorHandler, selectCitation } from "../util/reducer"
 import debounce from "lodash/debounce"
-import { Save, Language as LanguageIcon, Search, School } from "@mui/icons-material"
+import {
+  Save,
+  Language as LanguageIcon,
+  Search,
+  School,
+} from "@mui/icons-material"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import StarRateIcon from "@mui/icons-material/StarRate"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -45,6 +50,7 @@ import {
   phrasesOnPage,
   savePhrase,
   similaritySearch,
+  getTrial,
 } from "../util/database"
 import { TagWidget } from "./TagWidget"
 import { sortTags, tagSearch } from "./Tags"
@@ -54,6 +60,8 @@ import {
   defaultDistanceMetric,
   defaultMaxSimilarPhrases,
 } from "../util/similarity_sorter"
+import { DailyQuiz, Trial } from "../util/spaced_repetition"
+import { QuizHistoryModal } from "./QuizHistoryModal"
 
 type NoteProps = {
   state: AppState
@@ -61,7 +69,7 @@ type NoteProps = {
 }
 
 export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
-  const { phrase, priorPhrase, citationIndex = 0 } = state
+  const { phrase, priorPhrase, config, citationIndex = 0 } = state
   const [languages, setLanguages] = useState<Language[]>([])
   const [currentLanguage, setCurrentLanguage] = useState<Language>()
   useEffect(() => {
@@ -106,6 +114,31 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
     },
     [lemmaRef, noteRef, elaborationRef],
   )
+
+  // some state useful for displaying spaced repetition quiz history
+  const [trial, setTrial] = useState<Trial | undefined>()
+  const [historyButtonColor, setHistoryButtonColor] = useState<
+    "primary" | "secondary" | "success"
+  >("secondary")
+  useEffect(() => {
+    if (phrase?.id) {
+      getTrial(phrase.id)
+        .then((trial) => {
+          setTrial(trial)
+          if (trial.glossTrials?.done && trial.phraseTrials?.done) {
+            setHistoryButtonColor("success")
+          } else if (trial.glossTrials || trial.phraseTrials) {
+            setHistoryButtonColor("primary")
+          } else {
+            setHistoryButtonColor("secondary")
+          }
+        })
+        .catch(errorHandler(dispatch, "obtaining trial for note"))
+    }
+  }, [phrase?.id, dispatch])
+  const quiz = useMemo(() => new DailyQuiz(config!), [config])
+  const [showHistory, setShowHistory] = useState(false)
+
   const languageMenuOpen = Boolean(languageMenuAnchorEl)
   const citation = phrase?.citations[citationIndex]
   // we ignore keys that either the user doesn't edit directly or which are saved without user intervention
@@ -226,14 +259,14 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               <Tooltip
                 enterDelay={200}
                 arrow
-                title={`TBD`}
+                title={`Show the spaced repetition history of "${phrase?.lemma}"`}
               >
                 <Box component="span" sx={{ display: "inline-flex" }}>
                   <IconButton
-                    color="primary"
+                    color={historyButtonColor}
                     size="small"
-                    disabled={true}
-                    onClick={save}
+                    disabled={trial === undefined}
+                    onClick={() => setShowHistory(!showHistory)}
                   >
                     <School fontSize="inherit" />
                   </IconButton>
@@ -416,6 +449,14 @@ export const Note: React.FC<NoteProps> = ({ state, dispatch }) => {
               dispatch={dispatch}
             />
           ))}
+          {!!trial && (
+            <QuizHistoryModal
+              trial={trial}
+              open={showHistory}
+              setOpen={setShowHistory}
+              dailyQuiz={quiz}
+            />
+          )}
         </Box>
       )}
     </>
