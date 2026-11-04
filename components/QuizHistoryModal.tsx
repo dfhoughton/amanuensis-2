@@ -17,6 +17,8 @@ export type QuizHistoryModalProps = {
   dispatch?: React.Dispatch<Action>
 }
 
+const defaultPixelsPerDay = 10
+
 const emptyTrialTimes: TrialTimes = {
   done: false,
   times: [],
@@ -33,8 +35,8 @@ export const QuizHistoryModal: React.FC<QuizHistoryModalProps> = ({
 }) => {
   const [prevInitialTab, setPrevInitialTab] = useState(initialTab)
   const [tab, setTab] = useState<string>(initialTab)
-  const [lemmaPixelsPerDay, setLemmPixelsPerDay] = useState(40)
-  const [glossPixelsPerDay, setGlossPixelsPerDay] = useState(40)
+  const [lemmaPixelsPerDay, setLemmPixelsPerDay] = useState(defaultPixelsPerDay)
+  const [glossPixelsPerDay, setGlossPixelsPerDay] = useState(defaultPixelsPerDay)
 
   if (prevInitialTab !== initialTab) {
     setPrevInitialTab(initialTab)
@@ -144,8 +146,8 @@ const AdjustableQuizHistory: React.FC<AdjustableQuizHistoryProps> = ({
           size="small"
           value={pixelsPerDay}
           onChange={(_e, value) => setPixelsPerDay(value as number)}
-          min={4}
-          max={100}
+          min={1}
+          max={40}
           step={1}
         />
       </>
