@@ -1970,27 +1970,28 @@ export async function howTheQuizIsGoingSoFar(
     // preliminary counts
     let old = allTrials.length // if we have any trials, it's probably old
     let remaining = phrases.length // we have to review them all
+    const now = new Date()
     for (const trial of allTrials) {
       const previous = trial[field]
       // we might have trials, but not for this type of quiz
       if (previous?.times.length) {
-        // reduce it to just today's trials
-        const times = previous.times.filter(([time, outcome]) => {
-          const usableTime = time > startTime
-          const usableOutcome = outcome !== "first"
-          return usableTime && usableOutcome
-        })
-        // do we have any left?
-        if (times.length) {
-          // store these outcomes
-          for (const [_time, outcome] of times) {
-            trialsWithinPeriod.push(outcome as NonInitialOutcome)
+        // Find the most recent trial outcome (not "first") regardless of whether it's scheduled or actual
+        let mostRecentOutcome: NonInitialOutcome | null = null
+        for (let i = previous.times.length - 1; i >= 0; i--) {
+          const [time, outcome] = previous.times[i]
+          if (outcome !== "first" && time > startTime) {
+            mostRecentOutcome = outcome as NonInitialOutcome
+            break // Take the last one (most recent) that meets criteria
           }
-          // did all trials happen today? if so, we miscounted it as old
-          if (times.length + 1 === previous.times.length) old--
-          // do we have any left after removing 'again'? if so, we've miscounted remaining
-          if (times.filter(([_time, outcome]) => outcome !== "again").length)
+        }
+        if (mostRecentOutcome) {
+          trialsWithinPeriod.push(mostRecentOutcome)
+          // Count as old if there's any trial history
+          old--
+          // Count as not remaining if outcome is not "again"
+          if (mostRecentOutcome !== "again") {
             remaining--
+          }
         }
       } else {
         // no trials of this type, so it's new
