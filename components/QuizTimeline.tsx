@@ -86,17 +86,18 @@ export const QuizTimeline: React.FC<QuizTimelineProps> = ({
   }
 
   // Calculate total width based on time span - must be called unconditionally
+  // Skip the first element which is just a starting marker, not an actual trial
   const minTime = useMemo(
     () =>
-      times && times.length > 0
-        ? Math.min(...times.map(([date]) => date.getTime()))
+      times && times.length > 1
+        ? Math.min(...times.slice(1).map(([date]) => date.getTime()))
         : 0,
     [times],
   )
   const maxTime = useMemo(
     () =>
-      times && times.length > 0
-        ? Math.max(...times.map(([date]) => date.getTime()))
+      times && times.length > 1
+        ? Math.max(...times.slice(1).map(([date]) => date.getTime()))
         : 0,
     [times],
   )
@@ -109,19 +110,18 @@ export const QuizTimeline: React.FC<QuizTimelineProps> = ({
 
   // Position each point - must be called unconditionally
   const points = useMemo(() => {
-    if (!times || times.length === 0) return []
-    if (times.length === 1) {
-      return [{ date: times[0][0], outcome: times[0][1], x: 0 }]
-    }
+    if (!times || times.length <= 1) return []
 
-    // times[0][0] is trial 1's date, whose outcome was times[1][1]
-    // times[i - 1][0] is trial i's date, whose outcome was times[i][1]
-    const historyPoints = times.slice(1).map(([_, outcome], idx) => {
-      const trialDate = times[idx][0]
+    // Each element in times.slice(1) represents an actual trial with [date, outcome]
+    // The first element (times[0]) is just a starting marker for interval calculation
+    const historyPoints = times.slice(1).map(([date, outcome]) => {
       return {
-        date: trialDate,
+        date: date,
         outcome,
-        x: timeSpanMs > 0 ? ((trialDate.getTime() - minTime) / timeSpanMs) * totalWidth : 0,
+        x:
+          timeSpanMs > 0
+            ? ((date.getTime() - minTime) / timeSpanMs) * totalWidth
+            : 0,
       }
     })
 

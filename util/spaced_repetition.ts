@@ -309,10 +309,10 @@ export class DailyQuiz {
     }
     let graduated = false
     t[tk] = trialTimes
-    if (trialTimes.times.length === 0)
-      trialTimes.times.push([now, "first"]) // record a starting time from which to measure first interval
-    else trialTimes.times[trialTimes.times.length - 1][0] = now // reset this to the actual trial time
-    trialTimes.times.push([time, outcome]) // anticipated next trial time (not sure this is the best architecture)
+    if (trialTimes.times.length === 0) {
+      trialTimes.times.push([new Date(now.getTime() - 1), "first"]) // record a starting time from which to measure first interval
+    }
+    trialTimes.times.push([now, outcome]) // record the actual evaluation time and outcome
     trialTimes.nextTime = time
     if (outcome === "again") {
       // move phrase to end of queue

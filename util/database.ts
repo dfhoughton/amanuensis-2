@@ -1970,11 +1970,13 @@ export async function howTheQuizIsGoingSoFar(
     // preliminary counts
     let old = allTrials.length // if we have any trials, it's probably old
     let remaining = phrases.length // we have to review them all
-    const now = new Date()
+    const now = new Date(), dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     for (const trial of allTrials) {
       const previous = trial[field]
       // we might have trials, but not for this type of quiz
       if (previous?.times.length) {
+        // if there is some outcome before today, it is old
+        if (!previous.times.some(([t, _]) => t < dayStart)) old--
         // Find the most recent trial outcome (not "first") regardless of whether it's scheduled or actual
         let mostRecentOutcome: NonInitialOutcome | null = null
         for (let i = previous.times.length - 1; i >= 0; i--) {
@@ -1986,12 +1988,7 @@ export async function howTheQuizIsGoingSoFar(
         }
         if (mostRecentOutcome) {
           trialsWithinPeriod.push(mostRecentOutcome)
-          // Count as old if there's any trial history
-          old--
-          // Count as not remaining if outcome is not "again"
-          if (mostRecentOutcome !== "again") {
-            remaining--
-          }
+          if (mostRecentOutcome !== "again") remaining--
         }
       } else {
         // no trials of this type, so it's new
